@@ -2,7 +2,7 @@ package ibis.cohort;
 
 public abstract class SeriesJob extends Job {
 
-	protected SeriesJob(Location location) {
+	protected SeriesJob(Context location) {
 		super(location);
 	}
 

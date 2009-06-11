@@ -2,7 +2,7 @@ package test.fib;
 
 import ibis.cohort.Cohort;
 import ibis.cohort.Job;
-import ibis.cohort.Location;
+import ibis.cohort.Context;
 import ibis.cohort.ParallelJob;
 import ibis.cohort.impl.Sequential;
 
@@ -14,7 +14,7 @@ public class Fibonacci extends ParallelJob {
     public int output;
 
     public Fibonacci( int input) {
-        super(Location.ANYWHERE);
+        super(Context.ANYWHERE);
         this.input = input;
     }
 

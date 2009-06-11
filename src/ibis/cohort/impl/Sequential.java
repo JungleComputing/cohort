@@ -109,7 +109,7 @@ public class Sequential implements Cohort {
 
     public void unsuspend(Job job) { 
         
-        if (job.isRunnable()) { 
+        if (!job.isSuspended()) { 
             return;
         }
         
@@ -125,7 +125,7 @@ public class Sequential implements Cohort {
 
         while (tmp != null) { 
 
-            if (!tmp.isRunnable()) {
+            if (tmp.isSuspended()) {
                 throw new RuntimeException("Unexpectedly got unrunnable job!");
             }
 
@@ -137,7 +137,7 @@ public class Sequential implements Cohort {
                     throw new RuntimeException("Unexpected exception", e);
                 }
 
-            } while (!tmp.isDone() && tmp.isRunnable());
+            } while (!tmp.isDone() && !tmp.isSuspended());
 
             if (!tmp.isDone()) {
                 // Job has simply suspended

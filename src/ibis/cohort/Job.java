@@ -8,67 +8,138 @@ public abstract class Job implements Serializable {
 
     protected transient Cohort cohort;
     private transient ResultHandler resultHandler;
-    private transient Job parent;
+    // private transient Job parent;
 
-    protected final JobIdentifier identifier;
-    protected final Location location; 
+    private JobIdentifier identifier;
     
-    private boolean runnable = true;
+    private Context location; 
     
-    protected Job(Location location) { 
-        identifier = JobIdentifier.getNext();
+    private State state = State.INITIAL;
+    
+    public enum State { 
+        INITIAL, 
+        SUBMITTED, 
+        RUNNABLE,
+        SUSPENDED,
+        FINISHED; 
+
+        public static State checkTransition(State pre, State post) { 
+
+            switch (pre) {
+            case INITIAL:                
+                if (post == SUBMITTED) {  
+                    return post;
+                }
+                break;            
+            case SUBMITTED:                
+                if (post == RUNNABLE) {  
+                    return post;
+                }
+                break;
+            case RUNNABLE:                
+                if (post == RUNNABLE || post == SUSPENDED || post == FINISHED) { 
+                    return post;
+                }
+            case SUSPENDED:
+                if (post == SUSPENDED || post == RUNNABLE) { 
+                    return post;
+                }
+            }
+
+            throw new IllegalStateException("Illegal state transition " + pre 
+                    + " -> " + post);
+        }
+    }
+    
+    protected Job(Context location) { 
         this.location = location;
     }
-
-    public JobIdentifier identifier() { 
+    
+    public JobIdentifier identifier() {
+        
+        if (state == State.INITIAL) { 
+            throw new IllegalStateException("Job is not initialized yet"); 
+        }
+        
         return identifier;
     }
 
-    public Location getLocation() { 
+    public Context getLocation() { 
         return location;
     }
 
-    public synchronized void setResultHandler(ResultHandler r) {
+    public void setResultHandler(ResultHandler r) {
         this.resultHandler = r;
     }
 
-    public synchronized ResultHandler getResultHandler() {
+    public ResultHandler getResultHandler() {
         return resultHandler;
     }
 
-    public synchronized void setCohort(Cohort japi) {
+    public void setCohort(Cohort japi) {
         this.cohort = japi;
     }
 
-    protected synchronized Cohort getCohort() {
+    protected Cohort getCohort() {
         return cohort;
     }
 
-    protected synchronized void setParent(Job parent) { 
+    /*
+    protected void setParent(Job parent) { 
         this.parent = parent;
     }
 
-    public synchronized Job getParent() { 
+    public Job getParent() { 
         return parent;
     }
+    */
 
-    public synchronized boolean isRunnable() { 
-        return runnable;
+    public boolean isSuspended() { 
+        return state == State.SUSPENDED;
     }
     
-    public synchronized void setRunnable(boolean value) { 
-        runnable = value;
+    public boolean isRunnable() { 
+        return state == State.RUNNABLE;
+    }
+
+    public boolean isFinished() { 
+        return state == State.FINISHED;
+    }
+    
+    public boolean isSubmitted() { 
+        return state != State.INITIAL;
+    }
+
+    public void submitted() { 
+        state = State.checkTransition(state, State.SUBMITTED);        
+    }
+    
+    public void suspend() {
+        state = State.checkTransition(state, State.SUSPENDED);
     }    
     
-    public abstract Object produceResult();
+    public void runnable() {
+        state = State.checkTransition(state, State.RUNNABLE); 
+    }    
 
-    public abstract void run() throws Exception;
+    public void finish() {
+        state = State.checkTransition(state, State.FINISHED); 
+    }    
+
+    public void send(JobIdentifier target, Object o) { 
+    	cohort.send(identifier, target, o);
+    }
+      
+    public void deliver(Event e) { 
+    	// TODO: store event
+    	cohort.unsuspend(identifier);
+    }
     
-    public abstract void submitted();
+    public abstract void initialize() throws Exception;
     
-    public abstract boolean isSubmitted();
-
-    public abstract boolean isDone();
-
+    public abstract void process(Event e) throws Exception;
+   
+    public abstract void finalize() throws Exception;
+    
     
 }

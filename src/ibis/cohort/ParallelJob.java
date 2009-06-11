@@ -64,7 +64,7 @@ public abstract class ParallelJob extends Job implements ResultHandler {
     private int totalSubJobs = 0;
     private int mergedResults = 0;
 
-    protected ParallelJob(Location location) {
+    protected ParallelJob(Context location) {
         super(location);
     }
 
