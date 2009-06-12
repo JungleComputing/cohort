@@ -11,6 +11,8 @@ import ibis.cohort.impl.Sequential;
 
 public class Streaming extends Activity {
     
+    // TODO: This does not work yet!!!
+    
     /*
      * This is a simple streaming example. A sequence of activities is created (length 
      * specified on commandline). The first activity repeatedly sends and object to the 
