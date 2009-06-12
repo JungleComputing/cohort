@@ -1,11 +1,11 @@
 package test.fib;
 
 import ibis.cohort.Cohort;
-import ibis.cohort.Job;
+import ibis.cohort.Activity;
 import ibis.cohort.Context;
-import ibis.cohort.ParallelJob;
+import ibis.cohort.extra.ParallelJob;
 import ibis.cohort.impl.Sequential;
-
+/*
 public class Fibonacci extends ParallelJob {
 
     private static final long serialVersionUID = 3379531054395374984L;
@@ -19,7 +19,7 @@ public class Fibonacci extends ParallelJob {
     }
 
     @Override
-    public void merge(Job job, Object result) {
+    public void merge(Activity job, Object result) {
         this.output += (Integer) result;
     }
 
@@ -61,3 +61,4 @@ public class Fibonacci extends ParallelJob {
                 + (end-start) + ")");
     }
 }
+*/

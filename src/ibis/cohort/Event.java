@@ -2,9 +2,9 @@ package ibis.cohort;
 
 public abstract class Event {
 
-	public final JobIdentifier source;
+    public final Identifier source;
 
-	public Event(JobIdentifier source) { 
-		this.source = source;
-	}
+    public Event(Identifier source) { 
+        this.source = source;
+    }
 }

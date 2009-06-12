@@ -1,6 +1,9 @@
-package ibis.cohort;
+package ibis.cohort.extra;
 
-public abstract class ChoiceJob extends Job {
+import ibis.cohort.Context;
+import ibis.cohort.Activity;
+
+public abstract class ChoiceJob extends Activity {
 
 	private static final long serialVersionUID = 2133672226025496546L;
 

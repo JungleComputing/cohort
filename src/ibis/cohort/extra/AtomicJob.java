@@ -1,6 +1,9 @@
-package ibis.cohort;
+package ibis.cohort.extra;
 
-public abstract class AtomicJob extends Job {
+import ibis.cohort.Context;
+import ibis.cohort.Activity;
+
+public abstract class AtomicJob extends Activity {
 
 	private static final long serialVersionUID = -5751438180590424232L;
 

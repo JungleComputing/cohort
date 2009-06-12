@@ -2,21 +2,15 @@ package ibis.cohort;
 
 public interface Cohort {
 
-	// Async call
-	JobIdentifier submit(Job job, ResultHandler h);
-
-	// Sync call
-	Object submit(Job job);
-
-	void send(JobIdentifier source, JobIdentifier target, Object o);    
+    Identifier submit(Activity job);
     
-    void finished(Job id, Object result);
-    void unsuspend(Job id);
-        
-	boolean cancel(JobIdentifier job);
-	boolean cancelAll();
-	void done();
+    void send(Identifier source, Identifier target, Object o);    
 
-        
-        
+   // void finished(Activity id, Object result);
+   // void unsuspend(Activity id);
+
+    boolean cancel(Identifier activity);
+    boolean cancelAll();
+    void done();
+
 }

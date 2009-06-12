@@ -1,4 +1,4 @@
-package ibis.cohort;
+package ibis.cohort.extra;
 
 public class NoSuchChildException extends Exception {
 

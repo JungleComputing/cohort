@@ -1,10 +1,15 @@
-package ibis.cohort;
+package ibis.cohort.extra;
+
+import ibis.cohort.Context;
+import ibis.cohort.Activity;
+import ibis.cohort.Identifier;
+import ibis.cohort.SubmissionException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
-public abstract class ParallelJob extends Job implements ResultHandler {
+public abstract class ParallelJob extends Activity {
 
     private static final long serialVersionUID = -5364517900077425503L;
 
@@ -48,15 +53,15 @@ public abstract class ParallelJob extends Job implements ResultHandler {
     }
 
     private class JobInfo { 
-        final Job job;
+        final Activity job;
         Object result;
         
-        JobInfo(Job job) { 
+        JobInfo(Activity job) { 
             this.job = job;
         }
     }
     
-    private HashMap<JobIdentifier, JobInfo> subjobs; 
+    private HashMap<Identifier, JobInfo> subjobs; 
     private ArrayList<JobInfo> results; 
     
     private State state = State.INITIAL;
@@ -87,8 +92,9 @@ public abstract class ParallelJob extends Job implements ResultHandler {
         return totalSubJobs;
     }
 
+    /*
     // May only be called from split ? 
-    public synchronized void submit(Job job) throws SubmissionException {
+    public synchronized void submit(Activity job) throws SubmissionException {
 
         if (job.isSubmitted()) {
             throw new SubmissionException("Job submitted twice");
@@ -101,7 +107,7 @@ public abstract class ParallelJob extends Job implements ResultHandler {
         job.setParent(this);
 
         if (subjobs == null) {
-            subjobs = new HashMap<JobIdentifier, JobInfo>();
+            subjobs = new HashMap<Identifier, JobInfo>();
         }
 
         totalSubJobs++;
@@ -111,7 +117,7 @@ public abstract class ParallelJob extends Job implements ResultHandler {
         cohort.submit(job, this);
     }
 
-    public synchronized void storeResult(Job job, Object result) {
+    public synchronized void storeResult(Activity job, Object result) {
 
         if (subjobs == null) { 
             throw new RuntimeException("Unexpected Job result");
@@ -154,11 +160,11 @@ public abstract class ParallelJob extends Job implements ResultHandler {
         return produceResult();
     }
     
-    public int cancelSubJob(Job job) throws NoSuchChildException {
+    public int cancelSubJob(Activity job) throws NoSuchChildException {
         return cancelSubJob(job.identifier());
     }
     
-    public synchronized int cancelSubJob(JobIdentifier job)
+    public synchronized int cancelSubJob(Identifier job)
         throws NoSuchChildException {
 
         if (subjobs == null) {
@@ -188,9 +194,9 @@ public abstract class ParallelJob extends Job implements ResultHandler {
 
         if (subjobs.size() > 0) {
 
-            Set<JobIdentifier> tmp = subjobs.keySet();
+            Set<Identifier> tmp = subjobs.keySet();
             
-            for (JobIdentifier id : tmp) {
+            for (Identifier id : tmp) {
                 try { 
                     cancelSubJob(id);
                 } catch (Exception e) {
@@ -269,8 +275,9 @@ public abstract class ParallelJob extends Job implements ResultHandler {
             throw new RuntimeException("Running job with unknown state!");
         }
     }
+   
 
     public abstract void split() throws Exception;
-    public abstract void merge(Job job, Object result);
-
+    public abstract void merge(Activity job, Object result);
+*/
 }
