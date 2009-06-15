@@ -291,15 +291,15 @@ public class Sequential implements Cohort {
         boolean change = ar.setRunnable();
         
         if (change) {     
-           // System.out.println(target + " is now runnable");
             runnable.add(ar);
-        } else { 
-          //  System.out.println(target + " already runnable ?");
+        }
+        
+        // Check if there is some pending work that needs CPU time...
+        if (!isRunning) { 
+            processJobs();
         }
     } 
 
-    
-    
     private void processJobs() { 
 
         isRunning = true;

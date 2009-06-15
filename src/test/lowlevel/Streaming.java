@@ -11,8 +11,6 @@ import ibis.cohort.impl.Sequential;
 
 public class Streaming extends Activity {
     
-    // TODO: This does not work yet!!!
-    
     /*
      * This is a simple streaming example. A sequence of activities is created (length 
      * specified on commandline). The first activity repeatedly sends and object to the 
@@ -91,19 +89,24 @@ public class Streaming extends Activity {
                 + " and " + data + " messages");
         
         SingleEventCollector a = new SingleEventCollector();
-
         cohort.submit(a);
-        cohort.submit(new Streaming(a.identifier(), length, 0, data));
+        
+        Streaming s = new Streaming(a.identifier(), length, 0, data);
+        cohort.submit(s);
 
+        for (int i=0;i<data;i++) { 
+            cohort.send(a.identifier(), s.identifier(), i);
+        }
+        
         long result = ((MessageEvent<Integer>)a.waitForEvent()).message;
 
         long end = System.currentTimeMillis();
 
-        double nsPerJob = (1000.0*1000.0 * (end-start)) / length;
+        double nsPerJob = (1000.0*1000.0 * (end-start)) / (data*length);
         
-        String correct = (result == length) ? " (CORRECT)" : " (WRONG!)";
+        String correct = (result == data) ? " (CORRECT)" : " (WRONG!)";
         
-        System.out.println("Series(" + length + ") = " + result + 
+        System.out.println("Series(" + length + ", " + data + ") = " + result + 
                 correct + " total time = " + (end-start) + 
                 " job time = " + nsPerJob + " nsec/job");
 
