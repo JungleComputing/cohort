@@ -2,9 +2,11 @@ package ibis.cohort;
 
 public abstract class Event {
 
-    public final Identifier source;
-
-    public Event(Identifier source) { 
+    public final ActivityIdentifier source;
+    public final ActivityIdentifier target;
+    
+    public Event(ActivityIdentifier source, ActivityIdentifier target) { 
         this.source = source;
+        this.target = target;
     }
 }

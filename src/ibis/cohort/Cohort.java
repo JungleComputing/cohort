@@ -2,15 +2,15 @@ package ibis.cohort;
 
 public interface Cohort {
 
-    Identifier submit(Activity job);
+    ActivityIdentifier submit(Activity job);
     
-    void send(Identifier source, Identifier target, Object o);    
+    void send(ActivityIdentifier source, ActivityIdentifier target, Object o);    
 
    // void finished(Activity id, Object result);
    // void unsuspend(Activity id);
 
-    boolean cancel(Identifier activity);
-    boolean cancelAll();
+    void cancel(ActivityIdentifier activity);
+    void cancelAll();
     void done();
 
 }

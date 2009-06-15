@@ -4,10 +4,11 @@ import ibis.cohort.Activity;
 import ibis.cohort.Cohort;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
-import ibis.cohort.Identifier;
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.impl.Sequential;
+import ibis.cohort.impl.multithreaded.MTCohort;
+import ibis.cohort.impl.sequential.Sequential;
 
 public class DivideAndConquer extends Activity {
 
@@ -19,7 +20,7 @@ public class DivideAndConquer extends Activity {
     
     private static final long serialVersionUID = 3379531054395374984L;
 
-    private final Identifier parent;
+    private final ActivityIdentifier parent;
 
     private final int branch;
     private final int depth;
@@ -28,7 +29,7 @@ public class DivideAndConquer extends Activity {
     
     private long count = 1;
     
-    public DivideAndConquer(Identifier parent, int branch, int depth) {
+    public DivideAndConquer(ActivityIdentifier parent, int branch, int depth) {
         super(Context.ANYWHERE);
         this.parent = parent;
         this.branch = branch;
@@ -76,10 +77,21 @@ public class DivideAndConquer extends Activity {
 
         long start = System.currentTimeMillis();
 
-        Cohort cohort = new Sequential();
+      //  Cohort cohort = new Sequential();
 
-        int branch = Integer.parseInt(args[0]);
-        int depth =  Integer.parseInt(args[1]);
+        Cohort cohort = null; 
+        
+        if (args[0].equals("seq")) { 
+            cohort = new Sequential();
+        } else  if (args[0].equals("mt")) { 
+            cohort = new MTCohort(1);
+        } else { 
+            System.out.println("Unknown Cohort implementation selected!");
+            System.exit(1);
+        }
+         
+        int branch = Integer.parseInt(args[1]);
+        int depth =  Integer.parseInt(args[2]);
         
         long count = 0;
         

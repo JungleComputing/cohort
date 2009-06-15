@@ -12,7 +12,7 @@ public abstract class Activity implements Serializable {
     
     protected transient Cohort cohort;
     
-    private Identifier identifier;
+    private ActivityIdentifier identifier;
     private Context context; 
    
     private byte next = REQUEST_UNKNOWN;
@@ -21,12 +21,12 @@ public abstract class Activity implements Serializable {
         this.context = context;
     }
     
-    public void initialize(Cohort cohort, Identifier id) { 
+    public void initialize(Cohort cohort, ActivityIdentifier id) { 
         this.identifier = id;
         this.cohort = cohort;
     }
     
-    public Identifier identifier() {
+    public ActivityIdentifier identifier() {
         
         if (identifier == null) { 
             throw new IllegalStateException("Activity is not initialized yet"); 

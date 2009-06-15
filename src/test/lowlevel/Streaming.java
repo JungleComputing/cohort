@@ -4,10 +4,10 @@ import ibis.cohort.Activity;
 import ibis.cohort.Cohort;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
-import ibis.cohort.Identifier;
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.impl.Sequential;
+import ibis.cohort.impl.sequential.Sequential;
 
 public class Streaming extends Activity {
     
@@ -20,15 +20,15 @@ public class Streaming extends Activity {
     
     private static final long serialVersionUID = 3379531054395374984L;
 
-    private final Identifier root;
-    private Identifier next;
+    private final ActivityIdentifier root;
+    private ActivityIdentifier next;
     
     private final int length;
     private final int index;
     private final int totaldata;
     private int dataSeen;
     
-    public Streaming(Identifier root, int length, int index, int totaldata) {
+    public Streaming(ActivityIdentifier root, int length, int index, int totaldata) {
         super(Context.ANYWHERE);
         this.root = root;
         this.length = length;

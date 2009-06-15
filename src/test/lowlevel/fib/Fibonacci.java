@@ -4,22 +4,22 @@ import ibis.cohort.Activity;
 import ibis.cohort.Cohort;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
-import ibis.cohort.Identifier;
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.impl.Sequential;
+import ibis.cohort.impl.sequential.Sequential;
 
 public class Fibonacci extends Activity {
 
     private static final long serialVersionUID = 3379531054395374984L;
 
-    private final Identifier parent;
+    private final ActivityIdentifier parent;
 
     private final int input;
     private int output;
     private int merged = 0;
 
-    public Fibonacci(Identifier parent, int input) {
+    public Fibonacci(ActivityIdentifier parent, int input) {
         super(Context.ANYWHERE);
         this.parent = parent;
         this.input = input;

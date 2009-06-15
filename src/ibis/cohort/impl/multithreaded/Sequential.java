@@ -1,9 +1,9 @@
-package ibis.cohort.impl;
+package ibis.cohort.impl.multithreaded;
 
 import ibis.cohort.Cohort;
 import ibis.cohort.Activity;
 import ibis.cohort.Event;
-import ibis.cohort.Identifier;
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class Sequential implements Cohort {
         static final int FINISHING    = 4;
         static final int DONE         = 5;
         static final int ERROR        = Integer.MAX_VALUE;
-        
+
         final Activity activity;
         private LinkedList<Event> queue;
         private int state = INITIALIZING;
@@ -54,82 +54,82 @@ public class Sequential implements Cohort {
         int pendingEvents() { 
 
             if (queue == null || queue.size() == 0) { 
-                
-             //   System.out.println("   PENDING EVENTS 0");
-                
+
+                //   System.out.println("   PENDING EVENTS 0");
+
                 return 0;
             }
 
             //System.out.println("   PENDING EVENTS " + queue.size());
-            
+
             return queue.size();
         }
 
-        Identifier identifier() { 
+        ActivityIdentifier identifier() { 
             return activity.identifier();
         }
-        
+
         boolean isRunnable() { 
             return (state == RUNNABLE);
         }
-        
+
         boolean isDone() { 
             return (state == DONE);
         }
-        
+
         boolean needsToRun() { 
             return (state == INITIALIZING || state == RUNNABLE || state == FINISHING);
         }
-        
+
         boolean setRunnable()  { 
-            
+
             if (state == RUNNABLE || state == INITIALIZING) { 
                 // it's already runnable 
                 return false;
             }
-            
+
             if (state == SUPENDED) { 
                 // it's runnable now
                 state = RUNNABLE;
                 return true;
             }
-            
+
             // It cannot be made runnable
             throw new IllegalStateException("INTERNAL ERROR: activity cannot be made runnable!");
         }
-        
+
         void run() {
 
             try { 
                 switch (state) { 
 
                 case INITIALIZING: 
-                    
-                   // System.out.println("I -> " + activity);
-                  //  System.out.println("INIT " + activity);
-                    
+
+                    // System.out.println("I -> " + activity);
+                    //  System.out.println("INIT " + activity);
+
                     activity.initialize();
 
                     if (activity.mustSuspend()) { 
-                       // System.out.println("   SUSPEND " + activity); 
+                        // System.out.println("   SUSPEND " + activity); 
                         state = SUPENDED;
                     } else if (activity.mustFinish()) { 
-                      //  System.out.println("   FINISHING " + activity); 
-                        
+                        //  System.out.println("   FINISHING " + activity); 
+
                         state = FINISHING;
                     } else { 
                         throw new IllegalStateException("Activity did not suspend or finish!");
                     }
-                    
+
                     activity.reset();
                     break;
 
                 case RUNNABLE:
 
-                  //  System.out.println("P -> " + activity);
-                    
-                 //   System.out.println("PROCESS " + activity);
-                    
+                    //  System.out.println("P -> " + activity);
+
+                    //   System.out.println("PROCESS " + activity);
+
                     Event e = dequeue();
 
                     if (e == null) { 
@@ -142,10 +142,10 @@ public class Sequential implements Cohort {
                         // We only suspend the job if there are no pending events.
                         if (pendingEvents() > 0) { 
                             state = RUNNABLE;
-                        //    System.out.println("   RUNNABLE " + activity); 
+                            //    System.out.println("   RUNNABLE " + activity); 
                         } else {
                             state = SUPENDED;
-                        //    System.out.println("   SUSPEND " + activity); 
+                            //    System.out.println("   SUSPEND " + activity); 
                         }
                     } else if (activity.mustFinish()) { 
                         //System.out.println("   FINISHING " + activity); 
@@ -153,16 +153,16 @@ public class Sequential implements Cohort {
                     } else { 
                         throw new IllegalStateException("Activity did not suspend or finish!");
                     }
-                    
+
                     activity.reset();
                     break;
 
                 case FINISHING: 
 
-                   // System.out.println("F -> " + activity);
+                    // System.out.println("F -> " + activity);
 
-                //    System.out.println("FINISH " + activity);
-                    
+                    //    System.out.println("FINISH " + activity);
+
                     activity.cleanup();
                     state = DONE;
                     break;
@@ -172,11 +172,11 @@ public class Sequential implements Cohort {
 
                 case ERROR:
                     throw new IllegalStateException("INTERNAL ERROR: Running activity that is in an error state!");
-                    
+
                 default:
                     throw new IllegalStateException("INTERNAL ERROR: Running activity with unknown state!");
                 }
-                
+
             } catch (Exception e) { 
                 System.err.println("Activity failed: " + e);
                 e.printStackTrace(System.err);
@@ -185,43 +185,46 @@ public class Sequential implements Cohort {
         }
     }
 
-    private HashMap<Identifier, ActivityRecord> all = 
-        new HashMap<Identifier, ActivityRecord>();
+    private HashMap<ActivityIdentifier, ActivityRecord> all = 
+        new HashMap<ActivityIdentifier, ActivityRecord>();
 
     private ArrayList<ActivityRecord> fresh = new ArrayList<ActivityRecord>();    
     private ArrayList<ActivityRecord> runnable = new ArrayList<ActivityRecord>();    
 
-    private boolean isRunning = false;
+    private final MTCohort parent;
+    private final int workerID;
 
-    private long nextID = 0;
+    private IDGenerator generator;
     
-    public boolean cancel(Identifier id) {
-        
+    Sequential(MTCohort parent, int workerID) { 
+        this.parent = parent;
+        this.workerID = workerID;
+        this.generator = parent.getIDGenerator();
+    }
+
+    public void cancel(ActivityIdentifier id) {
+
         ActivityRecord ar = all.remove(id);
-        
+
         if (ar == null) { 
-            return false;
+            return;
         } 
-        
+
         //System.out.println("CANCEL " + ar.activity);
-        
+
         if (ar.needsToRun()) { 
             runnable.remove(ar);
         }
-        
-        return true;
     }
-    
-    public boolean cancelAll() {
+
+    public void cancelAll() {
 
         if (all.size() == 0) { 
-            return false;
+            return;
         }
-       
+
         all.clear();
         runnable.clear();
-        
-        return true;
     }
 
     public void done() {
@@ -244,14 +247,49 @@ public class Sequential implements Cohort {
 
         return null;
     }
-    
-    private Identifier createActivityID() { 
-        return new SequentialIdentifier(nextID++);
+
+    private ActivityIdentifier createActivityID() { 
+        
+        try { 
+            return generator.createActivityID();
+        } catch (Exception e) {
+            // Oops, we ran out of IDs. Get some more from our parent!
+            generator = parent.getIDGenerator();
+        }
+
+        try { 
+            return generator.createActivityID();
+        } catch (Exception e) { 
+            throw new RuntimeException("ITERNAL ERROR: failed to create new ID block!", e);
+        }
+        
+        //return new MTIdentifier(nextID++);
     }
 
-    public Identifier submit(Activity a) {
-       
-        Identifier id = createActivityID();
+    public ActivityIdentifier prepareSubmission(Activity a) { 
+        
+        ActivityIdentifier id = createActivityID();
+        a.initialize(this, id);
+        return id;
+    }
+    
+    public void finishSubmission(Activity a) { 
+
+        ActivityRecord ar = new ActivityRecord(a);
+        all.put(a.identifier(), ar);
+        fresh.add(ar); 
+    }
+    
+    public ActivityIdentifier submit(Activity a) {
+
+        ActivityIdentifier id = prepareSubmission(a);
+        finishSubmission(a);
+        return id;
+        
+        /*
+        
+        
+        ActivityIdentifier id = createActivityID();
 
         a.initialize(this, id);
 
@@ -267,46 +305,66 @@ public class Sequential implements Cohort {
             processJobs();
         }
 
-        return id;
+        return id;*/
     }
 
-    public void send(Identifier source, Identifier target, Object o) {
+    public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) {
 
         ActivityRecord ar = all.get(target);
-        
+
         if (ar == null) { 
 
             System.out.println("   SEND FAILED " + source + " -> " + target + " " + o);
 
             new Exception().printStackTrace(System.out);
-            
+
             System.exit(1);
         }
 
-      //  System.out.println("   SEND " + source + " -> " + target + " (" + ar.activity + ") " + o);
-        
-        
-        ar.enqueue(new MessageEvent(source, o));
+        //  System.out.println("   SEND " + source + " -> " + target + " (" + ar.activity + ") " + o);
+
+
+        ar.enqueue(new MessageEvent(source, target, o));
 
         boolean change = ar.setRunnable();
-        
+
         if (change) {     
             runnable.add(ar);
         }
-        
-        // Check if there is some pending work that needs CPU time...
-        if (!isRunning) { 
-            processJobs();
-        }
     } 
 
-    private void processJobs() { 
+    public void queueEvent(Event e) {
 
-        isRunning = true;
+        ActivityRecord ar = all.get(e.target);
+
+        if (ar == null) { 
+
+            System.out.println("   Cannot handle event " + e);
+
+            new Exception().printStackTrace(System.out);
+
+            System.exit(1);
+        }
+
+        //  System.out.println("   SEND " + source + " -> " + target + " (" + ar.activity + ") " + o);
+        ar.enqueue(e);
+
+        boolean change = ar.setRunnable();
+
+        if (change) {     
+            runnable.add(ar);
+        }
+    } 
+    
+    public void steal() {
         
+    }
+    
+    boolean process() { 
+
         ActivityRecord tmp = dequeue();
 
-        while (tmp != null) {
+        if (tmp != null) {
             tmp.run();
 
             if (tmp.needsToRun()) { 
@@ -314,16 +372,13 @@ public class Sequential implements Cohort {
             } else if (tmp.isDone()) { 
                 cancel(tmp.identifier());
             }
-            
-            tmp = dequeue();
+          
+            return true;
         }
-
-        isRunning = false;
         
-        // sanity check
-        if (runnable.size() > 0) { 
-            throw new RuntimeException("Quiting while there are runnable activities!");
-        }
+        return false;
     }
+
+    
 
 }

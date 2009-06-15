@@ -1,14 +1,14 @@
-package ibis.cohort.impl;
+package ibis.cohort.impl.multithreadedISSUES;
 
-import ibis.cohort.Identifier;
+import ibis.cohort.ActivityIdentifier;
 
-public class SequentialIdentifier extends Identifier {
+public class MultithreadedIdentifier extends ActivityIdentifier {
     
     private static final long serialVersionUID = -2306905988828294374L;
     
     private final long id;
 
-    protected SequentialIdentifier(long id) { 
+    protected MultithreadedIdentifier(long id) { 
         this.id = id;
     }
 
@@ -29,7 +29,7 @@ public class SequentialIdentifier extends Identifier {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final SequentialIdentifier other = (SequentialIdentifier) obj;
+        final MultithreadedIdentifier other = (MultithreadedIdentifier) obj;
       
         return (id == other.id);
     }

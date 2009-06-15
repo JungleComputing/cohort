@@ -2,7 +2,7 @@ package ibis.cohort.extra;
 
 import ibis.cohort.Context;
 import ibis.cohort.Activity;
-import ibis.cohort.Identifier;
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.SubmissionException;
 
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public abstract class ParallelJob extends Activity {
         }
     }
     
-    private HashMap<Identifier, JobInfo> subjobs; 
+    private HashMap<ActivityIdentifier, JobInfo> subjobs; 
     private ArrayList<JobInfo> results; 
     
     private State state = State.INITIAL;

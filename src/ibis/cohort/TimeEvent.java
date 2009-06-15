@@ -4,8 +4,8 @@ public class TimeEvent extends Event {
 
     public final Time time;
 
-    public TimeEvent(Identifier source, Time time) {
-        super(source);
+    public TimeEvent(ActivityIdentifier target, Time time) {
+        super(null, target);
         this.time = time;
     }
 

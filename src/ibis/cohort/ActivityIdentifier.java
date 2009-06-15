@@ -2,7 +2,7 @@ package ibis.cohort;
 
 import java.io.Serializable;
 
-public abstract class Identifier implements Serializable {
+public abstract class ActivityIdentifier implements Serializable {
 
     /*
     private static long nextID = 0;
