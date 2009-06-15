@@ -105,16 +105,22 @@ public class Sequential implements Cohort {
 
                 case INITIALIZING: 
 
-                    // System.out.println("I -> " + activity);
-                    //  System.out.println("INIT " + activity);
+                   //  System.out.println("I -> " + activity);
+          //           System.out.println("INIT " + activity);
 
                     activity.initialize();
 
                     if (activity.mustSuspend()) { 
-                        // System.out.println("   SUSPEND " + activity); 
-                        state = SUPENDED;
+                        if (pendingEvents() > 0) { 
+                            state = RUNNABLE;
+                    //            System.out.println("   RUNNABLE " + activity); 
+                        } else {
+                            state = SUPENDED;
+            //                    System.out.println("   SUSPEND " + activity); 
+                        }
+                
                     } else if (activity.mustFinish()) { 
-                        //  System.out.println("   FINISHING " + activity); 
+              //            System.out.println("   FINISHING " + activity); 
 
                         state = FINISHING;
                     } else { 
@@ -128,7 +134,7 @@ public class Sequential implements Cohort {
 
                     //  System.out.println("P -> " + activity);
 
-                    //   System.out.println("PROCESS " + activity);
+//                       System.out.println("PROCESS " + activity);
 
                     Event e = dequeue();
 
@@ -142,13 +148,13 @@ public class Sequential implements Cohort {
                         // We only suspend the job if there are no pending events.
                         if (pendingEvents() > 0) { 
                             state = RUNNABLE;
-                            //    System.out.println("   RUNNABLE " + activity); 
+  //                              System.out.println("   RUNNABLE " + activity); 
                         } else {
                             state = SUPENDED;
-                            //    System.out.println("   SUSPEND " + activity); 
+    //                            System.out.println("   SUSPEND " + activity); 
                         }
                     } else if (activity.mustFinish()) { 
-                        //System.out.println("   FINISHING " + activity); 
+//                        System.out.println("   FINISHING " + activity); 
                         state = FINISHING;
                     } else { 
                         throw new IllegalStateException("Activity did not suspend or finish!");
@@ -161,7 +167,7 @@ public class Sequential implements Cohort {
 
                     // System.out.println("F -> " + activity);
 
-                    //    System.out.println("FINISH " + activity);
+  //                     System.out.println("FINISH " + activity);
 
                     activity.cleanup();
                     state = DONE;
@@ -365,6 +371,9 @@ public class Sequential implements Cohort {
         ActivityRecord tmp = dequeue();
 
         if (tmp != null) {
+            
+//            System.out.println("Running " + tmp.activity);
+            
             tmp.run();
 
             if (tmp.needsToRun()) { 
