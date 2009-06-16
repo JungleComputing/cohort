@@ -81,17 +81,28 @@ public class DivideAndConquer extends Activity {
 
         Cohort cohort = null; 
         
-        if (args[0].equals("seq")) { 
+        int index = 0;
+        
+        if (args[index].equals("seq")) { 
             cohort = new Sequential();
-        } else  if (args[0].equals("mt")) { 
-            cohort = new MTCohort(1);
+            index++;
+            
+            System.out.println("Using SEQUENTIAL Cohort implementation");
+            
+        } else  if (args[index].equals("mt")) { 
+            index++;
+            int threads = Integer.parseInt(args[index++]);
+            cohort = new MTCohort(threads);
+       
+            System.out.println("Using MULTITHREADED(" + threads + ") Cohort implementation");
+            
         } else { 
             System.out.println("Unknown Cohort implementation selected!");
             System.exit(1);
         }
          
-        int branch = Integer.parseInt(args[1]);
-        int depth =  Integer.parseInt(args[2]);
+        int branch = Integer.parseInt(args[index++]);
+        int depth =  Integer.parseInt(args[index++]);
         
         long count = 0;
         

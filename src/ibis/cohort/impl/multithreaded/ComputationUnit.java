@@ -1,30 +1,33 @@
 package ibis.cohort.impl.multithreaded;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
+import java.util.ArrayList;
+
 public class ComputationUnit implements Cohort, Runnable {
 
-    private boolean done;
-    private Sequential sequential; 
-
-    private ArrayList<Activity> pendingSubmit = new ArrayList<Activity>();
-    private ArrayList<Event> pendingEvents = new ArrayList<Event>();
-    private ArrayList<ActivityIdentifier> pendingCancelations = 
+    private final MTCohort parent; 
+    private final Sequential sequential; 
+    private final int workerID;
+    
+    private final ArrayList<Activity> pendingSubmit = new ArrayList<Activity>();
+    private final ArrayList<Event> pendingEvents = new ArrayList<Event>();
+    private final ArrayList<ActivityIdentifier> pendingCancelations = 
         new ArrayList<ActivityIdentifier>();
 
+    private boolean done = false;
     private boolean cancelAll = false;
     private int stealRequests = 0;
 
     private volatile boolean commandPending = false;
    
     ComputationUnit(MTCohort parent, int workerID) { 
+        this.parent = parent;
+        this.workerID = workerID;
         sequential = new Sequential(parent, workerID);
     }
 
@@ -53,15 +56,18 @@ public class ComputationUnit implements Cohort, Runnable {
     }
 
     public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) {
-        MessageEvent me = new MessageEvent(source, target, o);
+        queueEvent(new MessageEvent(source, target, o));
+    }
+    
+    public void queueEvent(Event e) {
 
         synchronized (this) {
-            pendingEvents.add(me);
+            pendingEvents.add(e);
         }
 
         commandPending = true;
     }
-
+    
     public ActivityIdentifier submit(Activity a) {
 
         ActivityIdentifier id = sequential.prepareSubmission(a);
@@ -144,8 +150,14 @@ public class ComputationUnit implements Cohort, Runnable {
         
         if (pendingEvents.size() > 0) {
 
-            for (int i=0;i<pendingEvents.size();i++) { 
-                sequential.queueEvent(pendingEvents.get(i));
+            for (int i=0;i<pendingEvents.size();i++) {
+                
+                Event e = pendingEvents.get(i);
+                
+                if (!sequential.queueEvent(e)) { 
+                   // Failed to deliver event locally, so dispatch to parent 
+                    parent.forwardEvent(e, workerID);
+                }
             }
 
             pendingEvents.clear();
@@ -189,11 +201,21 @@ public class ComputationUnit implements Cohort, Runnable {
             }
             
             if (!more && !commandPending) { 
-                System.out.println("IDLE!");
-                try { 
-                    Thread.sleep(250);
-                } catch (Exception e) {
-                    // ignored
+                
+                ActivityRecord r = parent.stealAttempt(workerID);
+                
+                if (r != null) { 
+                    //System.out.println(workerID + ": STEAL SUCCESS " + r.identifier());
+                    
+                    sequential.addActivityRecord(r);
+                } else  {
+                    //System.out.println(workerID + ": STEAL FAIL -- IDLE!");
+                    
+                    try { 
+                        Thread.sleep(10);
+                    } catch (Exception e) {
+                       // ignored
+                    }
                 }
             }
             

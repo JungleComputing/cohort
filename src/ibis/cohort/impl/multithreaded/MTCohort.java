@@ -1,10 +1,15 @@
 package ibis.cohort.impl.multithreaded;
 
+import java.util.LinkedList;
+
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
+import ibis.cohort.Event;
 
 public class MTCohort implements Cohort {
+
+    private LinkedList<ActivityRecord> available = new LinkedList<ActivityRecord>();
     
     private ComputationUnit [] workers;
     private int nextSubmit = 0;
@@ -61,32 +66,6 @@ public class MTCohort implements Cohort {
         return tmp;
     }
 
-    /*
-    public void deliverEvent(Event e, int source) {
-        // TODO: improve this incredibly dumb implementation!
-        
-        int target = (source+1) % workers.length;
-        
-        if (target == source) { 
-            System.err.println("FAILED to deliver event!" + e);
-        } else { 
-            workers[target].queueEvent(e);
-        }
-    }
-
-    public ActivityRecord stealAttempt(int source) {
-        // TODO: improve this incredibly dumb implementation!
-    
-        int target = (source+1) % workers.length;
-        
-        if (target == source) { 
-            System.err.println("FAILED steal request!");
-            return null;
-        } else { 
-            return workers[target].steal();
-        }
-    }
-*/
     public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) {
         
         // TODO: improve this incredibly dumb implementation!
@@ -94,4 +73,41 @@ public class MTCohort implements Cohort {
         workers[0].send(source, target, o);
     }
     
+    void forwardEvent(Event e, int source) { 
+ 
+        // TODO: improve this incredibly dumb implementation!
+        
+        int next = (source + 1) % 2;
+        
+        if (next == source) { 
+            System.err.println("FAILED TO DELIVER EVENT! " + e);
+            System.exit(1);
+        } else { 
+            workers[next].queueEvent(e);
+        }
+    }
+
+    // TODO: improve stealing ?
+    synchronized void stealReply(ActivityRecord record) {
+        available.addLast(record);
+    }    
+
+    ActivityRecord stealAttempt(int source) {
+    
+        synchronized (this) {
+            if (available.size() > 0) { 
+                return available.removeFirst();
+            }
+        }
+
+        for (int i=0;i<workers.length;i++) { 
+            if (i != source) { 
+                workers[i].stealRequest();
+            }
+        }
+
+        return null;
+    }
+
+
 }
