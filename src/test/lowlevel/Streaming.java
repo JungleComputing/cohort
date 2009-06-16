@@ -7,6 +7,7 @@ import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.impl.multithreaded.MTCohort;
 import ibis.cohort.impl.sequential.Sequential;
 
 public class Streaming extends Activity {
@@ -80,10 +81,19 @@ public class Streaming extends Activity {
 
         long start = System.currentTimeMillis();
 
-        Cohort cohort = new Sequential();
-
-        int length = Integer.parseInt(args[0]);
-        int data = Integer.parseInt(args[1]);
+        Cohort cohort = null; 
+        
+        if (args[0].equals("seq")) { 
+            cohort = new Sequential();
+        } else  if (args[0].equals("mt")) { 
+            cohort = new MTCohort(1);
+        } else { 
+            System.out.println("Unknown Cohort implementation selected!");
+            System.exit(1);
+        }
+        
+        int length = Integer.parseInt(args[1]);
+        int data = Integer.parseInt(args[2]);
         
         System.out.println("Running Streaming with series length " + length 
                 + " and " + data + " messages");
