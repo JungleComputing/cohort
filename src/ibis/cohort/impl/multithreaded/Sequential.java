@@ -170,9 +170,7 @@ public class Sequential implements Cohort {
             // Get the first of the new jobs (this is assumed to be the largest one)
             // remove it from our administration, and hand it over to our parent. 
             ActivityRecord r = (ActivityRecord) fresh.removeFirst();
-
-            System.out.println("STEAL " + size + " " + r.identifier());
-
+         //   System.out.println("STEAL " + size + " " + r.identifier());
             local.remove(r.identifier());
             parent.stealReply(r);
         }
@@ -199,5 +197,9 @@ public class Sequential implements Cohort {
         }
 
         return false;
+    }
+
+    public void printStatus() {
+        System.out.println(workerID + ": " + local);
     }
 }

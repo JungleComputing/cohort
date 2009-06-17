@@ -12,7 +12,7 @@ import ibis.cohort.SingleEventCollector;
 import ibis.cohort.impl.multithreaded.MTCohort;
 import ibis.cohort.impl.sequential.Sequential;
 
-public class DivideAndConquer extends Activity {
+public class DivideAndConquerWithChecks extends Activity {
 
     /*
      * This is a simple divide and conquer example. The user can specify the branch factor 
@@ -34,8 +34,9 @@ public class DivideAndConquer extends Activity {
     private boolean done = false;
     
     private ActivityIdentifier [] children;
+    private ActivityIdentifier [] received;
     
-    public DivideAndConquer(ActivityIdentifier parent, int branch, int depth) {
+    public DivideAndConquerWithChecks(ActivityIdentifier parent, int branch, int depth) {
         super(Context.ANYWHERE);
         this.parent = parent;
         this.branch = branch;
@@ -54,9 +55,10 @@ public class DivideAndConquer extends Activity {
             }
             
             children = new ActivityIdentifier[branch];
+            received = new ActivityIdentifier[branch];
             
             for (int i=0;i<branch;i++) { 
-                children[i] = cohort.submit(new DivideAndConquer(identifier(), branch, depth-1));
+                children[i] = cohort.submit(new DivideAndConquerWithChecks(identifier(), branch, depth-1));
             }
             suspend();
         } 
@@ -84,6 +86,8 @@ public class DivideAndConquer extends Activity {
     public void process(Event e) throws Exception {
         
         checkSource(e);
+
+        received[merged] = e.source;
         
         count += ((MessageEvent<Long>) e).message;
 
@@ -109,7 +113,9 @@ public class DivideAndConquer extends Activity {
     }
     
     public String toString() { 
-        return "DC(" + identifier() + " " + Arrays.toString(children) + ") " + branch + ", " + depth + ", " + merged + " -> " + count;
+        return "DC(" + identifier() + " " + Arrays.toString(children) + " " 
+            + Arrays.toString(received) + ") " + branch + ", " + depth + ", " 
+            + merged + " -> " + count;
     }
 
     public static void main(String [] args) { 
@@ -155,7 +161,7 @@ public class DivideAndConquer extends Activity {
         SingleEventCollector a = new SingleEventCollector();
 
         cohort.submit(a);
-        cohort.submit(new DivideAndConquer(a.identifier(), branch, depth));
+        cohort.submit(new DivideAndConquerWithChecks(a.identifier(), branch, depth));
 
         long result = ((MessageEvent<Long>)a.waitForEvent()).message;
 

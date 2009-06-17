@@ -187,4 +187,31 @@ class ActivityRecord {
             state = ERROR;
         }
     }
+    
+    private String getStateAsString() { 
+        
+        switch (state) { 
+
+            case INITIALIZING:
+                return "initializing";
+            case SUPENDED:
+                return "suspended";            
+            case RUNNABLE:
+                return "runnable";
+            case FINISHING: 
+                return "finishing";
+            case DONE:
+                return "done";
+            case ERROR:
+                return "error";
+        }
+
+        return "unknown";
+    }
+    
+    public String toString() { 
+     
+        return activity + " STATE: " + getStateAsString();
+        
+    }    
 }

@@ -77,7 +77,7 @@ public class MTCohort implements Cohort {
  
         // TODO: improve this incredibly dumb implementation!
         
-        int next = (source + 1) % 2;
+        int next = (source + 1) % workers.length;
         
         if (next == source) { 
             System.err.println("FAILED TO DELIVER EVENT! " + e);
