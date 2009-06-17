@@ -21,8 +21,11 @@ public abstract class Activity implements Serializable {
         this.context = context;
     }
     
-    public void initialize(Cohort cohort, ActivityIdentifier id) { 
+    public void initialize(ActivityIdentifier id) { 
         this.identifier = id;
+    }
+    
+    public void setCohort(Cohort cohort) { 
         this.cohort = cohort;
     }
     

@@ -83,17 +83,28 @@ public class Streaming extends Activity {
 
         Cohort cohort = null; 
         
-        if (args[0].equals("seq")) { 
+        int index = 0;
+        
+        if (args[index].equals("seq")) { 
             cohort = new Sequential();
-        } else  if (args[0].equals("mt")) { 
-            cohort = new MTCohort(1);
+            index++;
+            
+            System.out.println("Using SEQUENTIAL Cohort implementation");
+            
+        } else  if (args[index].equals("mt")) { 
+            index++;
+            int threads = Integer.parseInt(args[index++]);
+            cohort = new MTCohort(threads);
+       
+            System.out.println("Using MULTITHREADED(" + threads + ") Cohort implementation");
+            
         } else { 
             System.out.println("Unknown Cohort implementation selected!");
             System.exit(1);
         }
         
-        int length = Integer.parseInt(args[1]);
-        int data = Integer.parseInt(args[2]);
+        int length = Integer.parseInt(args[index++]);
+        int data = Integer.parseInt(args[index++]);
         
         System.out.println("Running Streaming with series length " + length 
                 + " and " + data + " messages");

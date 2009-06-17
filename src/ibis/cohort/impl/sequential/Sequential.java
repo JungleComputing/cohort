@@ -249,7 +249,8 @@ public class Sequential implements Cohort {
        
         ActivityIdentifier id = createActivityID();
 
-        a.initialize(this, id);
+        a.initialize(id);
+        a.setCohort(this);
 
         ActivityRecord ar = new ActivityRecord(a);
         all.put(a.identifier(), ar);

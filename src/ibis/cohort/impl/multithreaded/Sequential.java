@@ -14,14 +14,14 @@ public class Sequential implements Cohort {
     private HashMap<ActivityIdentifier, ActivityRecord> local = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
 
-    private ArrayList<ActivityRecord> fresh = new ArrayList<ActivityRecord>();    
+    private CircularBuffer fresh = new CircularBuffer(16);    
     private ArrayList<ActivityRecord> runnable = new ArrayList<ActivityRecord>();    
 
     private final MTCohort parent;
     private final int workerID;
 
     private IDGenerator generator;
-    
+
     Sequential(MTCohort parent, int workerID) { 
         this.parent = parent;
         this.workerID = workerID;
@@ -65,17 +65,15 @@ public class Sequential implements Cohort {
             return runnable.remove(size-1);
         }
 
-        size = fresh.size();
-
-        if (size > 0) { 
-            return fresh.remove(size-1);
+        if (!fresh.empty()) { 
+            return (ActivityRecord) fresh.removeLast();
         }
 
         return null;
     }
 
     private ActivityIdentifier createActivityID() { 
-        
+
         try { 
             return generator.createActivityID();
         } catch (Exception e) {
@@ -88,36 +86,34 @@ public class Sequential implements Cohort {
         } catch (Exception e) { 
             throw new RuntimeException("ITERNAL ERROR: failed to create new ID block!", e);
         }
-        
+
         //return new MTIdentifier(nextID++);
     }
 
     public ActivityIdentifier prepareSubmission(Activity a) { 
-        
+
         ActivityIdentifier id = createActivityID();
-        a.initialize(this, id);
+        a.initialize(id);
         return id;
     }
-    
+
     public void finishSubmission(Activity a) { 
 
         ActivityRecord ar = new ActivityRecord(a);
         local.put(a.identifier(), ar);
-        fresh.add(ar); 
+        fresh.insertLast(ar); 
     }
-    
+
     void addActivityRecord(ActivityRecord a) { 
         local.put(a.identifier(), a);
-        
+
         if (a.isFresh()) { 
-            fresh.add(a);
+            fresh.insertLast(a);
         } else { 
             runnable.add(a);
         }
-            
     }
-    
-    
+
     public ActivityIdentifier submit(Activity a) {
 
         ActivityIdentifier id = prepareSubmission(a);
@@ -152,7 +148,7 @@ public class Sequential implements Cohort {
         if (ar == null) { 
             return false;
         }
-        
+
         //  System.out.println("   SEND " + source + " -> " + target + " (" + ar.activity + ") " + o);
         ar.enqueue(e);
 
@@ -161,32 +157,36 @@ public class Sequential implements Cohort {
         if (change) {     
             runnable.add(ar);
         }
-  
+
         return true;
     } 
-    
-    public void steal() {
-        
+
+    void steal() {
+
         int size = fresh.size();
 
         if (size > 0) { 
-            
+
             // Get the first of the new jobs (this is assumed to be the largest one)
             // remove it from our administration, and hand it over to our parent. 
-            ActivityRecord r = fresh.remove(0);
+            ActivityRecord r = (ActivityRecord) fresh.removeFirst();
+
+            System.out.println("STEAL " + size + " " + r.identifier());
+
             local.remove(r.identifier());
             parent.stealReply(r);
         }
     }
-    
+
     boolean process() { 
 
         ActivityRecord tmp = dequeue();
 
         if (tmp != null) {
-            
-           // System.out.println(workerID + ": Running " + tmp.identifier());
-            
+
+            // System.out.println(workerID + ": Running " + tmp.identifier());
+
+            tmp.activity.setCohort(this);
             tmp.run();
 
             if (tmp.needsToRun()) { 
@@ -194,10 +194,10 @@ public class Sequential implements Cohort {
             } else if (tmp.isDone()) { 
                 cancel(tmp.identifier());
             }
-          
+
             return true;
         }
-        
+
         return false;
     }
 }

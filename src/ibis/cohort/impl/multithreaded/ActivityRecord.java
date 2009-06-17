@@ -26,7 +26,7 @@ class ActivityRecord {
     void enqueue(Event e) { 
 
         if (state >= FINISHING) { 
-            throw new IllegalStateException("Cannot deliver an event to a finished activity!");
+            throw new IllegalStateException("Cannot deliver an event to a finished activity! " + activity + " (event from " + e.source + ")");
         }
 
         if (queue == null) { 

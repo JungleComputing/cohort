@@ -1,5 +1,7 @@
 package test.lowlevel;
 
+import java.util.Arrays;
+
 import ibis.cohort.Activity;
 import ibis.cohort.Cohort;
 import ibis.cohort.Context;
@@ -29,6 +31,10 @@ public class DivideAndConquer extends Activity {
     
     private long count = 1;
     
+    private boolean done = false;
+    
+    private ActivityIdentifier [] children;
+    
     public DivideAndConquer(ActivityIdentifier parent, int branch, int depth) {
         super(Context.ANYWHERE);
         this.parent = parent;
@@ -39,19 +45,45 @@ public class DivideAndConquer extends Activity {
     @Override
     public void initialize() throws Exception {
 
-        if (depth == 0) { 
+        if (depth == 0) {
             finish();
-        } else { 
+        } else {
+            
+            if (children != null) { 
+                System.out.println("EEP: initialize called twice !!!");
+            }
+            
+            children = new ActivityIdentifier[branch];
+            
             for (int i=0;i<branch;i++) { 
-                cohort.submit(new DivideAndConquer(identifier(), branch, depth-1));
+                children[i] = cohort.submit(new DivideAndConquer(identifier(), branch, depth-1));
             }
             suspend();
         } 
     }
 
+    private void checkSource(Event e) { 
+        
+        if (children == null) { 
+            System.out.println("EEP: leaf node " + identifier() + " got stray message! " + e.source + " " + e.target);
+        }
+        
+        for (ActivityIdentifier a : children) { 
+            if (a.equals(e.source)) { 
+                return;
+            }
+        }
+        
+        System.out.println("EEP: node " + identifier() + " got stray message! " + e.source + " " + e.target + " " + Arrays.toString(children));
+        
+        
+    }
+    
     @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
+        
+        checkSource(e);
         
         count += ((MessageEvent<Long>) e).message;
 
@@ -66,11 +98,18 @@ public class DivideAndConquer extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        cohort.send(identifier(), parent, count);
+        
+        if (!done) { 
+            cohort.send(identifier(), parent, count);
+            done = true;
+        } else { 
+            System.out.println("EEP! Cleanup called twice!");
+            new Exception().printStackTrace();
+        }
     }
     
     public String toString() { 
-        return "DC(" + identifier() + ") " + branch + ", " + depth + ", " + merged + " -> " + count;
+        return "DC(" + identifier() + " " + Arrays.toString(children) + ") " + branch + ", " + depth + ", " + merged + " -> " + count;
     }
 
     public static void main(String [] args) { 

@@ -25,7 +25,7 @@ public class MTCohort implements Cohort {
         }
     
         for (int i=0;i<workerCount;i++) { 
-            new Thread(workers[i]).start();
+            new Thread(workers[i], "Cohort ComputationUnit " + i).start();
         }
     }
     
@@ -89,6 +89,12 @@ public class MTCohort implements Cohort {
 
     // TODO: improve stealing ?
     synchronized void stealReply(ActivityRecord record) {
+        
+        if (record == null) { 
+            System.out.println("EEP: steal reply is null!!");
+            new Exception().printStackTrace();
+        }
+        
         available.addLast(record);
     }    
 

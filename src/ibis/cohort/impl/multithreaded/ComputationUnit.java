@@ -14,16 +14,22 @@ public class ComputationUnit implements Cohort, Runnable {
     private final Sequential sequential; 
     private final int workerID;
     
-    private final ArrayList<Activity> pendingSubmit = new ArrayList<Activity>();
-    private final ArrayList<Event> pendingEvents = new ArrayList<Event>();
-    private final ArrayList<ActivityIdentifier> pendingCancelations = 
-        new ArrayList<ActivityIdentifier>();
+    private static class PendingRequests { 
+        final ArrayList<Activity> pendingSubmit = new ArrayList<Activity>();
+        final ArrayList<Event> pendingEvents = new ArrayList<Event>();
+        final ArrayList<ActivityIdentifier> pendingCancelations = 
+            new ArrayList<ActivityIdentifier>();   
+    
+        boolean cancelAll = false;
+        int stealRequests = 0;
+    } 
+    
+    private PendingRequests incoming = new PendingRequests();
+    private PendingRequests processing = new PendingRequests();
 
     private boolean done = false;
-    private boolean cancelAll = false;
-    private int stealRequests = 0;
 
-    private volatile boolean commandPending = false;
+    private volatile boolean havePendingRequests = false;
    
     ComputationUnit(MTCohort parent, int workerID) { 
         this.parent = parent;
@@ -35,37 +41,33 @@ public class ComputationUnit implements Cohort, Runnable {
         // TODO: check pending submits first!
 
         synchronized (this) {   
-            pendingCancelations.add(id);
+            incoming.pendingCancelations.add(id);
         }
 
-        commandPending = true; 
+        havePendingRequests = true; 
     }
 
     public void cancelAll() {
         synchronized (this) { 
-            cancelAll = true;
+            incoming.cancelAll = true;
         }
-        commandPending = true;
+        havePendingRequests = true;
     }
 
     public void stealRequest() {
         synchronized (this) {
-            stealRequests++;
+            incoming.stealRequests++;
         }
-        commandPending = true;
+        havePendingRequests = true;
     }
 
-    public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) {
-        queueEvent(new MessageEvent(source, target, o));
-    }
-    
     public void queueEvent(Event e) {
 
         synchronized (this) {
-            pendingEvents.add(e);
+            incoming.pendingEvents.add(e);
         }
 
-        commandPending = true;
+        havePendingRequests = true;
     }
     
     public ActivityIdentifier submit(Activity a) {
@@ -73,14 +75,18 @@ public class ComputationUnit implements Cohort, Runnable {
         ActivityIdentifier id = sequential.prepareSubmission(a);
 
         synchronized (this) {
-            pendingSubmit.add(a);
+            incoming.pendingSubmit.add(a);
         }
 
-        commandPending = true;
+        havePendingRequests = true;
 
         return id;
     }
 
+    public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) {
+        queueEvent(new MessageEvent(source, target, o));
+    }
+    
     private synchronized boolean getDone() { 
         return done;
     }
@@ -89,70 +95,46 @@ public class ComputationUnit implements Cohort, Runnable {
         done = true;
     }
 
-    private synchronized Event dequeueEvent() { 
-
-        final int size = pendingEvents.size();
-        
-        if (size > 0) { 
-            return pendingEvents.remove(size-1);
-        }
-
-        return null;
+    private synchronized void swapPendingRequests() {         
+        PendingRequests tmp = incoming;
+        incoming = processing;
+        processing = tmp;        
+        havePendingRequests = false;
     }
     
-    private synchronized Activity dequeueSubmit() { 
+    private void processNextCommands() { 
 
-        // TODO: Not sure if reversing the order is a good idea here!!!
+        swapPendingRequests();
         
-        final int size = pendingSubmit.size();
-        
-        if (size > 0) { 
-            return pendingSubmit.remove(size-1);
-        }
-
-        return null;
-    }
-    
-    private synchronized ActivityIdentifier dequeueCancelation() { 
-
-        final int size = pendingCancelations.size();
-        
-        if (size > 0) { 
-            return pendingCancelations.remove(size-1);
-        }
-
-        return null;
-    }
-
-    private synchronized void processNextCommands() { 
-
-        if (cancelAll) { 
+        if (processing.cancelAll) { 
             // Clear all tasks and events from the system.
             sequential.cancelAll();
-            pendingSubmit.clear();
-            pendingEvents.clear();
-            pendingCancelations.clear();
-            stealRequests = 0;
             
-            cancelAll = false; 
-            commandPending = false;
+            processing.pendingSubmit.clear();
+            processing.pendingEvents.clear();
+            processing.pendingCancelations.clear();
+            processing.stealRequests = 0;
+            
+            processing.cancelAll = false; 
+            
+            // TODO: We should also clear the other PendingRequest object ?            
             return;
         }
       
-        if (pendingSubmit.size() > 0) { 
+        if (processing.pendingSubmit.size() > 0) { 
 
-            for (int i=0;i<pendingSubmit.size();i++) { 
-                sequential.finishSubmission(pendingSubmit.get(i));
+            for (int i=0;i<processing.pendingSubmit.size();i++) { 
+                sequential.finishSubmission(processing.pendingSubmit.get(i));
             }
 
-            pendingSubmit.clear();
+            processing.pendingSubmit.clear();
         } 
         
-        if (pendingEvents.size() > 0) {
+        if (processing.pendingEvents.size() > 0) {
 
-            for (int i=0;i<pendingEvents.size();i++) {
+            for (int i=0;i<processing.pendingEvents.size();i++) {
                 
-                Event e = pendingEvents.get(i);
+                Event e = processing.pendingEvents.get(i);
                 
                 if (!sequential.queueEvent(e)) { 
                    // Failed to deliver event locally, so dispatch to parent 
@@ -160,28 +142,24 @@ public class ComputationUnit implements Cohort, Runnable {
                 }
             }
 
-            pendingEvents.clear();
+            processing.pendingEvents.clear();
         }
         
-        if (pendingCancelations.size() > 0) { 
+        if (processing.pendingCancelations.size() > 0) { 
 
-            for (int i=0;i<pendingCancelations.size();i++) { 
-                sequential.cancel(pendingCancelations.get(i));
+            for (int i=0;i<processing.pendingCancelations.size();i++) { 
+                sequential.cancel(processing.pendingCancelations.get(i));
             }
 
-            pendingCancelations.clear();
+            processing.pendingCancelations.clear();
         }
         
-        if (stealRequests > 0) { 
+        if (processing.stealRequests > 0) { 
 
-            for (int i=0;i<stealRequests;i++) { 
-                sequential.steal();
-            }
-
-            stealRequests = 0;
+            sequential.steal();
+            
+            processing.stealRequests = 0;
         }
-        
-        commandPending = false;
     }
 
     public void run() {
@@ -196,11 +174,11 @@ public class ComputationUnit implements Cohort, Runnable {
             
             boolean more = sequential.process();
 
-            while (more && !commandPending) { 
+            while (more && !havePendingRequests) { 
                 more = sequential.process();
             }
             
-            if (!more && !commandPending) { 
+            if (!more && !havePendingRequests) { 
                 
                 ActivityRecord r = parent.stealAttempt(workerID);
                 
