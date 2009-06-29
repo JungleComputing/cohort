@@ -1,4 +1,4 @@
-package test.lowlevel.fib;
+package test.fib;
 
 import ibis.cohort.Activity;
 import ibis.cohort.Cohort;

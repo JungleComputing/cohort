@@ -1,4 +1,4 @@
-package test.genesequencing;
+package genesequencing;
 
 public interface AlignmentAlgorithms {
     public final String SMITH_WATERMAN = "sw";

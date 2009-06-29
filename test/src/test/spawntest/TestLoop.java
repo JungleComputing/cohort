@@ -1,4 +1,4 @@
-package test.lowlevel.spawntest;
+package test.spawntest;
 
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;

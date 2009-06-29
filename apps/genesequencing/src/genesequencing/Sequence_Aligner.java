@@ -1,4 +1,4 @@
-package test.genesequencing;
+package genesequencing;
 
 import neobio.alignment.*;
 import java.io.*;

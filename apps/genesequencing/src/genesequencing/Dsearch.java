@@ -1,4 +1,4 @@
-package test.genesequencing;
+package genesequencing;
 
 import ibis.cohort.Cohort;
 import ibis.cohort.MessageEvent;

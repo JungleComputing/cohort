@@ -1,4 +1,4 @@
-package test.genesequencing;
+package genesequencing;
 
 import java.util.ArrayList;
 

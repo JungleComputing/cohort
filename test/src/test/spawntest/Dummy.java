@@ -1,45 +1,30 @@
-package test.lowlevel.spawntest;
+package test.spawntest;
 
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 
-public class SingleTest extends Activity {
+public class Dummy extends Activity {
 
     private static final long serialVersionUID = 5970093414747228592L;
     
     private final ActivityIdentifier parent;
     
-    private final int spawns;
-    private int replies;
-    
-    public SingleTest(ActivityIdentifier parent, int spawns) {
+    public Dummy(ActivityIdentifier parent) {
         super(Context.ANYWHERE);
         this.parent = parent;
-        this.spawns= spawns;
     }
 
     @Override
     public void initialize() throws Exception {
-        for (int i=0;i<spawns;i++) { 
-            cohort.submit(new Dummy(identifier()));
-        }
-        
-        suspend();
+        cohort.send(identifier(), parent, null);
+        finish();
     }
 
     @Override
     public void process(Event e) throws Exception {
-
-        replies++;
-        
-        if (replies == spawns) { 
-            cohort.send(identifier(), parent, null);
-            finish();
-        } else { 
-            suspend();
-        }
+        // unused
     }
 
     @Override
