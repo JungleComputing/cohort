@@ -38,7 +38,7 @@
 	<!-- remove all generated code -->
 	<target name="clean" description="Removes the ${distdir} directory">
 		<delete failonerror="false" dir="${builddir}" />
-		<delete failonerror="false" dir="${distdir}/genesequencing-${version}.jar" />
+		<delete failonerror="false" dir="${distdir}" />
 	</target>
 
 	<target name="distclean" depends="clean">
