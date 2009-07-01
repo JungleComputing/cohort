@@ -174,7 +174,7 @@ public class ComputationUnit implements Cohort, Runnable {
             
             boolean more = sequential.process();
 
-            while (more && !havePendingRequests) { 
+            while (more && !havePendingRequests) {
                 more = sequential.process();
             }
             
@@ -183,13 +183,11 @@ public class ComputationUnit implements Cohort, Runnable {
                 ActivityRecord r = parent.stealAttempt(workerID);
                 
                 if (r != null) { 
-                    //System.out.println(workerID + ": STEAL SUCCESS " + r.identifier());
-                    
                     sequential.addActivityRecord(r);
                 } else  {
-                    //System.out.println(workerID + ": STEAL FAIL -- IDLE!");
+                    System.out.println(workerID + ": STEAL FAIL -- IDLE!");
                     
-                    try { 
+                    try {
                         Thread.sleep(10);
                     } catch (Exception e) {
                        // ignored

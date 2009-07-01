@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import neobio.alignment.ScoringScheme;
 
 public class Dsearch_AlgorithmV1 {
-    public final int ALIGN_GET_SCORES = 1;
+    public final static int ALIGN_GET_SCORES = 1;
 
-    public final int ALIGN_GET_ALIGNMENTS = 2;
+    public final static int ALIGN_GET_ALIGNMENTS = 2;
 
-    public ArrayList<ResSeq> processUnit(ArrayList<Sequence> querySequences,
+    public static  ArrayList<ResSeq> processUnit(ArrayList<Sequence> querySequences,
             ArrayList<Sequence> databaseSequences, int scoresOrAlignments,
             ScoringScheme scoringScheme, String alignmentAlgorithm, int maxScores) {
         ArrayList<ResSeq> results = new ArrayList<ResSeq>();
@@ -71,7 +71,7 @@ public class Dsearch_AlgorithmV1 {
         return results;
     }
 
-    private int getScore(String scoreF) {
+    private static int getScore(String scoreF) {
         int score;
 
         String[] splitScoreS = scoreF.split("\n");

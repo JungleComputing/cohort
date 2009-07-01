@@ -100,9 +100,9 @@ public class Dsearch {
             String alignmentAlgorithm, int scoresOrAlignments,
             ScoringScheme scoringScheme, ArrayList<Sequence> querySequences,
             ArrayList<Sequence> databaseSequences, int maxScores) {
-        Dsearch_AlgorithmV1 dA = new Dsearch_AlgorithmV1();
+        //Dsearch_AlgorithmV1 dA = new Dsearch_AlgorithmV1();
 
-        ArrayList<ResSeq> resultUnit = dA.processUnit(querySequences,
+        ArrayList<ResSeq> resultUnit = Dsearch_AlgorithmV1.processUnit(querySequences,
                 databaseSequences, scoresOrAlignments, scoringScheme,
                 alignmentAlgorithm, maxScores);
         return resultUnit;
@@ -114,8 +114,10 @@ public class Dsearch {
         
         SingleEventCollector a = new SingleEventCollector();
         cohort.submit(a);
-        cohort.submit(new DivCon(a.identifier(), workUnit));
-        return (ArrayList<ResSeq>) ((MessageEvent) a.waitForEvent()).message;
+        cohort.submit(new DivCon(a.identifier(), workUnit, 0));
+        
+        Result tmp = (Result) ((MessageEvent) a.waitForEvent()).message;        
+        return tmp.result;
         
         /*
         ArrayList<ResSeq> result;
@@ -272,5 +274,7 @@ public class Dsearch {
         }
     
         new Dsearch(cohort, inputFileName, dump).start();
+        
+        cohort.done();
     }
 }

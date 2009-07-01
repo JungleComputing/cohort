@@ -12,16 +12,17 @@ public class DivCon extends Activity {
 
     private final ActivityIdentifier parent;
     private final WorkUnit workUnit; 
+    private final int myIndex; 
     
     private ArrayList<ResSeq> result;
-    
     private ArrayList<ResSeq> [] sub;    
-    private int index;
+    private int count;
     
-    public DivCon(ActivityIdentifier parent, WorkUnit workUnit) {
+    public DivCon(ActivityIdentifier parent, WorkUnit workUnit, int myIndex) {
         super(Context.ANYWHERE);
         this.parent = parent;
         this.workUnit = workUnit;
+        this.myIndex = myIndex;
     }
 
     @Override
@@ -39,33 +40,36 @@ public class DivCon extends Activity {
             result = Dsearch.createTrivialResult(workUnit);
             finish();
         } else {
-            // Split case. 
+            // Split case. Note that the order of the results is important, so 
+            // we pass an 'index' to each subjob.
 
             if (databaseSize <= workUnit.threshold) {
-                // Only split queries if the database is small enough.
+                // Only split queries if the database is small enough. 
+                
                 int newSplitSize = querySize / 2;
                 
                 cohort.submit(new DivCon(identifier(), 
-                        workUnit.splitQuerySequences(0, newSplitSize)));
+                        workUnit.splitQuerySequences(0, newSplitSize), 0));
                 
                 cohort.submit(new DivCon(identifier(), 
-                        workUnit.splitQuerySequences(newSplitSize, querySize)));
+                        workUnit.splitQuerySequences(newSplitSize, querySize), 1));
                                               
             } else {
+                
                 // If the database is large we split it first.                 
                 int newSplitSize = databaseSize / 2;
                 
                 cohort.submit(new DivCon(identifier(),
-                        workUnit.splitDatabaseSequences(0, newSplitSize)));
+                        workUnit.splitDatabaseSequences(0, newSplitSize), 0));
                 
                 cohort.submit(new DivCon(identifier(),
-                        workUnit.splitDatabaseSequences(newSplitSize, databaseSize)));
+                        workUnit.splitDatabaseSequences(newSplitSize, databaseSize), 1));
             }
             
             suspend();
         }
     }
-
+    
     @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
@@ -77,9 +81,13 @@ public class DivCon extends Activity {
             sub = (ArrayList<ResSeq>[])(new ArrayList[2]);            
         }
         
-        sub[index++] = (ArrayList<ResSeq>) tmp.message; 
+        Result res = (Result) tmp.message;
+        
+        sub[res.index] = res.result;  
 
-        if (index == 2) {            
+        count++;
+        
+        if (count == 2) {            
             result = Dsearch.combineSubResults(sub);            
             finish();
         } else { 
@@ -90,6 +98,6 @@ public class DivCon extends Activity {
     @Override
     public void cleanup() throws Exception {
         // Send the result to our parent
-        cohort.send(identifier(), parent, result);
+        cohort.send(identifier(), parent, new Result(myIndex, result));
     }
 }
