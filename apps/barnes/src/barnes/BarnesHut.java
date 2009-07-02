@@ -520,8 +520,7 @@ import java.util.Arrays;
                     cohort = new Sequential();
                     System.out.println("Using SEQUENTIAL Cohort implementation");
                 } else if (argv[i].equals("mt")) { 
-                    i++;
-                    threads = Integer.parseInt(argv[i++]);
+                    threads = Integer.parseInt(argv[++i]);
                     cohort = new MTCohort(threads);               
                     System.out.println("Using MULTITHREADED(" + threads + ") Cohort implementation");                    
                 } else { 
@@ -642,6 +641,8 @@ import java.util.Arrays;
             new BarnesHut(cohort, nBodies, params).run();
         }
 
+        cohort.done();
+        
         //ibis.satin.SatinObject.resume(); // allow satin to exit cleanly
     }
 }

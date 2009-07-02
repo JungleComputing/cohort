@@ -168,6 +168,8 @@ public class ComputationUnit implements Cohort, Runnable {
         // process a single command (i.e., a submit or an event) and then 
         // process all changes that occurred in the activities. 
 
+        long start = System.currentTimeMillis();
+        
         while (!getDone()) { 
 
             processNextCommands();
@@ -185,10 +187,10 @@ public class ComputationUnit implements Cohort, Runnable {
                 if (r != null) { 
                     sequential.addActivityRecord(r);
                 } else  {
-                    System.out.println(workerID + ": STEAL FAIL -- IDLE!");
+                  //  System.out.println(workerID + ": STEAL FAIL -- IDLE!");
                     
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(1);
                     } catch (Exception e) {
                        // ignored
                     }
@@ -196,7 +198,9 @@ public class ComputationUnit implements Cohort, Runnable {
             }
             
         }
+        
+        long time = System.currentTimeMillis() - start;
 
-        // System.out.println("ProcessCount " + processCount);
+        sequential.printStatistics(time);
     }    
 }

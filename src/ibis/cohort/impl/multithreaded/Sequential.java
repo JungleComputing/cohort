@@ -6,7 +6,6 @@ import ibis.cohort.Cohort;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Sequential implements Cohort {
@@ -15,13 +14,20 @@ public class Sequential implements Cohort {
         new HashMap<ActivityIdentifier, ActivityRecord>();
 
     private CircularBuffer fresh = new CircularBuffer(16);    
-    private ArrayList<ActivityRecord> runnable = new ArrayList<ActivityRecord>();    
+    private CircularBuffer runnable = new CircularBuffer(16);    
 
     private final MTCohort parent;
     private final int workerID;
 
     private IDGenerator generator;
 
+    private long computationTime;
+    private long activitiesSubmitted;
+    private long activitiesInvoked;
+    private long steals;
+    private long messagesInternal;
+    private long messagesExternal;  
+    
     Sequential(MTCohort parent, int workerID) { 
         this.parent = parent;
         this.workerID = workerID;
@@ -62,7 +68,7 @@ public class Sequential implements Cohort {
         int size = runnable.size(); 
 
         if (size > 0) { 
-            return runnable.remove(size-1);
+            return (ActivityRecord) runnable.removeLast();
         }
 
         if (!fresh.empty()) { 
@@ -101,7 +107,8 @@ public class Sequential implements Cohort {
 
         ActivityRecord ar = new ActivityRecord(a);
         local.put(a.identifier(), ar);
-        fresh.insertLast(ar); 
+        fresh.insertLast(ar);
+        activitiesSubmitted++;
     }
 
     void addActivityRecord(ActivityRecord a) { 
@@ -109,8 +116,9 @@ public class Sequential implements Cohort {
 
         if (a.isFresh()) { 
             fresh.insertLast(a);
+            activitiesSubmitted++;
         } else { 
-            runnable.add(a);
+            runnable.insertLast(a);
         }
     }
 
@@ -127,8 +135,14 @@ public class Sequential implements Cohort {
 
         if (ar == null) { 
             // Send isn't local, so forward to parent.
+            
+            messagesExternal++;
+            
             parent.send(source, target, o);
         } else { 
+            
+            messagesInternal++;
+            
             MessageEvent e = new MessageEvent(source, target, o);
 
             ar.enqueue(e);
@@ -136,7 +150,7 @@ public class Sequential implements Cohort {
             boolean change = ar.setRunnable();
 
             if (change) {     
-                runnable.add(ar);
+                runnable.insertLast(ar);
             }
         }
     } 
@@ -155,13 +169,15 @@ public class Sequential implements Cohort {
         boolean change = ar.setRunnable();
 
         if (change) {     
-            runnable.add(ar);
+            runnable.insertLast(ar);
         }
 
         return true;
     } 
 
     void steal() {
+        
+        steals++;
 
         int size = fresh.size();
 
@@ -185,10 +201,17 @@ public class Sequential implements Cohort {
             // System.out.println(workerID + ": Running " + tmp.identifier());
 
             tmp.activity.setCohort(this);
+            
+            long start = System.currentTimeMillis();
+            
             tmp.run();
+            
+            computationTime += System.currentTimeMillis() - start;
 
+            activitiesInvoked++;
+            
             if (tmp.needsToRun()) { 
-                runnable.add(tmp);
+                runnable.insertFirst(tmp);
             } else if (tmp.isDone()) { 
                 cancel(tmp.identifier());
             }
@@ -199,6 +222,28 @@ public class Sequential implements Cohort {
         return false;
     }
 
+    public void printStatistics(long totalTime) { 
+        
+        synchronized (System.out) {
+            
+            double comp = (100.0 * computationTime) / totalTime;
+            double fact = ((double) activitiesInvoked) / activitiesSubmitted; 
+            
+            System.out.println(workerID + " statistics");
+            System.out.println(" Time");
+            System.out.println("   total      : " + totalTime + " ms.");
+            System.out.println("   computation: " + computationTime + " ms. (" + comp + " %)");
+            System.out.println(" Activities");
+            System.out.println("   submitted  : " + activitiesSubmitted);
+            System.out.println("   invoked    : " + activitiesInvoked + " (" + fact + " /act)") ;
+            System.out.println(" Messages");
+            System.out.println("   internal   : " + messagesInternal);
+            System.out.println("   external   : " + messagesExternal);
+            System.out.println(" Steals");
+            System.out.println("   incoming   : " + steals);
+        }
+    }
+    
     public void printStatus() {
         System.out.println(workerID + ": " + local);
     }

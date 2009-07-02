@@ -111,6 +111,68 @@ public class CircularBuffer {
         return result;
     } 
 
+    public boolean remove(int index) { 
+
+        if (index > size-1) { 
+            return false;
+        }
+        
+        if (index == 0) { 
+            removeFirst();
+        } else if (index == size) {
+            removeLast();
+        } else { 
+            // TODO: optimize ? i.e., figure out how to move the least data
+            int pos = (first + index) % array.length;  
+            
+            if (next > pos) { 
+                // We simply move part of the data back
+                while (pos < next-1) { 
+                    array[pos] = array[pos+1];
+                    pos++;
+                }
+                        
+                next--;
+                array[next] = null;
+                size --;                
+            } else { 
+                // We simply move part of the data forward
+                while (pos > first) { 
+                    array[pos] = array[pos-1];
+                    pos--;
+                }
+                        
+                array[first] = null;
+                first++;
+                size --;                
+            }            
+        }
+        
+        return true;        
+    }
+    
+    public boolean remove(Object o) {
+
+        if (size == 0) { 
+            return false;
+        }
+        
+        int index = first;
+        
+        boolean removed = false;
+        
+        for (int i=0;i<size;i++) { 
+            
+            if (o.equals(array[index])) { 
+                remove(i);
+                removed = true;
+            }
+            
+            index++;
+        }
+        
+        return removed;        
+    }
     
     public void clear() { 
 
