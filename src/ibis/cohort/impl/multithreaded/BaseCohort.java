@@ -3,12 +3,13 @@ package ibis.cohort.impl.multithreaded;
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
+import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
 import java.util.HashMap;
 
-public class Sequential implements Cohort {
+public class BaseCohort implements Cohort {
 
     private HashMap<ActivityIdentifier, ActivityRecord> local = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
@@ -17,7 +18,7 @@ public class Sequential implements Cohort {
     private CircularBuffer runnable = new CircularBuffer(16);    
 
     private final MTCohort parent;
-    private final int workerID;
+    private final CohortIdentifier identifier;
 
     private IDGenerator generator;
 
@@ -28,9 +29,9 @@ public class Sequential implements Cohort {
     private long messagesInternal;
     private long messagesExternal;  
     
-    Sequential(MTCohort parent, int workerID) { 
+    BaseCohort(MTCohort parent, CohortIdentifier identifier) { 
         this.parent = parent;
-        this.workerID = workerID;
+        this.identifier = identifier;
         this.generator = parent.getIDGenerator();
     }
 
@@ -229,7 +230,7 @@ public class Sequential implements Cohort {
             double comp = (100.0 * computationTime) / totalTime;
             double fact = ((double) activitiesInvoked) / activitiesSubmitted; 
             
-            System.out.println(workerID + " statistics");
+            System.out.println(identifier + " statistics");
             System.out.println(" Time");
             System.out.println("   total      : " + totalTime + " ms.");
             System.out.println("   computation: " + computationTime + " ms. (" + comp + " %)");
@@ -245,6 +246,14 @@ public class Sequential implements Cohort {
     }
     
     public void printStatus() {
-        System.out.println(workerID + ": " + local);
+        System.out.println(identifier + ": " + local);
+    }
+
+    public CohortIdentifier identifier() {
+        return identifier;
+    }
+
+    public boolean isMaster() {
+        return true;
     }
 }

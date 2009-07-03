@@ -145,5 +145,11 @@ public class DivideAndConquerSpawnTest extends Activity {
         cohort.done();
 
     }
+
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
 }
 

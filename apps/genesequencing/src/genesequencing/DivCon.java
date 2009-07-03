@@ -100,4 +100,9 @@ public class DivCon extends Activity {
         // Send the result to our parent
         cohort.send(identifier(), parent, new Result(myIndex, result));
     }
+
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+    }
 }

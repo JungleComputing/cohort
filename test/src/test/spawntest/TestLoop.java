@@ -59,4 +59,10 @@ public class TestLoop extends Activity {
         
         cohort.send(identifier(), parent, null);
     }
+
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
 }

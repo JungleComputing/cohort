@@ -133,5 +133,11 @@ public class DivideAndConquerClean extends Activity {
 
     }
 
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
+
 
 }

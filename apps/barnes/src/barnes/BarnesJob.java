@@ -108,4 +108,9 @@ public class BarnesJob extends Activity {
     public void cleanup() throws Exception {
         cohort.send(identifier(), parent, result);
     }
+
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+    }
 }

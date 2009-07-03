@@ -2,6 +2,7 @@ package ibis.cohort.impl.sequential;
 
 import ibis.cohort.Cohort;
 import ibis.cohort.Activity;
+import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
@@ -210,16 +211,6 @@ public class Sequential implements Cohort {
         }
     }
     
-    public void cancelAll() {
-
-        if (all.size() == 0) { 
-            return;
-        }
-       
-        all.clear();
-        runnable.clear();
-    }
-
     public void done() {
         System.out.println("Quiting Cohort with " + all.size() + " activities in queue");
     }
@@ -242,7 +233,7 @@ public class Sequential implements Cohort {
     }
     
     private ActivityIdentifier createActivityID() { 
-        return new SequentialIdentifier(nextID++);
+        return new SequentialActivityIdentifier(nextID++);
     }
 
     public ActivityIdentifier submit(Activity a) {
@@ -297,6 +288,10 @@ public class Sequential implements Cohort {
         }
     } 
 
+    public CohortIdentifier identifier() {
+        return new SequentialCohortIdentifier();
+    }
+    
     private void processJobs() { 
 
         isRunning = true;
@@ -323,4 +318,7 @@ public class Sequential implements Cohort {
         }
     }
 
+    public boolean isMaster() {
+        return true;
+    }
 }

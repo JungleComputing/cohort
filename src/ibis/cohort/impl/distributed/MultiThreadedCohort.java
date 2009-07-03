@@ -1,35 +1,39 @@
 package ibis.cohort.impl.distributed;
 
-import java.util.LinkedList;
-
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
+import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
-import ibis.ipl.IbisIdentifier;
+
+import java.util.LinkedList;
 
 public class MultiThreadedCohort implements Cohort {
 
     private final DistributedCohort parent;
+    private final CohortIdentifier identifier;
     
     private LinkedList<ActivityRecord> available = new LinkedList<ActivityRecord>();
     
-    private ComputationUnit [] workers;
+    private SingleThreadedCohort [] workers;
     private int nextSubmit = 0;
    
-    public MultiThreadedCohort(DistributedCohort parent, int workerCount) {
+    public MultiThreadedCohort(DistributedCohort parent, CohortIdentifier identifier, int workerCount) {
         
         this.parent = parent;
+        this.identifier = identifier;
         
         if (workerCount == 0) { 
             // Automatically determine the number of cores to use
             workerCount = Runtime.getRuntime().availableProcessors();
         }
         
-        workers = new ComputationUnit[workerCount];
+        System.out.println("Starting MultiThreadedCohort using " + workerCount + " workers");
+        
+        workers = new SingleThreadedCohort[workerCount];
        
         for (int i=0;i<workerCount;i++) { 
-            workers[i] = new ComputationUnit(this, i);
+            workers[i] = new SingleThreadedCohort(this, parent.getCohortIdentifier());
         }
     
         for (int i=0;i<workerCount;i++) { 
@@ -38,25 +42,21 @@ public class MultiThreadedCohort implements Cohort {
     }
     
     public void cancel(ActivityIdentifier activity) {
-        for (ComputationUnit u : workers) { 
+        for (SingleThreadedCohort u : workers) { 
             u.cancel(activity);
         }
     }
 
-    public void cancelAll() {
-        for (ComputationUnit u : workers) { 
-            u.cancelAll();
-        }
-    }
-
     public void done() {
-        for (ComputationUnit u : workers) { 
+        for (SingleThreadedCohort u : workers) { 
             u.done();
         }
     }
 
     public synchronized ActivityIdentifier submit(Activity a) {
  
+       // System.out.println("MT submit");
+        
         // We do a simple round-robin distribution of the jobs here.
         if (nextSubmit >= workers.length) { 
             nextSubmit = 0;
@@ -65,8 +65,8 @@ public class MultiThreadedCohort implements Cohort {
         return workers[nextSubmit++].submit(a);
     }
 
-    public IDGenerator getIDGenerator(int workerID) {
-        return parent.getIDGenerator(workerID);
+    public DistributedActivityIdentifierGenerator getIDGenerator(CohortIdentifier identifier) {
+        return parent.getIDGenerator(identifier);
     }
 
     public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) {
@@ -89,11 +89,27 @@ public class MultiThreadedCohort implements Cohort {
     }
     
     void deliverEvent(Event e) { 
-        workers[((Identifier) e.target).getWorkerID()].queueEvent(e);
+        
+        // TODO: optimize!
+        
+        CohortIdentifier target = ((DistributedActivityIdentifier) e.target).getCohort();
+        
+        for (int i=0;i<workers.length;i++) { 
+            
+            CohortIdentifier id = workers[i].identifier();
+            
+            if (target.equals(id)) { 
+                workers[i].deliverEvent(e);
+                return;
+            }
+        }
+        
+        System.err.println("EEP: failed to deliver event: " + e);
+        
+        //workers[((DistributedActivityIdentifier) e.target).getCohort().getWorkerID()].deliverEvent(e);
     }
 
-    // TODO: improve stealing ?
-    synchronized void stealReply(ActivityRecord record) {
+    synchronized void addActivityRecord(ActivityRecord record) { 
         
         if (record == null) { 
             System.out.println("EEP: steal reply is null!!");
@@ -101,10 +117,12 @@ public class MultiThreadedCohort implements Cohort {
         }
         
         available.addLast(record);
-    }    
-
-    ActivityRecord stealAttempt(int source) {
+    }   
     
+    ActivityRecord stealAttempt(CohortIdentifier identifier) {
+       
+        int source = ((DistributedCohortIdentifier) identifier).getWorkerID();
+        
         synchronized (this) {
             if (available.size() > 0) { 
                 return available.removeFirst();
@@ -120,5 +138,11 @@ public class MultiThreadedCohort implements Cohort {
         return null;
     }
 
-
+    public CohortIdentifier identifier() {
+        return identifier;
+    }
+    
+    public boolean isMaster() {
+        return parent.isMaster();
+    }
 }

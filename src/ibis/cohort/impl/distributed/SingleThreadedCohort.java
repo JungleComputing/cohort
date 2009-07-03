@@ -3,20 +3,22 @@ package ibis.cohort.impl.distributed;
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
+import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
 import java.util.ArrayList;
 
-public class ComputationUnit implements Cohort, Runnable {
+public class SingleThreadedCohort implements Cohort, Runnable {
 
     private final MultiThreadedCohort parent; 
-    private final SequentialCohort sequential; 
-    private final int workerID;
+    private final BaseCohort sequential; 
+    private final CohortIdentifier identifier;
     
     private static class PendingRequests { 
         final ArrayList<Activity> pendingSubmit = new ArrayList<Activity>();
         final ArrayList<Event> pendingEvents = new ArrayList<Event>();
+        final ArrayList<Event> deliveredEvents = new ArrayList<Event>();
         final ArrayList<ActivityIdentifier> pendingCancelations = 
             new ArrayList<ActivityIdentifier>();   
     
@@ -31,10 +33,10 @@ public class ComputationUnit implements Cohort, Runnable {
 
     private volatile boolean havePendingRequests = false;
    
-    ComputationUnit(MultiThreadedCohort parent, int workerID) { 
+    SingleThreadedCohort(MultiThreadedCohort parent, CohortIdentifier identifier) { 
         this.parent = parent;
-        this.workerID = workerID;
-        sequential = new SequentialCohort(parent, workerID);
+        this.identifier = identifier;
+        sequential = new BaseCohort(parent, identifier);
     }
 
     public void cancel(ActivityIdentifier id) {
@@ -47,13 +49,6 @@ public class ComputationUnit implements Cohort, Runnable {
         havePendingRequests = true; 
     }
 
-    public void cancelAll() {
-        synchronized (this) { 
-            incoming.cancelAll = true;
-        }
-        havePendingRequests = true;
-    }
-
     public void stealRequest() {
         synchronized (this) {
             incoming.stealRequests++;
@@ -61,10 +56,10 @@ public class ComputationUnit implements Cohort, Runnable {
         havePendingRequests = true;
     }
 
-    public void queueEvent(Event e) {
+    public void deliverEvent(Event e) {
 
         synchronized (this) {
-            incoming.pendingEvents.add(e);
+            incoming.deliveredEvents.add(e);
         }
 
         havePendingRequests = true;
@@ -72,6 +67,8 @@ public class ComputationUnit implements Cohort, Runnable {
     
     public ActivityIdentifier submit(Activity a) {
 
+     //   System.out.println("ST submit");
+        
         ActivityIdentifier id = sequential.prepareSubmission(a);
 
         synchronized (this) {
@@ -84,7 +81,12 @@ public class ComputationUnit implements Cohort, Runnable {
     }
 
     public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) {
-        queueEvent(new MessageEvent(source, target, o));
+        
+        synchronized (this) {
+            incoming.pendingEvents.add(new MessageEvent(source, target, o));
+        }
+
+        havePendingRequests = true;
     }
     
     private synchronized boolean getDone() { 
@@ -106,21 +108,6 @@ public class ComputationUnit implements Cohort, Runnable {
 
         swapPendingRequests();
         
-        if (processing.cancelAll) { 
-            // Clear all tasks and events from the system.
-            sequential.cancelAll();
-            
-            processing.pendingSubmit.clear();
-            processing.pendingEvents.clear();
-            processing.pendingCancelations.clear();
-            processing.stealRequests = 0;
-            
-            processing.cancelAll = false; 
-            
-            // TODO: We should also clear the other PendingRequest object ?            
-            return;
-        }
-      
         if (processing.pendingSubmit.size() > 0) { 
 
             for (int i=0;i<processing.pendingSubmit.size();i++) { 
@@ -144,6 +131,24 @@ public class ComputationUnit implements Cohort, Runnable {
 
             processing.pendingEvents.clear();
         }
+        
+        if (processing.deliveredEvents.size() > 0) {
+
+            for (int i=0;i<processing.deliveredEvents.size();i++) {
+                
+                Event e = processing.deliveredEvents.get(i);
+                
+                if (!sequential.queueEvent(e)) { 
+                    // Failed to deliver event locally, so dispatch to parent 
+                    System.err.println("EEP: failed to deliver event: " + e);
+                    new Exception().printStackTrace(System.err);
+                }
+            }
+
+            processing.deliveredEvents.clear();
+        }
+
+        
         
         if (processing.pendingCancelations.size() > 0) { 
 
@@ -182,15 +187,15 @@ public class ComputationUnit implements Cohort, Runnable {
             
             if (!more && !havePendingRequests) { 
                 
-                ActivityRecord r = parent.stealAttempt(workerID);
+                ActivityRecord r = parent.stealAttempt(identifier);
                 
                 if (r != null) { 
                     sequential.addActivityRecord(r);
                 } else  {
-                  //  System.out.println(workerID + ": STEAL FAIL -- IDLE!");
+                    //System.out.println(identifier + ": STEAL FAIL -- IDLE!");
                     
                     try {
-                        Thread.sleep(1);
+                        Thread.sleep(10);
                     } catch (Exception e) {
                        // ignored
                     }
@@ -202,5 +207,15 @@ public class ComputationUnit implements Cohort, Runnable {
         long time = System.currentTimeMillis() - start;
 
         sequential.printStatistics(time);
+    }
+
+    public CohortIdentifier identifier() {
+        return identifier;
     }    
+    
+    public boolean isMaster() {
+        return parent.isMaster();
+    }
+    
+    
 }

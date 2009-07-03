@@ -20,6 +20,6 @@ public class IDGenerator {
             throw new Exception("Out of identifiers!");
         }
         
-        return new MTIdentifier(current++);
+        return new Identifier(current++);
     }
 }

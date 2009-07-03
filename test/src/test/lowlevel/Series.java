@@ -112,5 +112,11 @@ public class Series extends Activity {
 
     }
 
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
+
 
 }

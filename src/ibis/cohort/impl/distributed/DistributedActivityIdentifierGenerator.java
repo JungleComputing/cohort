@@ -1,22 +1,18 @@
 package ibis.cohort.impl.distributed;
 
 import ibis.cohort.ActivityIdentifier;
-import ibis.ipl.IbisIdentifier;
 
-public class IDGenerator {
+public class DistributedActivityIdentifierGenerator {
 
-    private final IbisIdentifier ibis;    
-    private final int workerID;
+    private final DistributedCohortIdentifier cohort;    
     
-    private final long end;
-    
+    private final long end;  
     private long current;
 
-    public IDGenerator(final IbisIdentifier ibis, final int workerID, 
+    public DistributedActivityIdentifierGenerator(final DistributedCohortIdentifier cohort, 
             final long start, final long end) {
         super();
-        this.ibis = ibis;
-        this.workerID = workerID;        
+        this.cohort = cohort;
         this.current = start;
         this.end = end;
     }
@@ -27,6 +23,6 @@ public class IDGenerator {
             throw new Exception("Out of identifiers!");
         }
         
-        return new Identifier(ibis, workerID, current++);
+        return new DistributedActivityIdentifier(cohort, current++);
     }
 }

@@ -1,14 +1,14 @@
-package ibis.cohort.impl.multithreaded;
+package ibis.cohort.impl.sequential;
 
 import ibis.cohort.ActivityIdentifier;
 
-public class MTIdentifier extends ActivityIdentifier {
+public class SequentialActivityIdentifier extends ActivityIdentifier {
     
     private static final long serialVersionUID = -2306905988828294374L;
     
     private final long id;
 
-    protected MTIdentifier(long id) { 
+    protected SequentialActivityIdentifier(long id) { 
         this.id = id;
     }
 
@@ -29,7 +29,7 @@ public class MTIdentifier extends ActivityIdentifier {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final MTIdentifier other = (MTIdentifier) obj;
+        final SequentialActivityIdentifier other = (SequentialActivityIdentifier) obj;
       
         return (id == other.id);
     }

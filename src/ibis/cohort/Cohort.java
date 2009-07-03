@@ -1,16 +1,17 @@
 package ibis.cohort;
 
 public interface Cohort {
-
-    ActivityIdentifier submit(Activity job);
     
-    void send(ActivityIdentifier source, ActivityIdentifier target, Object o);    
+    public boolean isMaster();
 
-   // void finished(Activity id, Object result);
-   // void unsuspend(Activity id);
+    public CohortIdentifier identifier();
+    
+    public ActivityIdentifier submit(Activity job);
+    
+    public void send(ActivityIdentifier source, ActivityIdentifier target, Object o);    
 
-    void cancel(ActivityIdentifier activity);
-    void cancelAll();
-    void done();
+    public void cancel(ActivityIdentifier activity);
+   
+    public void done();
 
 }

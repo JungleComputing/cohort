@@ -1,22 +1,20 @@
 package barnes;
 
-import ibis.cohort.Activity;
 import ibis.cohort.Cohort;
 import ibis.cohort.Context;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.impl.distributed.DistributedCohort;
 import ibis.cohort.impl.multithreaded.MTCohort;
 import ibis.cohort.impl.sequential.Sequential;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StreamTokenizer;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-
-import java.security.Policy.Parameters;
 import java.util.Arrays;
 
 /* strictfp */final class BarnesHut {
@@ -33,13 +31,13 @@ import java.util.Arrays;
 
     static final boolean ASSERTS = false; //also used in other barnes classes
 
-  
+
 
     // number of bodies at which the ntc impl work sequentially
     private static int spawn_min = 500; //use -min <threshold> to modify
 
     private static long totalTime = 0, updateTime = 0, forceCalcTime = 0,
-            vizTime = 0;
+    vizTime = 0;
 
     static Body[] bodyArray;
 
@@ -48,9 +46,9 @@ import java.util.Arrays;
     private static int dump_iters = 100;
 
     private transient RunParameters params;
-    
+
     private final Cohort cohort;
-    
+
     BarnesHut(Cohort cohort, int n, RunParameters params) {
         this.cohort = cohort;
         this.params = params;
@@ -58,9 +56,9 @@ import java.util.Arrays;
     }
 
     BarnesHut(Cohort cohort, Reader r, RunParameters params) throws IOException {
-        
+
         this.cohort = cohort;
-        
+
         BufferedReader br = new BufferedReader(r);
         StreamTokenizer tokenizer = new StreamTokenizer(br);
 
@@ -74,18 +72,18 @@ import java.util.Arrays;
         tokenizer.whitespaceChars('\t', ' ');
 
         int nBodies = (int) readDouble(tokenizer,
-            "number expected for number of bodies");
+        "number expected for number of bodies");
 
         // Ignore number of dimensions.
         readDouble(tokenizer, "number expected for dimensions");
 
         double startTtime = readDouble(tokenizer,
-            "number expected for start time");
+        "number expected for start time");
 
         this.params = new RunParameters(params.THETA, params.DT, params.SOFT,
-            params.MAX_BODIES_PER_LEAF, params.THRESHOLD,
-            params.USE_DOUBLE_UPDATES, startTtime, params.END_TIME,
-            params.ITERATIONS, params.IMPLEMENTATION);
+                params.MAX_BODIES_PER_LEAF, params.THRESHOLD,
+                params.USE_DOUBLE_UPDATES, startTtime, params.END_TIME,
+                params.ITERATIONS, params.IMPLEMENTATION);
 
         // Allocate bodies and read mass.
         bodyArray = new Body[nBodies];
@@ -94,7 +92,7 @@ import java.util.Arrays;
             bodyArray[i] = body;
             body.number = i;
             body.mass = readDouble(tokenizer,
-                "number expected for mass of body");
+            "number expected for mass of body");
         }
 
         // Read positions
@@ -115,7 +113,7 @@ import java.util.Arrays;
     }
 
     private double readDouble(StreamTokenizer tk, String err)
-        throws IOException {
+    throws IOException {
         int tok = tk.nextToken();
         if (tok != StreamTokenizer.TT_WORD) {
             throw new IOException(err);
@@ -134,11 +132,11 @@ import java.util.Arrays;
             }
             for (int i = 0; i < bodyArray.length; i++) {
                 w.write("" + bodyArray[i].pos_x + " " + bodyArray[i].pos_y
-                    + " " + bodyArray[i].pos_z + "\n");
+                        + " " + bodyArray[i].pos_z + "\n");
             }
             for (int i = 0; i < bodyArray.length; i++) {
                 w.write("" + bodyArray[i].vel_x + " " + bodyArray[i].vel_y
-                    + " " + bodyArray[i].vel_z + "\n");
+                        + " " + bodyArray[i].vel_z + "\n");
             }
             w.close();
         } catch (Exception e) {
@@ -153,7 +151,7 @@ import java.util.Arrays;
         return new BodyUpdatesFloat(n);
     }
 
-/*     guard method for the spawn below 
+    /*     guard method for the spawn below 
     public boolean guard_BarnesSO(int nodeId, int iteration, BodiesSO bodies) {
         // System.out.println("guard: iteration = " + iteration
         //         + ", bodies.iteration = " + bodies.iteration);
@@ -204,13 +202,13 @@ import java.util.Arrays;
         sync();
         return result.combineResults(res);
     }
-        
+
     public BodyUpdates doBarnesNTC(BodyTreeNode me, BodyTreeNode tree,
         RunParameters params) {
-        
-        
-        
-        
+
+
+
+
         if (me.children == null || me.bodyCount < params.THRESHOLD) {
             // leaf node, let barnesSequential handle this
             BodyUpdates res = getBodyUpdates(me.bodyCount, params);
@@ -243,7 +241,7 @@ import java.util.Arrays;
         sync();
         return result.combineResults(res);
     }
-*/
+     */
     /**
      * Does the same as barnesSequential, but spawnes itself until a threshold
      * is reached. Before a subjob is spawned, the necessary tree for that
@@ -251,8 +249,8 @@ import java.util.Arrays;
      */
     //public BodyUpdates barnesNTC(BodyTreeNode me, BodyTreeNode interactTree,
     //    RunParameters params) {
-     //   return doBarnesNTC(me, interactTree, params);
-   // }
+    //   return doBarnesNTC(me, interactTree, params);
+    // }
 
     void runSim() {
         long start = 0, end, phaseStart = 0;
@@ -261,18 +259,18 @@ import java.util.Arrays;
 
         BodyCanvas bc = null;
 
-      //  RemoteVisualization rv = null;
+        //  RemoteVisualization rv = null;
 
         System.out.println("BarnesHut: simulating " + bodyArray.length
-            + " bodies, " + params.MAX_BODIES_PER_LEAF + " bodies/leaf node, "
-            + "theta = " + params.THETA + ", spawn-min-threshold = "
-            + spawn_min);
+                + " bodies, " + params.MAX_BODIES_PER_LEAF + " bodies/leaf node, "
+                + "theta = " + params.THETA + ", spawn-min-threshold = "
+                + spawn_min);
 
         // print the starting problem
         if (verbose) {
             printBodies(bodyArray);
         }
-       
+
         if (viz) {
             bc = BodyCanvas.visualize(bodyArray);
         }
@@ -288,7 +286,7 @@ import java.util.Arrays;
                     + ", got " + e);
             }
         }*/
-        
+
 
         // turn of Satin during sequential pars.
         //ibis.satin.SatinObject.pause();
@@ -296,13 +294,13 @@ import java.util.Arrays;
         BodiesInterface bodies;
 
         printMemStats("pre bodies");
-        
+
         /*
         if (params.IMPLEMENTATION == IMPL_SO) {
             bodies = new BodiesSO(bodyArray, params);
             ((BodiesSO) bodies).exportObject();
         } else {*/
-            bodies = new Bodies(bodyArray, params);
+        bodies = new Bodies(bodyArray, params);
         //}
 
         printMemStats("post bodies");
@@ -311,7 +309,7 @@ import java.util.Arrays;
 
         for (int iteration = 0; iteration < params.ITERATIONS; iteration++) {
             printMemStats("begin iter " + iteration);
-            
+
             long updateTimeTmp = 0, forceCalcTimeTmp = 0, vizTimeTmp = 0;
 
             // System.out.println("Starting iteration " + iteration);
@@ -320,32 +318,32 @@ import java.util.Arrays;
 
             //force calculation
 
-          //  ibis.satin.SatinObject.resume(); //turn ON divide-and-conquer stuff
+            //  ibis.satin.SatinObject.resume(); //turn ON divide-and-conquer stuff
 
             switch (params.IMPLEMENTATION) {
             case RunParameters.IMPL_NTC:
             case RunParameters.IMPL_FULLTREE:
-                
+
                 SingleEventCollector a = new SingleEventCollector();
                 cohort.submit(a);
                 cohort.submit(new BarnesJob(Context.ANYWHERE, a.identifier(), 
                         bodies.getRoot(), bodies.getRoot(), params));
-                
+
                 result = (BodyUpdates) ((MessageEvent) a.waitForEvent()).message;        
                 // result = doBarnesNTC(bodies.getRoot(), bodies.getRoot(), params);
                 break;
-           /* case IMPL_SO:
+                /* case IMPL_SO:
                 result = doBarnesSO(0, iteration, (BodiesSO) bodies);
                 sync();
                 break;
-                */
+                 */
             case RunParameters.IMPL_SEQ:
                 result = getBodyUpdates(bodies.getRoot().bodyCount, params);
                 bodies.getRoot().barnesSequential(bodies.getRoot(), result,
-                    params);
+                        params);
                 break;
             }
-            
+
             //ibis.satin.SatinObject.pause(); // pause divide-and-conquer stuff
 
             bodies.cleanup(0); // throw away the tree, we only need the body array now
@@ -378,7 +376,7 @@ import java.util.Arrays;
             phaseStart = System.currentTimeMillis();
 
             if (dump_file != null && iteration != 0
-                && (iteration % dump_iters) == 0) {
+                    && (iteration % dump_iters) == 0) {
                 dump(iteration);
             }
 
@@ -391,7 +389,7 @@ import java.util.Arrays;
                 rv.showBodies(bodyArray, iteration, updateTimeTmp
                     + forceCalcTimeTmp);
             }
-            */
+             */
 
             vizTimeTmp = System.currentTimeMillis() - phaseStart;
             vizTime += vizTimeTmp;
@@ -399,9 +397,9 @@ import java.util.Arrays;
             long total = updateTimeTmp + forceCalcTimeTmp + vizTimeTmp;
 
             System.out.println("Iteration " + iteration + " done"
-                + ", update = " + updateTimeTmp + ", force = "
-                + forceCalcTimeTmp + ", viz = " + vizTimeTmp + ", total = "
-                + total);
+                    + ", update = " + updateTimeTmp + ", force = "
+                    + forceCalcTimeTmp + ", viz = " + vizTimeTmp + ", total = "
+                    + total);
         }
 
         end = System.currentTimeMillis();
@@ -420,11 +418,11 @@ import java.util.Arrays;
         for (i = 0; i < bodyArray.length; i++) {
             b = sorted[i];
             System.out.println("0: Body " + i + ": [ " + b.pos_x + ", "
-                + b.pos_y + ", " + b.pos_z + " ]");
+                    + b.pos_y + ", " + b.pos_z + " ]");
             System.out.println("0:      " + i + ": [ " + b.vel_x + ", "
-                + b.vel_y + ", " + b.vel_z + " ]");
+                    + b.vel_y + ", " + b.vel_z + " ]");
             System.out.println("0:      " + i + ": [ " + b.oldAcc_x + ", "
-                + b.oldAcc_y + ", " + b.oldAcc_z + " ]");
+                    + b.oldAcc_y + ", " + b.oldAcc_z + " ]");
             System.out.println("0:      " + i + ": [ " + b.mass + " ]");
             // System.out.println("0:      " + i + ": " + b.number);
         }
@@ -432,7 +430,7 @@ import java.util.Arrays;
 
     void run() {
         System.out.println("Iterations: " + params.ITERATIONS + " (timings DO "
-            + "include the first iteration!)");
+                + "include the first iteration!)");
 
         switch (params.IMPLEMENTATION) {
         case RunParameters.IMPL_NTC:
@@ -445,27 +443,27 @@ import java.util.Arrays;
         case IMPL_SO:
             System.out.println("Using shared object impl");
             break;
-            */
-            
+             */
+
         case RunParameters.IMPL_FULLTREE:
             System.out.println("Using full tree impl");
             break;
         default:
             System.out.println("EEK! Using unknown implementation #" + params.IMPLEMENTATION);
-            System.exit(1);
-            break; //blah
+        System.exit(1);
+        break; //blah
         }
 
         runSim();
 
         System.out.println("update took             " + updateTime / 1000.0
-            + " s");
+                + " s");
         System.out.println("Force calculation took  " + forceCalcTime / 1000.0
-            + " s");
+                + " s");
         System.out
-            .println("visualization took      " + vizTime / 1000.0 + " s");
+        .println("visualization took      " + vizTime / 1000.0 + " s");
         System.out.println("application barnes took "
-            + (double) (totalTime / 1000.0) + " s");
+                + (double) (totalTime / 1000.0) + " s");
 
         printMemStats("done");
 
@@ -477,14 +475,14 @@ import java.util.Arrays;
 
     public static void printMemStats(String prefix) {
         if(false) {
-        Runtime r = Runtime.getRuntime();
+            Runtime r = Runtime.getRuntime();
 
-        System.gc();
-        long free = r.freeMemory() / (1024*1024);
-        long max = r.maxMemory() / (1024*1024);
-        long total = r.totalMemory() / (1024*1024);
-        System.err.println(prefix + ": free = " + free + " max = " + max
-            + " total = " + total);
+            System.gc();
+            long free = r.freeMemory() / (1024*1024);
+            long max = r.maxMemory() / (1024*1024);
+            long total = r.totalMemory() / (1024*1024);
+            System.err.println(prefix + ": free = " + free + " max = " + max
+                    + " total = " + total);
         }
     }
 
@@ -506,16 +504,16 @@ import java.util.Arrays;
 
         Cohort cohort = null; 
         int threads = 1;
-        
+
         printMemStats("start");
-        
+
         //parse arguments
         for (int i = 0; i < argv.length; i++) {
             //options
             if (argv[i].equals("-cohort")) { 
 
                 i++;
-                
+
                 if (argv[i].equals("seq")) { 
                     cohort = new Sequential();
                     System.out.println("Using SEQUENTIAL Cohort implementation");
@@ -523,11 +521,22 @@ import java.util.Arrays;
                     threads = Integer.parseInt(argv[++i]);
                     cohort = new MTCohort(threads);               
                     System.out.println("Using MULTITHREADED(" + threads + ") Cohort implementation");                    
+                } else if (argv[i].equals("dist")) { 
+                    try {
+                        cohort = new DistributedCohort();
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                        System.exit(1);
+                    }               
+               
+                    System.out.println("Using DISTRIBUTED Cohort implementation");                    
+                    
                 } else { 
                     System.out.println("Unknown Cohort implementation selected!");
                     System.exit(1);
                 }
-                
+
             } else if (argv[i].equals("-debug")) {
                 debug = true;
             } else if (argv[i].equals("-no-debug")) {
@@ -538,7 +547,7 @@ import java.util.Arrays;
                 verbose = false;
             } else if (argv[i].equals("-viz")) {
                 viz = true;
-            /*} else if (argv[i].equals("-remote-viz")) {
+                /*} else if (argv[i].equals("-remote-viz")) {
                 remoteViz = true;*/
             } else if (argv[i].equals("-dump-viz")) {
                 dumpViz = argv[++i];
@@ -555,20 +564,20 @@ import java.util.Arrays;
                 /*
             } else if (argv[i].equals("-so")) {
                 impl = RunParameters.IMPL_SO;
-                */
+                 */
             } else if (argv[i].equals("-seq")) {
                 impl = RunParameters.IMPL_SEQ;
             } else if (argv[i].equals("-it")) {
                 iterations = Integer.parseInt(argv[++i]);
                 if (iterations < 0) {
                     throw new IllegalArgumentException(
-                        "Illegal argument to -it: number of iterations must be >= 0 !");
+                    "Illegal argument to -it: number of iterations must be >= 0 !");
                 }
             } else if (argv[i].equals("-dump-iter")) {
                 dump_iters = Integer.parseInt(argv[++i]);
                 if (dump_iters <= 0) {
                     throw new IllegalArgumentException(
-                        "Illegal argument to -dump-iter: number of iterations must be > 0 !");
+                    "Illegal argument to -dump-iter: number of iterations must be > 0 !");
                 }
             } else if (argv[i].equals("-theta")) {
                 theta = Double.parseDouble(argv[++i]);
@@ -585,7 +594,7 @@ import java.util.Arrays;
                     rdr = new FileReader(argv[++i]);
                 } catch (IOException e) {
                     throw new IllegalArgumentException(
-                        "Could not open input file " + argv[i]);
+                            "Could not open input file " + argv[i]);
                 }
             } else if (argv[i].equals("-dump")) {
                 dump_file = argv[++i];
@@ -593,7 +602,7 @@ import java.util.Arrays;
                 spawn_min = Integer.parseInt(argv[++i]);
                 if (spawn_min < 0) {
                     throw new IllegalArgumentException(
-                        "Illegal argument to -min: Spawn min threshold must be >= 0 !");
+                    "Illegal argument to -min: Spawn min threshold must be >= 0 !");
                 }
             } else if (!nBodiesSeen) {
                 try {
@@ -624,25 +633,38 @@ import java.util.Arrays;
         }
 
         RunParameters params = new RunParameters(theta, dt, soft,
-            maxBodiesPerLeaf, spawn_min, useDoubleUpdates, startTime, endTime,
-            iterations, impl);
+                maxBodiesPerLeaf, spawn_min, useDoubleUpdates, startTime, endTime,
+                iterations, impl);
 
-        if (rdr != null) {
-            if (nBodiesSeen) {
-                System.out
-                    .println("Warning: nBodies as seen in argument list ignored!");
+        if (cohort.isMaster()) { 
+            if (rdr != null) {
+                if (nBodiesSeen) {
+                    System.out.println("Warning: nBodies as seen in argument list ignored!");
+                }
+                try {
+                    new BarnesHut(cohort, rdr, params).run();
+                } catch (IOException e) {
+                    throw new NumberFormatException(e.getMessage());
+                }
+            } else {
+                new BarnesHut(cohort, nBodies, params).run();
             }
-            try {
-                new BarnesHut(cohort, rdr, params).run();
-            } catch (IOException e) {
-                throw new NumberFormatException(e.getMessage());
-            }
-        } else {
-            new BarnesHut(cohort, nBodies, params).run();
-        }
 
-        cohort.done();
+            //ibis.satin.SatinObject.resume(); // allow satin to exit cleanly
+
+            cohort.done();
+        } else { 
+            // We must somehow wait for the app to finish here...
         
-        //ibis.satin.SatinObject.resume(); // allow satin to exit cleanly
+            while (true) { 
+                try { 
+                    Thread.sleep(10000);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+        }
+        
+
     }
 }

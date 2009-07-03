@@ -32,4 +32,10 @@ public class Dummy extends Activity {
         // unused
     }
 
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

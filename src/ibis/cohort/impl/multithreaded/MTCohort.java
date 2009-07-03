@@ -5,23 +5,29 @@ import java.util.LinkedList;
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
+import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
 
 public class MTCohort implements Cohort {
 
     private LinkedList<ActivityRecord> available = new LinkedList<ActivityRecord>();
     
-    private ComputationUnit [] workers;
+    private final MTCohortIdentifier identifier;
+    
+    private STCohort [] workers;
     private int nextSubmit = 0;
     
     private long startID = 0;
     private long blockSize = 1000000;
     
     public MTCohort(int workerCount) { 
-        workers = new ComputationUnit[workerCount];
+    
+        identifier = new MTCohortIdentifier(Integer.MAX_VALUE);
+        
+        workers = new STCohort[workerCount];
        
         for (int i=0;i<workerCount;i++) { 
-            workers[i] = new ComputationUnit(this, i);
+            workers[i] = new STCohort(this, new MTCohortIdentifier(i));
         }
     
         for (int i=0;i<workerCount;i++) { 
@@ -30,19 +36,13 @@ public class MTCohort implements Cohort {
     }
     
     public void cancel(ActivityIdentifier activity) {
-        for (ComputationUnit u : workers) { 
+        for (STCohort u : workers) { 
             u.cancel(activity);
         }
     }
 
-    public void cancelAll() {
-        for (ComputationUnit u : workers) { 
-            u.cancelAll();
-        }
-    }
-
     public void done() {
-        for (ComputationUnit u : workers) { 
+        for (STCohort u : workers) { 
             u.done();
         }
     }
@@ -73,9 +73,11 @@ public class MTCohort implements Cohort {
         workers[0].send(source, target, o);
     }
     
-    void forwardEvent(Event e, int source) { 
+    void forwardEvent(Event e, CohortIdentifier src) { 
  
         // TODO: improve this incredibly dumb implementation!
+        
+        int source = ((MTCohortIdentifier) src).getIdentifier();
         
         int next = (source + 1) % workers.length;
         
@@ -98,8 +100,10 @@ public class MTCohort implements Cohort {
         available.addLast(record);
     }    
 
-    ActivityRecord stealAttempt(int source) {
+    ActivityRecord stealAttempt(CohortIdentifier src) {
     
+        int source = ((MTCohortIdentifier) src).getIdentifier();
+        
         synchronized (this) {
             if (available.size() > 0) { 
                 return available.removeFirst();
@@ -115,5 +119,11 @@ public class MTCohort implements Cohort {
         return null;
     }
 
+    public CohortIdentifier identifier() {
+        return identifier;
+    }
 
+    public boolean isMaster() {
+        return true;
+    }
 }

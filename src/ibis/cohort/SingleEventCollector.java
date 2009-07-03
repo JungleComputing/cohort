@@ -29,6 +29,10 @@ public class SingleEventCollector extends Activity {
         // empty
     }
     
+    public void cancel() throws Exception {
+        // empty
+    }
+    
     public String toString() { 
         return "SingleEventCollector(" + identifier() + ")";
     }

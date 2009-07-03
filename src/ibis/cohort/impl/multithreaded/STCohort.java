@@ -3,16 +3,17 @@ package ibis.cohort.impl.multithreaded;
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
+import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
 import java.util.ArrayList;
 
-public class ComputationUnit implements Cohort, Runnable {
+public class STCohort implements Cohort, Runnable {
 
     private final MTCohort parent; 
-    private final Sequential sequential; 
-    private final int workerID;
+    private final BaseCohort sequential; 
+    private final CohortIdentifier identifier;
     
     private static class PendingRequests { 
         final ArrayList<Activity> pendingSubmit = new ArrayList<Activity>();
@@ -31,10 +32,10 @@ public class ComputationUnit implements Cohort, Runnable {
 
     private volatile boolean havePendingRequests = false;
    
-    ComputationUnit(MTCohort parent, int workerID) { 
+    STCohort(MTCohort parent, CohortIdentifier identifier) { 
         this.parent = parent;
-        this.workerID = workerID;
-        sequential = new Sequential(parent, workerID);
+        this.identifier = identifier;
+        sequential = new BaseCohort(parent, identifier);
     }
 
     public void cancel(ActivityIdentifier id) {
@@ -45,13 +46,6 @@ public class ComputationUnit implements Cohort, Runnable {
         }
 
         havePendingRequests = true; 
-    }
-
-    public void cancelAll() {
-        synchronized (this) { 
-            incoming.cancelAll = true;
-        }
-        havePendingRequests = true;
     }
 
     public void stealRequest() {
@@ -138,7 +132,7 @@ public class ComputationUnit implements Cohort, Runnable {
                 
                 if (!sequential.queueEvent(e)) { 
                    // Failed to deliver event locally, so dispatch to parent 
-                    parent.forwardEvent(e, workerID);
+                    parent.forwardEvent(e, identifier);
                 }
             }
 
@@ -182,7 +176,7 @@ public class ComputationUnit implements Cohort, Runnable {
             
             if (!more && !havePendingRequests) { 
                 
-                ActivityRecord r = parent.stealAttempt(workerID);
+                ActivityRecord r = parent.stealAttempt(identifier);
                 
                 if (r != null) { 
                     sequential.addActivityRecord(r);
@@ -202,5 +196,13 @@ public class ComputationUnit implements Cohort, Runnable {
         long time = System.currentTimeMillis() - start;
 
         sequential.printStatistics(time);
+    }
+
+    public CohortIdentifier identifier() {
+        return identifier();
+    }
+
+    public boolean isMaster() {
+        return true;
     }    
 }

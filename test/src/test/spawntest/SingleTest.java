@@ -47,4 +47,10 @@ public class SingleTest extends Activity {
         // unused
     }
 
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

@@ -110,5 +110,11 @@ public class Fibonacci extends Activity {
                 + (end-start) + ")");
     }
 
+    @Override
+    public void cancel() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
+
 
 }
