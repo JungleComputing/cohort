@@ -33,6 +33,7 @@ public class DistributedCohortIdentifier extends CohortIdentifier {
             return false;
         if (getClass() != obj.getClass())
             return false;
+        
         final DistributedCohortIdentifier other = (DistributedCohortIdentifier) obj;
        
         if (workerID != other.workerID)

@@ -1,31 +1,44 @@
 package ibis.cohort.impl.distributed;
 
 import ibis.cohort.ActivityIdentifier;
-import ibis.ipl.IbisIdentifier;
 
 public class DistributedActivityIdentifier extends ActivityIdentifier {
     
     private static final long serialVersionUID = -2306905988828294374L;
     
-    private final DistributedCohortIdentifier cohort;
+    private final DistributedCohortIdentifier cohortOfOrigin;
     private final long id;
 
+    private DistributedCohortIdentifier lastKnownCohort; 
+    
     protected DistributedActivityIdentifier(final DistributedCohortIdentifier cohort, final long id) {
-        this.cohort = cohort;
+        this.cohortOfOrigin = cohort;
         this.id = id;
     }
-
+    
+    protected DistributedCohortIdentifier getLastKnownCohort() { 
+        if (lastKnownCohort == null) { 
+            return cohortOfOrigin;
+        }
+        
+        return lastKnownCohort;
+    }
+     
+    protected void setLastKnownCohort(DistributedCohortIdentifier id) { 
+        lastKnownCohort = id;
+    }
+    
     protected DistributedCohortIdentifier getCohort() { 
-        return cohort;
+        return cohortOfOrigin;
     }
     
     public String toString() { 
-        return "Activity(" + cohort + ", " + id + ")";
+        return "Activity(" + cohortOfOrigin + ", " + id + ")";
     }
 
     @Override
     public int hashCode() {
-       return cohort.hashCode() + (int) id;
+       return cohortOfOrigin.hashCode() + (int) id;
     }
 
     @Override
@@ -43,6 +56,6 @@ public class DistributedActivityIdentifier extends ActivityIdentifier {
             return false;
         }
         
-        return cohort.equals(other.cohort);
+        return cohortOfOrigin.equals(other.cohortOfOrigin);
     }
 }

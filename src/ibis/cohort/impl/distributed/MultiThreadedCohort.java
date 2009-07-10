@@ -92,7 +92,10 @@ public class MultiThreadedCohort implements Cohort {
         
         // TODO: optimize!
         
-        CohortIdentifier target = ((DistributedActivityIdentifier) e.target).getCohort();
+        DistributedActivityIdentifier did = 
+            (DistributedActivityIdentifier) e.target;
+        
+        CohortIdentifier target = did.getLastKnownCohort();
         
         for (int i=0;i<workers.length;i++) { 
             

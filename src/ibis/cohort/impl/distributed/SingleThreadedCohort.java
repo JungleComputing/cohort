@@ -140,8 +140,9 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                 
                 if (!sequential.queueEvent(e)) { 
                     // Failed to deliver event locally, so dispatch to parent 
-                    System.err.println("EEP: failed to deliver event: " + e);
+                    System.err.println("EEP: Cohort " + identifier + " failed to deliver event: " + e);
                     new Exception().printStackTrace(System.err);
+                    System.exit(1);
                 }
             }
 
@@ -190,12 +191,17 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                 ActivityRecord r = parent.stealAttempt(identifier);
                 
                 if (r != null) { 
+                    
+                    ((DistributedActivityIdentifier) 
+                            r.identifier()).setLastKnownCohort(
+                                    (DistributedCohortIdentifier) identifier);
+                    
                     sequential.addActivityRecord(r);
                 } else  {
                     //System.out.println(identifier + ": STEAL FAIL -- IDLE!");
                     
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(100);
                     } catch (Exception e) {
                        // ignored
                     }

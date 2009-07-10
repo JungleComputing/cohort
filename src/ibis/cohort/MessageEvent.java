@@ -9,4 +9,8 @@ public class MessageEvent<T> extends Event {
         this.message = message;
     }
 
+    public String toString() { 
+        return "Message(" + source + " -> " + target + " : " + message + ")"; 
+    }
+    
 }

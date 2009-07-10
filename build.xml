@@ -1,13 +1,13 @@
 <project name="Cohort" default="build" basedir=".">
 
-	<property name="version" value="0.2" />
+	<property name="version" value="0.3.1" />
 	<property name="jar" value="cohort-${version}.jar" />
 	<property name="zip" value="cohort-${version}.zip" />
 	<property name="src-zip" value="cohort-${version}-src.zip" />
 
 	<property name="srcdir" value="./src" />
 	<property name="builddir" value="./build" />
-	<property name="distdir" value="./jars" />
+	<property name="distdir" value="./lib" />
 	<property name="javadoc" value="javadoc/cohort" />
 
 	<path id="default.classpath">
@@ -31,7 +31,14 @@
 				<attribute name="Built-By" value="${user.name}" />
 			</manifest>
 		</jar>
+	</target>
 
+        <target name="copy-external">
+	        <mkdir dir="lib" />
+        	<!-- Copy external libraries to lib directory -->
+	        <copy todir="lib">
+		        <fileset dir="external" excludes="log4jME*.jar" />
+		</copy>
 	</target>
 
 	<target name="javadoc" description="Create javadocs">
@@ -43,7 +50,7 @@
 
 	</target>
 
-	<target name="build" depends="clean,compile,javadoc">
+	<target name="build" depends="clean,compile,copy-external,javadoc">
 	</target>
 
 	<target name="bin.zip" depends="build">
