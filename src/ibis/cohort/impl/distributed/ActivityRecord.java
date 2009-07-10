@@ -4,10 +4,13 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Event;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 
-class ActivityRecord { 
+class ActivityRecord implements Serializable { 
 
+    private static final long serialVersionUID = 6938326535791839797L;
+ 
     static final int INITIALIZING = 1;
     static final int SUPENDED     = 2;
     static final int RUNNABLE     = 3;
@@ -16,7 +19,7 @@ class ActivityRecord {
     static final int ERROR        = Integer.MAX_VALUE;
 
     final Activity activity;
-    private LinkedList<Event> queue;
+    private CircularBuffer queue;
     private int state = INITIALIZING;
 
     ActivityRecord(Activity activity) {
@@ -30,10 +33,10 @@ class ActivityRecord {
         }
 
         if (queue == null) { 
-            queue = new LinkedList<Event>();
+            queue = new CircularBuffer(4);
         }
 
-        queue.addLast(e);
+        queue.insertLast(e);
     }
 
     Event dequeue() { 
@@ -42,7 +45,7 @@ class ActivityRecord {
             return null;
         }
 
-        return queue.removeFirst();
+        return (Event) queue.removeFirst();
     }   
 
     int pendingEvents() { 

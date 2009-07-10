@@ -4,6 +4,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
+import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
@@ -255,5 +256,14 @@ public class BaseCohort implements Cohort {
 
     public boolean isMaster() {
         return true;
+    }
+
+    public Context getContext() {
+        return null;
+    }
+
+    public void setContext(Context context) {
+        // TODO Auto-generated method stub
+        
     }
 }

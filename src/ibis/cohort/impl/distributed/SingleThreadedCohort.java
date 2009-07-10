@@ -4,6 +4,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
+import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
@@ -49,10 +50,12 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         havePendingRequests = true; 
     }
 
-    public void stealRequest() {
+    public void stealRequest(CohortIdentifier source) {
+      
         synchronized (this) {
             incoming.stealRequests++;
         }
+        
         havePendingRequests = true;
     }
 
@@ -221,6 +224,16 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     
     public boolean isMaster() {
         return parent.isMaster();
+    }
+
+    public Context getContext() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setContext(Context context) {
+        // TODO Auto-generated method stub
+        
     }
     
     

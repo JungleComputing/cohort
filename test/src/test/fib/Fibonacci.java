@@ -7,6 +7,7 @@ import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.impl.distributed.DistributedCohort;
 import ibis.cohort.impl.multithreaded.MTCohort;
 import ibis.cohort.impl.sequential.Sequential;
 
@@ -21,7 +22,7 @@ public class Fibonacci extends Activity {
     private int merged = 0;
 
     public Fibonacci(ActivityIdentifier parent, int input) {
-        super(Context.ANYWHERE);
+        super(Context.ANY);
         this.parent = parent;
         this.input = input;
     }
@@ -67,7 +68,7 @@ public class Fibonacci extends Activity {
         return "Fib(" + identifier() + ") " + input + ", " + merged + " -> " + output;
     }
 
-    public static void main(String [] args) { 
+    public static void main(String [] args) throws Exception { 
 
         long start = System.currentTimeMillis();
 
@@ -87,6 +88,12 @@ public class Fibonacci extends Activity {
             cohort = new MTCohort(threads);
        
             System.out.println("Using MULTITHREADED(" + threads + ") Cohort implementation");
+        
+        } else  if (args[index].equals("dist")) { 
+            index++;
+            cohort = new DistributedCohort();
+       
+            System.out.println("Using DISTRIBUTED Cohort implementation");
             
         } else { 
             System.out.println("Unknown Cohort implementation selected!");
@@ -95,21 +102,33 @@ public class Fibonacci extends Activity {
         
         int input = Integer.parseInt(args[index++]);
 
-        SingleEventCollector a = new SingleEventCollector();
+        if (cohort.isMaster()) { 
+       
+            System.out.println("Starting as master!");
+            
+            SingleEventCollector a = new SingleEventCollector();
 
-        cohort.submit(a);
-        cohort.submit(new Fibonacci(a.identifier(), input));
+            cohort.submit(a);
+            cohort.submit(new Fibonacci(a.identifier(), input));
 
-        int result = ((MessageEvent<Integer>)a.waitForEvent()).message;
+            int result = ((MessageEvent<Integer>)a.waitForEvent()).message;
 
-        cohort.done();
+            cohort.done();
 
-        long end = System.currentTimeMillis();
+            long end = System.currentTimeMillis();
 
-        System.out.println("FIB: Fib(" + input + ") = " + result + " (" 
-                + (end-start) + ")");
+            System.out.println("FIB: Fib(" + input + ") = " + result + " (" 
+                    + (end-start) + ")");
+        } else { 
+            
+            System.out.println("Starting as slave!");
+            
+            while (true) { 
+                Thread.sleep(10000);
+            }
+        }
     }
-
+   
     @Override
     public void cancel() throws Exception {
         // TODO Auto-generated method stub

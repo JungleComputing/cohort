@@ -29,7 +29,7 @@ public class DivideAndConquerClean extends Activity {
     private long count = 1;
     
     public DivideAndConquerClean(ActivityIdentifier parent, int branch, int depth) {
-        super(Context.ANYWHERE);
+        super(Context.ANY);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;

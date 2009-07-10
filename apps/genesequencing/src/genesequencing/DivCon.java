@@ -19,7 +19,7 @@ public class DivCon extends Activity {
     private int count;
     
     public DivCon(ActivityIdentifier parent, WorkUnit workUnit, int myIndex) {
-        super(Context.ANYWHERE);
+        super(Context.ANY);
         this.parent = parent;
         this.workUnit = workUnit;
         this.myIndex = myIndex;

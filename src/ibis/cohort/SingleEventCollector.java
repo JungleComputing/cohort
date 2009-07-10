@@ -12,7 +12,7 @@ public class SingleEventCollector extends Activity {
     }
 
     public SingleEventCollector() {
-        super(Context.HERE);
+        super(Context.LOCAL);
     }
     
     @Override

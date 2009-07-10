@@ -4,6 +4,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
+import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
@@ -193,7 +194,7 @@ class BaseCohort implements Cohort {
             ActivityRecord r = (ActivityRecord) fresh.removeFirst();
             // System.out.println("STEAL " + size + " " + r.identifier());
             local.remove(r.identifier());
-            parent.addActivityRecord(r);
+            parent.addActivityRecord(r, true);
         }
     }
 
@@ -261,5 +262,15 @@ class BaseCohort implements Cohort {
 
     public boolean isMaster() {
         return parent.isMaster();
+    }
+
+    public Context getContext() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setContext(Context context) {
+        // TODO Auto-generated method stub
+        
     }
 }

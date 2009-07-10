@@ -13,5 +13,10 @@ public interface Cohort {
     public void cancel(ActivityIdentifier activity);
    
     public void done();
-
+    
+    public Context getContext();
+    
+    public void setContext(Context context);
+    
+    
 }

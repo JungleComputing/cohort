@@ -15,7 +15,7 @@ public class SingleTest extends Activity {
     private int replies;
     
     public SingleTest(ActivityIdentifier parent, int spawns) {
-        super(Context.ANYWHERE);
+        super(Context.ANY);
         this.parent = parent;
         this.spawns= spawns;
     }

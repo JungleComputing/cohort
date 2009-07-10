@@ -26,7 +26,7 @@ public class Series extends Activity {
     private final int count;
     
     public Series(ActivityIdentifier root, int length, int count) {
-        super(Context.ANYWHERE);
+        super(Context.ANY);
         this.root = root;
         this.length = length;
         this.count = count;

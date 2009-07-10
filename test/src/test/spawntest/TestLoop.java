@@ -20,7 +20,7 @@ public class TestLoop extends Activity {
     private long end;
     
     public TestLoop(ActivityIdentifier parent, long count, int spawns) {
-        super(Context.ANYWHERE);
+        super(Context.ANY);
         this.parent = parent;
         this.count = count;
         this.spawns = spawns;

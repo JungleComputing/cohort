@@ -6,6 +6,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
+import ibis.cohort.Context;
 import ibis.cohort.Event;
 
 public class MTCohort implements Cohort {
@@ -125,5 +126,15 @@ public class MTCohort implements Cohort {
 
     public boolean isMaster() {
         return true;
+    }
+
+    public Context getContext() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setContext(Context context) {
+        // TODO Auto-generated method stub
+        
     }
 }

@@ -3,6 +3,7 @@ package ibis.cohort.impl.sequential;
 import ibis.cohort.Cohort;
 import ibis.cohort.Activity;
 import ibis.cohort.CohortIdentifier;
+import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
@@ -320,5 +321,15 @@ public class Sequential implements Cohort {
 
     public boolean isMaster() {
         return true;
+    }
+
+    public Context getContext() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setContext(Context context) {
+        // TODO Auto-generated method stub
+        
     }
 }

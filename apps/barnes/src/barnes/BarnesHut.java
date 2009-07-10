@@ -326,7 +326,7 @@ import java.util.Arrays;
 
                 SingleEventCollector a = new SingleEventCollector();
                 cohort.submit(a);
-                cohort.submit(new BarnesJob(Context.ANYWHERE, a.identifier(), 
+                cohort.submit(new BarnesJob(Context.ANY, a.identifier(), 
                         bodies.getRoot(), bodies.getRoot(), params));
 
                 result = (BodyUpdates) ((MessageEvent) a.waitForEvent()).message;        
