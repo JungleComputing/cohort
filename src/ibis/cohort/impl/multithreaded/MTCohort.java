@@ -25,6 +25,24 @@ public class MTCohort implements Cohort {
     
         identifier = new MTCohortIdentifier(Integer.MAX_VALUE);
         
+        if (workerCount == 0) { 
+
+            String tmp = System.getProperty("ibis.cohort.workers");
+
+            if (tmp != null && tmp.length() > 0) { 
+                try { 
+                    workerCount = Integer.parseInt(tmp);
+                } catch (Exception e) {
+                    System.err.println("Failed to parse property ibis.cohort.workers: " + e);
+                }
+            }
+
+            if (workerCount == 0) { 
+                // Automatically determine the number of cores to use
+                workerCount = Runtime.getRuntime().availableProcessors();
+            }
+        }
+        
         workers = new STCohort[workerCount];
        
         for (int i=0;i<workerCount;i++) { 

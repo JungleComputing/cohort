@@ -123,14 +123,13 @@ public class MultiThreadedCohort implements Cohort {
             }
         }
 
-        System.err.println("EEP: failed to deliver event: " + e);
+        System.err.println("EEP: failed to deliver event LOCATION: " 
+                + identifier + " ERROR: " + e);
 
         //workers[((DistributedActivityIdentifier) e.target).getCohort().getWorkerID()].deliverEvent(e);
     }
     
     void addActivityRecord(ActivityRecord record, boolean local) { 
-
-        System.out.println("GOT WORK!");
         
         if (record == null) { 
             System.out.println("EEP: steal reply is null!!");

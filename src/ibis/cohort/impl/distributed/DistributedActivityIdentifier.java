@@ -33,7 +33,8 @@ public class DistributedActivityIdentifier extends ActivityIdentifier {
     }
     
     public String toString() { 
-        return "Activity(" + cohortOfOrigin + ", " + id + ")";
+        return "Activity(origin: " + cohortOfOrigin + " last: " + 
+            lastKnownCohort + " id: " + id + ")";
     }
 
     @Override

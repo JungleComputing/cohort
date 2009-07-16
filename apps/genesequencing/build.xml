@@ -5,16 +5,25 @@
 
 	<property name="srcdir" value="./src" />
 	<property name="builddir" value="./build" />
-	<property name="distdir" value="./jars" />
+	<property name="distdir" value="./lib" />
 
 	<path id="default.classpath">
-		<fileset dir="external">
-			<include name="*.jar" />
-		</fileset>
-		<fileset dir="../../jars">
+		<fileset dir="lib">
 			<include name="*.jar" />
 		</fileset>
 	</path>
+
+        <target name="copy-external">
+	        <mkdir dir="lib" />
+        	<!-- Copy external libraries to lib directory -->
+	        <copy todir="lib">
+		        <fileset dir="external" excludes="log4jME*.jar" />
+		</copy>
+	        <copy todir="lib">
+		        <fileset dir="../../lib" excludes="log4jME*.jar" />
+		</copy>
+	</target>
+
 
 	<!-- Compile cohort -->
 	<target name="compile">
@@ -31,7 +40,10 @@
 
 	</target>
 
-	<target name="build" depends="clean,compile">
+	<target name="build" depends="clean,copy-external,compile">
+ 		<exec executable="/bin/sh">
+			<arg value="rewrite.sh"/>
+		</exec>
 	</target>
 
 

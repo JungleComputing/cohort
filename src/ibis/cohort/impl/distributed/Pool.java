@@ -13,8 +13,6 @@ import java.util.Random;
 
 class Pool implements RegistryEventHandler {
 
-    private static final int STEAL_TIMEOUT = 1000; 
-
     private final HashMap<IbisIdentifier, SendPort> sendports = 
         new HashMap<IbisIdentifier, SendPort>();
 
@@ -30,8 +28,6 @@ class Pool implements RegistryEventHandler {
     private boolean isMaster;
 
     private final Random random = new Random();
-
-    private long nextSteal = 0; 
 
     Pool(PortType portType) { 
         this.portType = portType;
@@ -107,7 +103,16 @@ class Pool implements RegistryEventHandler {
         // ignored
     }            
 
-    public void done() { 
+    public void terminate() throws IOException { 
+        if (isMaster) { 
+            ibis.registry().terminate();
+        } else { 
+            ibis.registry().waitUntilTerminated();
+        }        
+    }         
+    
+    public void cleanup() {
+        
         try {
             ibis.end();
         } catch (IOException e) {
@@ -122,16 +127,8 @@ class Pool implements RegistryEventHandler {
     public boolean isMaster() {
         return isMaster;
     }
-
+    
     public IbisIdentifier selectTarget() {
-
-        long time = System.currentTimeMillis();
-
-        if (time < nextSteal) { 
-            return null;
-        } 
-        
-        nextSteal = time + STEAL_TIMEOUT;
 
         synchronized (this) {
             final int size = others.size();

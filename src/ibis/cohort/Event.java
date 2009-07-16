@@ -1,6 +1,8 @@
 package ibis.cohort;
 
-public abstract class Event {
+import java.io.Serializable;
+
+public abstract class Event implements Serializable {
 
     public final ActivityIdentifier source;
     public final ActivityIdentifier target;

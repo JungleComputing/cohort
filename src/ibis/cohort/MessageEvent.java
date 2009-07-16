@@ -2,6 +2,8 @@ package ibis.cohort;
 
 public class MessageEvent<T> extends Event {
 
+    private static final long serialVersionUID = -1008257241415877144L;
+    
     public final T message;
 
     public MessageEvent(ActivityIdentifier source, ActivityIdentifier target, T message) {

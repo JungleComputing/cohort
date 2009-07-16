@@ -1,6 +1,7 @@
 package genesequencing;
 
 import ibis.cohort.Cohort;
+import ibis.cohort.CohortFactory;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
 import ibis.cohort.impl.multithreaded.MTCohort;
@@ -235,46 +236,32 @@ public class Dsearch {
 
     public static void main(String[] args) {
 
-        if (args.length < 2) {
+        if (args.length < 1) {
             throw new Error(
                     "Usage: java Dsearch <input file> <implementation name (dc, so, ...)> [-dump]");
         }
 
-        Cohort cohort = null; 
-
         String inputFileName = args[0];
-
-        int index = 1;
-        int threads = 1;
         
-        if (args[index].equals("seq")) { 
-            cohort = new Sequential();
-            index++;
+        boolean dump = false;
+
+        if (args.length == 2) {
+            dump = args[1].equals("-dump");
+        }
+        
+        try { 
+            Cohort cohort = CohortFactory.createCohort(); 
+
+            if (cohort.isMaster()) { 
+                new Dsearch(cohort, inputFileName, dump).start();
+            } 
             
-            System.out.println("Using SEQUENTIAL Cohort implementation");
-            
-        } else  if (args[index].equals("mt")) { 
-            index++;
-            threads = Integer.parseInt(args[index++]);
-            cohort = new MTCohort(threads);
-       
-            System.out.println("Using MULTITHREADED(" + threads + ") Cohort implementation");
-            
-        } else { 
-            System.out.println("Unknown Cohort implementation selected!");
+            cohort.done();
+        
+        } catch (Exception e) {
+            System.err.println("Oops: " + e);
+            e.printStackTrace(System.err);
             System.exit(1);
         }
-
-        boolean dump = false;
-        
-        if (args.length > index) {
-            if (args[index++].equals("-dump")) {
-                dump = true;
-            }
-        }
-    
-        new Dsearch(cohort, inputFileName, dump).start();
-        
-        cohort.done();
     }
 }

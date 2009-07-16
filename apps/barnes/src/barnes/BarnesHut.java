@@ -1,6 +1,7 @@
 package barnes;
 
 import ibis.cohort.Cohort;
+import ibis.cohort.CohortFactory;
 import ibis.cohort.Context;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
@@ -502,42 +503,22 @@ import java.util.Arrays;
         int iterations = -1;
         int impl = RunParameters.IMPL_NTC;
 
-        Cohort cohort = null; 
-        int threads = 1;
+        Cohort cohort = null;
+        
+        try { 
+            cohort = CohortFactory.createCohort();
+        } catch (Exception e) {
+            System.err.println("Oops: " + e);
+            e.printStackTrace(System.err);
+            System.exit(1);
+        }
 
         printMemStats("start");
 
         //parse arguments
         for (int i = 0; i < argv.length; i++) {
             //options
-            if (argv[i].equals("-cohort")) { 
-
-                i++;
-
-                if (argv[i].equals("seq")) { 
-                    cohort = new Sequential();
-                    System.out.println("Using SEQUENTIAL Cohort implementation");
-                } else if (argv[i].equals("mt")) { 
-                    threads = Integer.parseInt(argv[++i]);
-                    cohort = new MTCohort(threads);               
-                    System.out.println("Using MULTITHREADED(" + threads + ") Cohort implementation");                    
-                } else if (argv[i].equals("dist")) { 
-                    try {
-                        cohort = new DistributedCohort();
-                    } catch (Exception e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                        System.exit(1);
-                    }               
-               
-                    System.out.println("Using DISTRIBUTED Cohort implementation");                    
-                    
-                } else { 
-                    System.out.println("Unknown Cohort implementation selected!");
-                    System.exit(1);
-                }
-
-            } else if (argv[i].equals("-debug")) {
+            if (argv[i].equals("-debug")) {
                 debug = true;
             } else if (argv[i].equals("-no-debug")) {
                 debug = false;
@@ -649,22 +630,8 @@ import java.util.Arrays;
             } else {
                 new BarnesHut(cohort, nBodies, params).run();
             }
-
-            //ibis.satin.SatinObject.resume(); // allow satin to exit cleanly
-
-            cohort.done();
-        } else { 
-            // We must somehow wait for the app to finish here...
-        
-            while (true) { 
-                try { 
-                    Thread.sleep(10000);
-                } catch (Exception e) {
-                    // ignore
-                }
-            }
-        }
-        
-
+        } 
+            
+        cohort.done();
     }
 }
