@@ -175,7 +175,7 @@ class ActivityRecord implements Serializable {
 
         do { 
             runStateMachine();
-        } while (!(state == DONE || state == ERROR));
+        } while (!(state != SUPENDED || state == DONE || state == ERROR));
     }
 
     private String getStateAsString() { 
