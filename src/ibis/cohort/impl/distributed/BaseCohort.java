@@ -8,20 +8,13 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
 import java.util.HashMap;
 
 class BaseCohort implements Cohort {
 
-    private static final boolean PROFILE = true;
-
     private final MultiThreadedCohort parent;
 
     private final CohortIdentifier identifier;
-
-    private final ThreadMXBean management;
 
     private HashMap<ActivityIdentifier, ActivityRecord> local = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
@@ -44,23 +37,7 @@ class BaseCohort implements Cohort {
 
     private long messagesExternal;
 
-
     BaseCohort(MultiThreadedCohort parent, CohortIdentifier identifier) {
-
-        if (PROFILE) { 
-            management = ManagementFactory.getThreadMXBean();
-
-            if (management.isThreadCpuTimeSupported() && 
-                    !management.isThreadCpuTimeEnabled()) { 
-                management.setThreadCpuTimeEnabled(true);
-            } 
-
-            if (management.isThreadContentionMonitoringSupported() && 
-                    !management.isThreadContentionMonitoringEnabled()) { 
-                management.setThreadContentionMonitoringEnabled(true);
-            }
-        }
-
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getIDGenerator(identifier);
@@ -251,93 +228,30 @@ class BaseCohort implements Cohort {
         return false;
     }
 
-    public void printStatistics(long totalTime) {
-
-        long cpuTime = 0;
-        long userTime = 0;
-        double cpuPerc = 0.0;
-        double userPerc = 0.0;
-       
-        long blocked = 0;
-        long blockedTime = 0;
-        
-        long waited = 0;
-        long waitedTime = 0;
-        
-        double blockedPerc = 0.0;
-        double waitedPerc = 0.0;
-        
-        double comp = (100.0 * computationTime) / totalTime;
-        double fact = ((double) activitiesInvoked) / activitiesSubmitted;
-        
-        if (PROFILE) { 
-            // Get the cpu/user time (in nanos) 
-            cpuTime = management.getCurrentThreadCpuTime();
-            userTime = management.getCurrentThreadUserTime();
-            
-            
-            cpuPerc = (cpuTime / 10000.0) / totalTime;
-            userPerc = (userTime / 10000.0) / totalTime;
-       
-            cpuTime = cpuTime / 1000000L;
-            userTime = userTime / 1000000L;
-            
-            ThreadInfo info = 
-                management.getThreadInfo(Thread.currentThread().getId());
-            
-            blocked = info.getBlockedCount();
-            blockedTime = info.getBlockedTime();
-            
-            waited = info.getWaitedCount();
-            waitedTime = info.getWaitedTime();
-            
-            blockedPerc = (100.0 * blockedTime) / totalTime;
-            waitedPerc = (100.0 * waitedTime) / totalTime;
-        }
-        
-        synchronized (System.out) {
-
-            System.out.println(identifier + " statistics");
-            System.out.println(" Time");
-            System.out.println("   total      : " + totalTime + " ms.");
-            System.out.println("   computation: " + computationTime + " ms. ("
-                    + comp + " %)");
-            
-            if (PROFILE) { 
-
-                System.out.println("   cpu time   : " + cpuTime + " ms. ("
-                        + cpuPerc + " %)");
-
-                System.out.println("   user time  : " + userTime + " ms. ("
-                        + userPerc + " %)");
-
-                System.out.println("   blocked    : " + blocked + " times");
-
-                System.out.println("   block time : " + blockedTime+ " ms. ("
-                        + blockedPerc + " %)");
-
-                System.out.println("   waited     : " + waited + " times");
-
-                System.out.println("   wait time  : " + waitedTime+ " ms. ("
-                        + waitedPerc + " %)");
-
-            }
-            
-            System.out.println(" Activities");
-            System.out.println("   submitted  : " + activitiesSubmitted);
-            System.out.println("   invoked    : " + activitiesInvoked + " ("
-                    + fact + " /act)");
-            System.out.println(" Messages");
-            System.out.println("   internal   : " + messagesInternal);
-            System.out.println("   external   : " + messagesExternal);
-            System.out.println(" Steals");
-            System.out.println("   incoming   : " + steals);
-            
-            
-            
-        }
+    long getComputationTime() { 
+        return computationTime;
     }
 
+    long getActivitiesSubmitted() { 
+        return activitiesSubmitted;
+    }
+    
+    long getActivitiesInvoked() { 
+        return activitiesInvoked;
+    }
+    
+    long getMessagesInternal() { 
+        return messagesInternal;
+    }
+    
+    long getMessagesExternal() { 
+        return messagesExternal;
+    }
+    
+    long getSteals() { 
+        return steals;
+    }
+    
     public void printStatus() {
         System.out.println(identifier + ": " + local);
     }

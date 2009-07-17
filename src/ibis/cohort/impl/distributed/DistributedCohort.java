@@ -19,9 +19,14 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.util.List;
 
 public class DistributedCohort implements Cohort, MessageUpcall {
 
+    private static final boolean PROFILE = true;
+    
     private static final byte EVENT   = 0x23;
     private static final byte STEAL   = 0x25;
     private static final byte WORK    = 0x27;
@@ -59,8 +64,14 @@ public class DistributedCohort implements Cohort, MessageUpcall {
 
     private Context context;
     
+    private List<GarbageCollectorMXBean> gcbeans; 
+      
     public DistributedCohort() throws Exception {         
 
+        if (PROFILE) { 
+           gcbeans = ManagementFactory.getGarbageCollectorMXBeans();
+        }
+        
         context = Context.ANY;
         
         // Init Ibis here...
@@ -107,9 +118,26 @@ public class DistributedCohort implements Cohort, MessageUpcall {
         }
         
         mt.done();        
+        
+        printStatistics();
+        
         pool.cleanup();
     }
 
+    private void printStatistics() { 
+        
+        if (PROFILE) { 
+
+            System.out.println("GC beans     : " + gcbeans.size());
+            
+            for (GarbageCollectorMXBean gc : gcbeans) { 
+                System.out.println(" GC bean : " + gc.getName());
+                System.out.println("   count : " + gc.getCollectionCount());
+                System.out.println("   time  : " + gc.getCollectionTime());
+            }
+        }
+    }
+    
     public void send(ActivityIdentifier source, ActivityIdentifier target, 
             Object o) {
         forwardEvent(new MessageEvent(source, target, o));
