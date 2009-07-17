@@ -270,7 +270,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
         boolean pending = setPendingSteal(true);
     
         if (pending) { 
-            // Steal request is pending, so ignore this one.
+            // Steal request was already pending, so ignore this one.
             return null;
         }
         
