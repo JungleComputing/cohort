@@ -10,7 +10,7 @@ import java.util.LinkedList;
 class ActivityRecord implements Serializable { 
 
     private static final long serialVersionUID = 6938326535791839797L;
- 
+
     static final int INITIALIZING = 1;
     static final int SUPENDED     = 2;
     static final int RUNNABLE     = 3;
@@ -77,7 +77,7 @@ class ActivityRecord implements Serializable {
     public boolean isFresh() {
         return (state == INITIALIZING);
     }
-    
+
     boolean needsToRun() { 
         return (state == INITIALIZING || state == RUNNABLE || state == FINISHING);
     }
@@ -99,30 +99,21 @@ class ActivityRecord implements Serializable {
         throw new IllegalStateException("INTERNAL ERROR: activity cannot be made runnable!");
     }
 
-    void run() {
-
+    private final void runStateMachine() { 
         try { 
             switch (state) { 
 
             case INITIALIZING: 
-
-               //  System.out.println("I -> " + activity);
-      //           System.out.println("INIT " + activity);
 
                 activity.initialize();
 
                 if (activity.mustSuspend()) { 
                     if (pendingEvents() > 0) { 
                         state = RUNNABLE;
-                //            System.out.println("   RUNNABLE " + activity); 
                     } else {
                         state = SUPENDED;
-        //                    System.out.println("   SUSPEND " + activity); 
                     }
-            
                 } else if (activity.mustFinish()) { 
-          //            System.out.println("   FINISHING " + activity); 
-
                     state = FINISHING;
                 } else { 
                     throw new IllegalStateException("Activity did not suspend or finish!");
@@ -132,10 +123,6 @@ class ActivityRecord implements Serializable {
                 break;
 
             case RUNNABLE:
-
-                //  System.out.println("P -> " + activity);
-
-//                   System.out.println("PROCESS " + activity);
 
                 Event e = dequeue();
 
@@ -149,13 +136,10 @@ class ActivityRecord implements Serializable {
                     // We only suspend the job if there are no pending events.
                     if (pendingEvents() > 0) { 
                         state = RUNNABLE;
-//                              System.out.println("   RUNNABLE " + activity); 
                     } else {
                         state = SUPENDED;
-//                            System.out.println("   SUSPEND " + activity); 
                     }
                 } else if (activity.mustFinish()) { 
-//                    System.out.println("   FINISHING " + activity); 
                     state = FINISHING;
                 } else { 
                     throw new IllegalStateException("Activity did not suspend or finish!");
@@ -165,11 +149,6 @@ class ActivityRecord implements Serializable {
                 break;
 
             case FINISHING: 
-
-                // System.out.println("F -> " + activity);
-
-//                     System.out.println("FINISH " + activity);
-
                 activity.cleanup();
                 state = DONE;
                 break;
@@ -189,11 +168,19 @@ class ActivityRecord implements Serializable {
             e.printStackTrace(System.err);
             state = ERROR;
         }
+
+    } 
+
+    void run() {
+
+        while (state == RUNNABLE) { 
+            runStateMachine();
+        }
     }
-    
-    private String getStateAsString() { 
-        
-        switch (state) { 
+
+        private String getStateAsString() { 
+
+            switch (state) { 
 
             case INITIALIZING:
                 return "initializing";
@@ -207,14 +194,14 @@ class ActivityRecord implements Serializable {
                 return "done";
             case ERROR:
                 return "error";
+            }
+
+            return "unknown";
         }
 
-        return "unknown";
+        public String toString() { 
+
+            return activity + " STATE: " + getStateAsString();
+
+        }    
     }
-    
-    public String toString() { 
-     
-        return activity + " STATE: " + getStateAsString();
-        
-    }    
-}

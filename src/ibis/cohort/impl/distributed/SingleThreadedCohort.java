@@ -253,8 +253,8 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                 }
             }
             
-            commandTime = t2-t1;
-            activeTime = t3-t2;
+            commandTime += t2-t1;
+            activeTime += t3-t2;
         }
         
         long time = System.currentTimeMillis() - start;

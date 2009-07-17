@@ -217,7 +217,7 @@ class BaseCohort implements Cohort {
             activitiesInvoked++;
 
             if (tmp.needsToRun()) {
-                runnable.insertFirst(tmp);
+                runnable.insertLast(tmp);
             } else if (tmp.isDone()) {
                 cancel(tmp.identifier());
             }
