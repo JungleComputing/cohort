@@ -71,7 +71,7 @@ class ActivityRecord implements Serializable {
     }
 
     boolean isDone() { 
-        return (state == DONE);
+        return (state == DONE || state == ERROR);
     }
 
     public boolean isFresh() {
@@ -173,35 +173,35 @@ class ActivityRecord implements Serializable {
 
     void run() {
 
-        while (state == RUNNABLE) { 
+        do { 
             runStateMachine();
-        }
+        } while (!(state == DONE || state == ERROR));
     }
 
-        private String getStateAsString() { 
+    private String getStateAsString() { 
 
-            switch (state) { 
+        switch (state) { 
 
-            case INITIALIZING:
-                return "initializing";
-            case SUPENDED:
-                return "suspended";            
-            case RUNNABLE:
-                return "runnable";
-            case FINISHING: 
-                return "finishing";
-            case DONE:
-                return "done";
-            case ERROR:
-                return "error";
-            }
-
-            return "unknown";
+        case INITIALIZING:
+            return "initializing";
+        case SUPENDED:
+            return "suspended";            
+        case RUNNABLE:
+            return "runnable";
+        case FINISHING: 
+            return "finishing";
+        case DONE:
+            return "done";
+        case ERROR:
+            return "error";
         }
 
-        public String toString() { 
-
-            return activity + " STATE: " + getStateAsString();
-
-        }    
+        return "unknown";
     }
+
+    public String toString() { 
+
+        return activity + " STATE: " + getStateAsString();
+
+    }    
+}
