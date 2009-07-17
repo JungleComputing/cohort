@@ -68,7 +68,7 @@ class BaseCohort implements Cohort {
         int size = runnable.size();
 
         if (size > 0) {
-            return (ActivityRecord) runnable.removeLast();
+            return (ActivityRecord) runnable.removeFirst();
         }
 
         if (!fresh.empty()) {
@@ -217,7 +217,7 @@ class BaseCohort implements Cohort {
             activitiesInvoked++;
 
             if (tmp.needsToRun()) {
-                runnable.insertLast(tmp);
+                runnable.insertFirst(tmp);
             } else if (tmp.isDone()) {
                 cancel(tmp.identifier());
             }
