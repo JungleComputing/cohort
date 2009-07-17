@@ -78,6 +78,15 @@ public class CircularBuffer implements Serializable {
         next = old.length;      
     }
 
+    public Object get(int index) { 
+        
+        if (index >= size) { 
+            return null;
+        }
+        
+        return array[(first + index) % array.length];
+    }
+    
     public Object removeFirst() {
 
         if (size == 0) { 

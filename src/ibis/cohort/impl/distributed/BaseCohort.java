@@ -187,14 +187,27 @@ class BaseCohort implements Cohort {
 
         if (size > 0) {
 
-            // Get the first of the new jobs (this is assumed to be the largest
-            // one)
-            // remove it from our administration, and hand it over to our
-            // parent.
-            ActivityRecord r = (ActivityRecord) fresh.removeFirst();
-            // System.out.println("STEAL " + size + " " + r.identifier());
-            local.remove(r.identifier());
-            parent.addActivityRecord(r, true);
+            for (int i=0;i<size;i++) { 
+                // Get the first of the new jobs (this is assumed to be the 
+                // largest one) and check if we are allowed to return it. 
+                
+                ActivityRecord r = (ActivityRecord) fresh.get(i);
+                
+                if (r.activity.getContext() != Context.LOCAL) { 
+                    // TODO: fixme!!
+                    
+                    // Assume for now that we can return this safely. We should 
+                    // check the context of the cohort we are sending replying 
+                    // to!
+                  
+                    fresh.remove(i);
+           
+                    local.remove(r.identifier());
+                    parent.addActivityRecord(r, true);
+    
+                    return;
+                }
+            } 
         }
     }
 
