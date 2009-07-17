@@ -66,6 +66,18 @@ public class DistributedCohort implements Cohort, MessageUpcall {
     
     private List<GarbageCollectorMXBean> gcbeans; 
       
+    private long messagesSend;
+    private long eventsSend;
+    private long stealsSend;
+    private long workSend;
+    private long no_workSend;
+
+    private long messagesReceived;
+    private long eventsReceived;
+    private long stealsReceived;
+    private long workReceived;
+    private long no_workReceived;
+    
     public DistributedCohort() throws Exception {         
 
         if (PROFILE) { 
@@ -126,14 +138,27 @@ public class DistributedCohort implements Cohort, MessageUpcall {
 
     private void printStatistics() { 
         
-        if (PROFILE) { 
-
-            System.out.println("GC beans     : " + gcbeans.size());
+        synchronized (System.out) {
+            System.out.println("Messages send     : " + messagesSend);
+            System.out.println("           Events : " + eventsSend);
+            System.out.println("           Steals : " + stealsSend);
+            System.out.println("             Work : " + workSend);
+            System.out.println("          No work : " + no_workSend);
+            System.out.println("Messages received : " + messagesReceived);
+            System.out.println("           Events : " + eventsReceived);
+            System.out.println("           Steals : " + stealsReceived);
+            System.out.println("             Work : " + workReceived);
+            System.out.println("          No work : " + no_workReceived);
             
-            for (GarbageCollectorMXBean gc : gcbeans) { 
-                System.out.println(" GC bean : " + gc.getName());
-                System.out.println("   count : " + gc.getCollectionCount());
-                System.out.println("   time  : " + gc.getCollectionTime());
+            if (PROFILE) { 
+
+                System.out.println("GC beans     : " + gcbeans.size());
+
+                for (GarbageCollectorMXBean gc : gcbeans) { 
+                    System.out.println(" GC bean : " + gc.getName());
+                    System.out.println("   count : " + gc.getCollectionCount());
+                    System.out.println("   time  : " + gc.getCollectionTime());
+                }
             }
         }
     }
@@ -170,6 +195,10 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             ex.printStackTrace();
         }
 
+        synchronized (this) {
+            messagesSend++;
+        }
+        
         pool.releaseSendPort(id, sp);        
     }
     
@@ -192,6 +221,10 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             ex.printStackTrace();
         }
 
+        synchronized (this) {
+            messagesSend++;
+        }
+        
         pool.releaseSendPort(id, sp);        
     }
     
@@ -213,6 +246,10 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             mt.deliverEvent(e);
         } else {
             forwardObject(id, EVENT, e);
+            
+            synchronized (this) {
+                eventsSend++;
+            }
         }
     }
 
@@ -245,6 +282,10 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             System.out.println("Sending STEAL from " + local + " to " + id);
             
             forwardObject(id, STEAL, getContext());
+            
+            synchronized (this) {
+                stealsSend++;
+            }
         }
        
         return null;
@@ -262,6 +303,12 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             
             Event e = (Event) rm.readObject();
             mt.deliverEvent(e);
+            
+            synchronized (this) {
+                messagesReceived++;
+                eventsReceived++;
+            }
+            
             break;
         case STEAL:
             
@@ -279,13 +326,26 @@ public class DistributedCohort implements Cohort, MessageUpcall {
                 System.out.println("Sending WORK from " + local + " to " + src);
                 
                 forwardObject(src, WORK, tmp);
+                
+                synchronized (this) {
+                    workSend++;
+                }
             } else { 
                 
                 System.out.println("Sending NO_WORK from " + local + " to " + src);
                     
                 forwardOpcode(src, NO_WORK);                  
+            
+                synchronized (this) {
+                    no_workSend++;
+                }
             }
 
+            synchronized (this) {
+                messagesReceived++;
+                stealsReceived++;
+            }
+            
             break;
             
         case WORK: 
@@ -300,6 +360,12 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             
             ActivityRecord a = (ActivityRecord) rm.readObject();
             mt.addActivityRecord(a, false);
+          
+            synchronized (this) {
+                messagesReceived++;
+                workReceived++;
+            }
+          
             break;
             
         case NO_WORK:
@@ -310,6 +376,11 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             
             if (!pending) { 
                 System.err.println("Received stray NO_WORK!");
+            }
+          
+            synchronized (this) {
+                messagesReceived++;
+                no_workReceived++;
             }
             
             break;

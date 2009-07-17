@@ -39,6 +39,11 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
     private boolean done = false;
 
+    private long sleepTime;
+    private long activeTime;
+    private long commandTime;
+    private long stealTime;
+    
     private volatile boolean havePendingRequests = false;
    
     SingleThreadedCohort(MultiThreadedCohort parent, CohortIdentifier identifier) { 
@@ -203,17 +208,25 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         
         while (!getDone()) { 
 
+            long t1 = System.currentTimeMillis();
+            
             processNextCommands();
             
+            long t2 = System.currentTimeMillis();
+            
             boolean more = sequential.process();
-
+            
             while (more && !havePendingRequests) {
                 more = sequential.process();
             }
+
+            long t3 = System.currentTimeMillis();
             
             if (!more && !havePendingRequests) { 
                 
                 ActivityRecord r = parent.stealAttempt(identifier);
+                
+                long t4 = System.currentTimeMillis();
                 
                 if (r != null) { 
                     
@@ -222,6 +235,9 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                                     (DistributedCohortIdentifier) identifier);
                     
                     sequential.addActivityRecord(r);
+
+                    stealTime += t4 - t3;
+                
                 } else  {
                     //System.out.println(identifier + ": STEAL FAIL -- IDLE!");
                     
@@ -230,9 +246,15 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                     } catch (Exception e) {
                        // ignored
                     }
+
+                    long t5 = System.currentTimeMillis();
+                
+                    sleepTime += t5 - t4;
                 }
             }
             
+            commandTime = t2-t1;
+            activeTime = t3-t2;
         }
         
         long time = System.currentTimeMillis() - start;
@@ -268,6 +290,11 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         final double comp = (100.0 * computationTime) / totalTime;
         final double fact = ((double) activitiesInvoked) / activitiesSubmitted;
         
+        final double stealPerc = (100.0 * stealTime) / totalTime;
+        final double commandPerc = (100.0 * commandTime) / totalTime;
+        final double activePerc = (100.0 * activeTime) / totalTime;
+        final double sleepPerc = (100.0 * sleepTime) / totalTime;
+        
         if (PROFILE) { 
             // Get the cpu/user time (in nanos) 
             cpuTime = management.getCurrentThreadCpuTime();
@@ -298,8 +325,19 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             System.out.println(identifier + " statistics");
             System.out.println(" Time");
             System.out.println("   total      : " + totalTime + " ms.");
-            System.out.println("   computation: " + computationTime + " ms. ("
+            System.out.println("   active     : " + activeTime + " ms. ("
+                    + activePerc + " %)");
+            System.out.println("        run() : " + computationTime + " ms. ("
                     + comp + " %)");
+
+            System.out.println("   command    : " + commandTime + " ms. ("
+                    + commandPerc + " %)");
+
+            System.out.println("   sleep      : " + sleepTime + " ms. ("
+                    + sleepPerc + " %)");
+
+            System.out.println("   steal      : " + stealTime + " ms. ("
+                    + stealPerc + " %)");
             
             if (PROFILE) { 
 
