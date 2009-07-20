@@ -1,0 +1,16 @@
+plot [][0:100] "out.0" with lines, \
+"out.1" with lines, \
+"out.2" with lines, \
+"out.3" with lines, \
+"out.4" with lines, \
+"out.5" with lines, \
+"out.6" with lines, \
+"out.7" with lines, \
+"out.8" with lines, \
+"out.9" with lines, \
+"out.10" with lines, \
+"out.11" with lines, \
+"out.12" with lines, \
+"out.13" with lines, \
+"out.14" with lines, \
+"out.15" with lines

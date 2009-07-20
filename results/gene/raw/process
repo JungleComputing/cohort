@@ -1,0 +1,6 @@
+for i in `seq 0 63` ; do grep "#### Cohort((Ibis $i," gen31.* | awk '{ print $8 " " ($11/10000)/$9 }' | tee out2.$i ; done
+
+for i in `seq 0 15` ; do grep "#### Cohort((Ibis $i," gen30.* | grep "/ 2" | awk '{ print $8 " " ($10/10000)/$9 }' | tee out.0.$i ; done
+for i in `seq 0 15` ; do grep "#### Cohort((Ibis $i," gen30.* | grep "/ 3" | awk '{ print $8 " " ($10/10000)/$9 }' | tee out.1.$i ; done
+for i in `seq 0 15` ; do grep "#### Cohort((Ibis $i," gen30.* | grep "/ 4" | awk '{ print $8 " " ($10/10000)/$9 }' | tee out.2.$i ; done
+for i in `seq 0 15` ; do grep "#### Cohort((Ibis $i," gen30.* | grep "/ 5" | awk '{ print $8 " " ($10/10000)/$9 }' | tee out.3.$i ; done

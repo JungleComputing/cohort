@@ -1,0 +1,1270 @@
+Could not create starter from className: ibis.ipl.impl.tcp.TcpIbisStarter
+Could not create starter from className: ibis.ipl.impl.nio.NioIbisStarter
+Could not create starter from className: ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter
+Cohort master is (Ibis 0, location node024@das3@cs@vu@nl)
+Starting MultiThreadedCohort using 4 workers
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089554132 16955 16550000000 16360000000 0 0 21 2232 11200 33596 22 11198 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089554134 17077 16690000000 16430000000 1 2 20 2115 10973 32868 21 10951 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089554728 17751 17300000000 17100000000 2 89 19 1999 12005 35999 25 11999 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089557261 20000 19650000000 19350000000 1 1 20 2165 13811 41380 20 13788 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089564967 10196 10190000000 10090000000 0 0 0 0 6401 19199 1 6399 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089569243 11942 11910000000 11750000000 0 0 0 0 10191 30618 1 10211 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089571750 17448 17410000000 17210000000 3 1 1 105 13863 41572 1 13856 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089571750 17481 17510000000 17240000000 0 0 0 0 19288 57795 1 19259 0 
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089571853 6743 6740000000 6680000000 0 0 1 104 5598 16802 0 5601 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089582243 12939 12950000000 12790000000 0 0 0 0 12001 35998 1 11999 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089583698 11776 11810000000 11680000000 0 0 0 0 12000 35996 1 11998 1 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089597838 25970 25930000000 25690000000 0 0 0 0 19672 59020 1 19673 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089597838 14052 13990000000 13860000000 0 0 0 0 11782 35301 0 11762 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089597839 15539 15460000000 15390000000 0 0 0 0 7396 22133 0 7372 1 
+Received WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089597943 25929 25920000000 25540000000 0 0 1 107 28714 86204 1 28740 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089605222 7357 7260000000 7260000000 0 0 0 0 3497 10537 1 3517 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089612420 14509 14390000000 14250000000 0 0 0 0 12219 36697 1 12237 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089634477 29180 28110000000 27970000000 0 0 0 0 11999 36001 0 12001 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089642059 7567 7360000000 7340000000 0 0 0 0 2926 8732 0 2906 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089642064 44122 42730000000 42580000000 0 0 0 0 16448 49358 1 16453 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089642160 29524 28310000000 28080000000 0 0 1 104 23198 69598 0 23199 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089642171 44208 43310000000 43290000000 0 0 0 0 3707 11064 1 3683 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089666856 24753 24250000000 24130000000 0 0 0 0 9075 27266 1 9093 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089667063 24943 24500000000 24410000000 0 0 0 0 8723 26149 1 8714 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089674739 32423 31910000000 31620000000 0 0 0 0 31135 93349 1 31111 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089674740 32543 32180000000 32140000000 0 0 0 0 3776 11334 1 3778 0 
+Received WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089674758 7897 7830000000 7820000000 0 0 0 0 599 1752 0 579 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089674845 7654 7560000000 7540000000 0 0 1 106 2534 7662 0 2560 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089692011 17164 16820000000 16660000000 0 0 0 0 16867 50649 1 16888 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089697979 23222 22690000000 22670000000 0 0 0 0 2121 6404 1 2138 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089709610 11607 11340000000 11290000000 0 0 0 0 2399 7201 0 2401 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089719689 27583 26950000000 26730000000 0 0 0 0 19252 57700 0 19228 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089719704 44830 44150000000 44100000000 0 0 0 0 4223 12608 1 4197 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089719708 10074 9970000000 9940000000 0 0 0 0 3542 10582 0 3523 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089719793 44887 44050000000 43980000000 0 0 1 105 5900 17746 1 5918 2 
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089726517 6799 6670000000 6620000000 0 0 0 0 4749 14298 1 4771 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089737244 17386 16900000000 16800000000 0 0 0 0 11987 35921 1 11969 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089737250 10724 10420000000 10410000000 0 0 0 0 762 2257 0 749 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089737280 17572 17220000000 17220000000 1 19 0 0 520 1577 1 526 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089737348 17524 17070000000 17070000000 0 0 1 106 1258 3814 1 1275 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089745248 7863 7820000000 7740000000 0 0 0 0 5602 16804 2 5600 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089746391 9117 9040000000 9000000000 0 0 0 0 3239 9737 2 3248 1 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089748905 11590 11540000000 11470000000 0 0 0 0 6243 18715 2 6237 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089748906 11518 11450000000 11370000000 0 0 1 105 7298 21860 2 7284 2 
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089754475 5563 5500000000 5480000000 0 0 0 0 1278 3853 1 1284 1 
+Received WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089754477 5564 5500000000 5480000000 0 0 0 0 2722 8151 1 2716 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089754485 9231 9150000000 9150000000 0 0 0 0 1498 4460 1 1482 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089754579 7974 7900000000 7900000000 0 0 2 207 1197 3596 1 1197 3 
+Received EVENT from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089771297 16804 16230000000 16180000000 0 0 0 0 5032 15101 1 5034 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089802492 47764 46490000000 46230000000 0 0 0 0 24000 71996 1 23998 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089802496 47843 46710000000 46570000000 0 0 0 0 14296 42877 1 14292 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089806677 52154 51440000000 51390000000 0 0 0 0 5135 15385 1 5126 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089806677 35308 34510000000 34340000000 0 0 0 0 11590 34763 0 11587 0 
+Received WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089810166 7622 7620000000 7500000000 0 0 0 0 12001 36000 1 11999 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089811939 5249 5230000000 5210000000 0 0 0 0 1271 3859 1 1291 1 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089813683 6962 6940000000 6840000000 0 0 0 0 8409 25238 1 8412 1 
+Received WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089813684 11052 11020000000 10990000000 0 0 1 107 3828 11480 1 3826 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089818386 6283 6290000000 6220000000 0 0 1 103 7998 23992 1 7996 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089818388 8212 8170000000 8130000000 0 0 0 0 2044 6082 1 2023 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089828422 10020 9890000000 9870000000 0 0 0 0 2681 8041 0 2679 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089828423 14727 14570000000 14520000000 0 0 0 0 3531 10588 1 3528 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089828427 14733 14640000000 14610000000 0 0 0 0 1998 6002 1 2000 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089828521 10019 9890000000 9850000000 0 0 1 102 2398 7196 0 2398 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089845690 17241 16960000000 16940000000 0 0 0 0 4077 12277 1 4096 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089848938 20497 20160000000 20140000000 0 0 0 0 2941 8867 1 2960 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089851622 5928 5870000000 5870000000 0 0 0 0 238 667 0 218 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089851624 23086 22640000000 22620000000 0 0 0 0 2831 8453 1 2813 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089851723 23176 22810000000 22780000000 0 0 1 105 2620 7904 1 2639 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089861843 10101 9910000000 9890000000 0 0 0 0 2400 7196 1 2398 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089861865 10241 10130000000 10130000000 0 0 0 0 336 1016 1 339 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089864543 15588 15210000000 15180000000 0 0 0 0 2630 7846 1 2611 0 
+Received WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089864642 12891 12600000000 12580000000 0 0 1 103 2769 8345 1 2785 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089870606 6054 5140000000 5130000000 0 0 0 0 1371 4148 1 1386 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089870607 8755 7790000000 7780000000 0 0 0 0 1542 4599 1 1529 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089870730 8859 7960000000 7960000000 0 0 0 0 550 1648 1 548 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089870776 6133 5590000000 5590000000 0 0 0 0 65 167 1 53 0 
+Received WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089879222 8611 8140000000 8130000000 0 0 0 0 852 2552 2 848 3 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089883870 13142 12340000000 12310000000 0 0 1 105 1980 5909 2 1966 3 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089883871 13028 12290000000 12260000000 0 0 1 103 1936 5812 2 1936 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089883882 13101 12460000000 12450000000 0 0 0 0 1043 3095 2 1029 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089896923 13051 12790000000 12790000000 0 0 0 0 545 1661 1 557 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089898671 19337 18830000000 18820000000 0 0 1 102 848 2544 1 847 2 
+Received STEAL from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089923151 39217 38480000000 38380000000 0 0 0 0 7476 22433 1 7477 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089923152 39254 38530000000 38470000000 0 0 0 0 3654 10973 1 3658 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089923160 24464 24130000000 24090000000 0 0 0 0 4579 13695 0 4560 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089923167 26219 25880000000 25850000000 0 0 0 0 3624 10819 0 3601 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089928586 5424 5330000000 5330000000 0 0 0 0 1229 3720 1 1244 0 
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089938157 14983 14690000000 14660000000 0 0 0 0 3520 10603 1 3539 0 
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089939444 10830 10590000000 10580000000 0 0 0 0 2802 8374 0 2787 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089939459 16285 16030000000 16010000000 0 0 0 0 970 2922 1 974 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089939468 16294 16050000000 16030000000 0 0 0 0 1514 4545 1 1515 0 
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received EVENT from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089950603 11120 10930000000 10910000000 0 0 0 0 2109 6324 1 2107 0 
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089951874 12421 12180000000 12160000000 0 0 0 0 2089 6254 1 2085 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089951898 13731 13470000000 13460000000 0 0 0 0 1990 5929 1 1972 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089951903 12440 12250000000 12240000000 0 0 0 0 741 2225 1 742 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089956054 5448 5340000000 5340000000 0 0 0 0 700 2130 1 713 2 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089957044 5143 5080000000 5080000000 0 0 0 0 215 668 2 225 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089957410 5532 5430000000 5430000000 0 0 0 0 811 2469 2 825 2 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089958132 6111 6000000000 5980000000 0 0 1 102 2307 6893 2 2296 0 
+Received WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089961762 5704 5600000000 5590000000 0 0 0 0 1141 3354 2 1111 2 
+Received WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089963531 6360 6310000000 6270000000 0 0 1 104 3600 10805 2 3601 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089963619 5477 5430000000 5380000000 0 0 0 0 2765 8344 2 2785 1 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089972708 10936 10830000000 10810000000 0 0 0 0 1314 3934 1 1311 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089972710 9168 9070000000 9050000000 0 0 0 0 2188 6513 0 2165 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089972712 15181 15040000000 15010000000 0 0 1 101 2860 8520 2 2833 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248089972814 9070 8970000000 8940000000 0 0 1 107 3997 11999 0 3999 2 
+Received WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received EVENT from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248089986176 13456 13370000000 13360000000 0 0 0 0 1630 4890 1 1630 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248089986181 13454 13380000000 13330000000 0 0 0 0 3404 10212 1 3404 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248089986184 13448 13380000000 13340000000 0 0 0 0 4644 13932 1 4644 0 
+Received EVENT from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090006792 20583 18990000000 18970000000 0 0 0 0 2984 8959 0 2986 1 
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090057252 84298 78470000000 78180000000 1 25 0 0 24000 71996 1 23998 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090057264 71035 65160000000 65080000000 0 0 0 0 7978 23950 0 7983 1 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090064290 7022 6190000000 6170000000 0 0 0 0 3852 11497 0 3827 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090064290 7022 6200000000 6180000000 0 0 0 0 774 2309 0 769 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090064327 78139 74920000000 74920000000 0 0 0 0 1320 3956 0 1318 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090064394 57411 52450000000 52310000000 0 0 1 105 15424 46320 0 15444 1 
+Received WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090096780 32447 30560000000 30500000000 1 1 0 0 6369 19161 1 6391 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090114696 17913 17100000000 17090000000 0 0 0 0 399 1196 0 398 1 
+Received STEAL from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090117050 52696 49690000000 49550000000 0 0 0 0 12680 38043 1 12681 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090117053 52663 50590000000 50490000000 0 0 0 0 7876 23637 1 7879 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090117058 52644 50290000000 50260000000 0 0 0 0 3023 9012 1 2999 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090122930 5869 5560000000 5540000000 0 0 0 0 1871 5657 1 1890 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090139883 22815 22300000000 22290000000 0 0 0 0 1905 5756 1 1923 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090147707 24710 24280000000 24130000000 0 0 0 0 11999 35996 0 11998 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090147714 32988 32170000000 32120000000 0 0 0 0 4402 13166 1 4384 0 
+Received EVENT from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090161591 44475 43800000000 43730000000 0 0 0 0 8979 26986 1 9000 0 
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090162701 14962 14820000000 14790000000 0 0 0 0 3334 10008 0 3336 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090162702 14977 14820000000 14790000000 0 0 0 0 3040 9084 0 3024 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090162719 22815 22540000000 22510000000 0 0 0 0 3734 11166 0 3718 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090171597 8867 8700000000 8700000000 0 0 0 0 1067 3230 1 1080 0 
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090172611 9894 9670000000 9650000000 0 0 0 0 1867 5632 1 1881 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090176344 13631 13390000000 13380000000 0 0 0 0 1675 5017 1 1672 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090176348 14748 14530000000 14530000000 0 0 0 0 972 2864 1 950 0 
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090179997 7278 7160000000 7140000000 0 0 1 103 1598 4792 1 1596 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090180020 8414 8310000000 8300000000 0 0 0 0 1246 3708 1 1232 1 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090182409 6056 6010000000 5990000000 0 0 0 0 408 1227 1 409 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090182410 6055 6000000000 5990000000 0 0 0 0 1231 3703 1 1234 1 
+Received WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090187995 7992 5330000000 5330000000 0 0 0 0 800 2402 1 800 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090188840 8710 7800000000 7790000000 0 0 1 105 379 1126 1 375 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090188846 6429 2950000000 2950000000 0 0 0 0 691 2067 1 689 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090191468 7903 3380000000 3380000000 0 0 1 1155 224 709 1 240 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090193966 5114 2450000000 2440000000 0 0 0 0 567 1730 1 579 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090195453 7454 3560000000 3550000000 0 0 0 0 801 2398 1 799 0 
+Received EVENT from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090203992 12521 7240000000 7230000000 0 0 0 0 521 1528 1 506 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090204104 8645 4160000000 4150000000 0 0 0 0 799 2398 0 799 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090205893 11927 7760000000 7760000000 0 0 0 0 24 39 0 10 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090220254 15944 4380000000 4370000000 0 0 1 315 278 870 0 292 1 
+Received WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090222186 33343 18850000000 18850000000 0 0 0 0 28 104 1 35 1 
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090222187 18083 6800000000 6800000000 0 0 0 0 22 30 0 7 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090222187 16293 6690000000 6690000000 0 0 0 0 18 48 0 15 1 
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090380570 160197 34640000000 34610000000 1 347 1 107 1679 5010 2 1667 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090381358 159168 69800000000 69800000000 0 0 0 0 104 323 1 108 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090381358 159167 67680000000 67670000000 0 0 0 0 128 394 1 130 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090382458 160271 66600000000 66600000000 0 0 0 0 124 375 1 125 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090392393 9934 4560000000 4560000000 0 0 0 0 5 23 1 9 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090425307 43949 19540000000 19530000000 0 0 0 0 27 94 1 33 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090435466 54107 24000000000 24000000000 1 0 0 0 33 124 1 44 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090486926 61618 33050000000 33050000000 0 0 0 0 49 151 0 51 0 
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090489282 108712 26150000000 26140000000 0 0 0 0 242 724 1 241 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090489282 53815 25550000000 25550000000 0 0 0 0 48 124 0 39 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090489282 96884 23370000000 23370000000 1 1333 0 0 196 569 0 187 0 
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090501925 14998 7830000000 7830000000 0 0 0 0 13 34 1 11 0 
+Received EVENT from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090506044 16762 4810000000 4810000000 1 776 0 0 33 117 1 41 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090506588 17306 5300000000 5300000000 1 0 0 0 43 128 1 43 0 
+Received EVENT from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090511748 5159 1050000000 1050000000 0 0 0 0 10 32 0 10 1 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090514472 12546 3550000000 3550000000 0 0 0 0 38 83 0 25 0 
+Received WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090515844 9799 4390000000 4390000000 0 0 0 0 6 12 0 3 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090515844 26562 14020000000 14020000000 1 0 0 0 26 78 1 26 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090522103 6259 3870000000 3870000000 0 0 0 0 5 23 1 9 0 
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090528271 5879 3820000000 3820000000 0 0 1 288 4 14 0 4 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090528370 12526 2730000000 2730000000 0 0 0 0 29 75 1 24 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090528882 14410 3450000000 3450000000 0 0 0 0 30 93 1 31 0 
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090530114 18050 8100000000 8100000000 0 0 3 316 19 49 3 15 1 
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090535789 7316 3120000000 3120000000 0 0 1 103 22 86 1 30 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090535884 7001 2670000000 2660000000 0 0 0 0 23 74 1 24 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090536162 7784 3340000000 3340000000 0 0 1 106 35 84 2 26 0 
+Received WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090537498 7383 5160000000 5160000000 0 0 0 0 6 32 1 12 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090540916 5023 1420000000 1420000000 0 0 1 104 11 27 2 8 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090540937 4947 1400000000 1400000000 0 0 1 105 11 43 1 15 1 
+Received WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090542733 6570 2820000000 2820000000 0 0 0 0 14 33 1 10 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090542733 5235 2920000000 2910000000 0 0 0 0 4 15 1 5 0 
+Received WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090547681 4800 1340000000 1340000000 0 0 5 1943 7 11 6 3 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090551493 8758 2520000000 2520000000 1 0 0 0 13 18 1 5 0 
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090552777 5095 1170000000 1170000000 0 0 0 0 0 5 0 1 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090554516 13287 4320000000 4320000000 0 0 3 313 9 20 5 5 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090554517 11782 3360000000 3360000000 0 0 0 0 0 12 1 4 1 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090556761 5267 1450000000 1450000000 1 1113 0 0 2 8 0 2 1 
+Received EVENT from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090558044 5267 1420000000 1420000000 0 0 0 0 1 9 1 4 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090559728 5211 1580000000 1580000000 0 0 0 0 9 9 1 2 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090568667 14150 4340000000 4340000000 0 0 0 0 6 22 1 7 2 
+Received EVENT from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090569703 11658 3880000000 3880000000 0 0 0 0 4 11 0 3 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090572351 12622 4210000000 4210000000 0 0 0 0 4 20 0 7 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090572354 15592 5250000000 5250000000 0 0 0 0 4 20 1 7 0 
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received EVENT from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090577002 8334 3010000000 3010000000 0 0 0 0 10 12 1 2 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090581515 9163 2620000000 2620000000 0 0 0 0 1 19 1 7 1 
+Received EVENT from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090596053 14537 4960000000 4960000000 0 0 0 0 10 19 0 5 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090596053 23698 7930000000 7930000000 0 0 0 0 11 44 1 16 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received EVENT from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090604546 8343 2890000000 2890000000 0 0 1 149 0 18 0 7 1 
+Received WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090605764 9710 3510000000 3510000000 1 0 0 0 8 13 0 3 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090609539 32536 11230000000 11230000000 0 0 0 0 12 46 0 15 1 
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090609539 38220 13110000000 13110000000 0 0 5 1614 23 58 5 17 2 
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received EVENT from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090613797 8032 2940000000 2940000000 0 0 0 0 4 10 1 3 0 
+
+Received WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090615231 4247 1410000000 1410000000 0 0 3 1432 0 15 3 5 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090615236 5696 1670000000 1670000000 0 0 0 0 7 8 1 2 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090615243 8879 3070000000 3070000000 0 0 2 1817 13 15 3 3 0 
+Received STEAL from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received EVENT from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090620760 6962 3050000000 3050000000 0 0 0 0 10 23 2 6 2 
+Received EVENT from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received EVENT from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090623819 8581 2980000000 2980000000 0 0 0 0 0 9 1 3 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090623819 8587 2550000000 2550000000 0 0 0 0 9 8 1 1 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090623819 8575 2480000000 2480000000 0 0 0 0 4 12 1 4 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090629687 5867 2200000000 2200000000 0 0 0 0 1 16 1 6 1 
+Received EVENT from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090631274 7455 2520000000 2520000000 0 0 0 0 7 17 1 5 1 
+Received STEAL from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received STEAL from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received EVENT from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090634298 10479 4730000000 4730000000 0 0 0 0 4 15 1 5 0 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090634299 13539 5350000000 5350000000 0 0 0 0 4 21 1 7 0 
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received STEAL from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090636520 6833 3540000000 3540000000 0 0 0 0 6 14 1 3 1 
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090637565 6290 2600000000 2590000000 1 428 0 0 5 14 1 4 1 
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received STEAL from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090639393 4463 2360000000 2360000000 0 0 6 632 2 15 8 5 2 
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090639401 4789 2680000000 2680000000 0 0 3 312 5 24 5 8 2 
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received STEAL from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received EVENT from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received EVENT from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090641593 0 0 0 0 0 38 5071 0 11 38 3 2 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090642601 1500 1260000000 1260000000 0 0 34 3534 0 11 35 4 1 
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received STEAL from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received STEAL from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received STEAL from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) 1248090644489 0 0 0 0 0 49 5094 0 0 49 0 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) 1248090644497 0 0 0 0 0 49 5093 0 2 49 0 1 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received STEAL from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received STEAL from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) 1248090646689 0 0 0 0 0 49 5091 0 0 49 0 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 8, location node007@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 8, location node007@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 15, location node059@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 15, location node059@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 9, location node030@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 9, location node030@das3@cs@vu@nl)
+Received STEAL from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 6, location node016@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 6, location node016@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received STEAL from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received STEAL from (Ibis 13, location node084@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 13, location node084@das3@cs@vu@nl)
+#### Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) 1248090647697 0 0 0 0 0 49 5090 0 0 49 0 0 
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 0, location node024@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 4, location node067@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 4, location node067@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 10, location node017@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 10, location node017@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 12, location node035@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 12, location node035@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 1, location node041@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 1, location node041@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received NO_WORK from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Received STEAL from (Ibis 3, location node066@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 3, location node066@das3@cs@vu@nl)
+Received STEAL from (Ibis 2, location node026@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 2, location node026@das3@cs@vu@nl)
+Received STEAL from (Ibis 7, location node053@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 7, location node053@das3@cs@vu@nl)
+Received STEAL from (Ibis 14, location node002@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 14, location node002@das3@cs@vu@nl)
+Sending STEAL from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 0, location node024@das3@cs@vu@nl)
+Received STEAL from (Ibis 5, location node055@das3@cs@vu@nl) on (Ibis 11, location node042@das3@cs@vu@nl)
+Sending NO_WORK from (Ibis 11, location node042@das3@cs@vu@nl) to (Ibis 5, location node055@das3@cs@vu@nl)
+Messages send     : 490
+           Events : 32
+           Steals : 253
+             Work : 22
+          No work : 183
+Messages received : 479
+           Events : 22
+           Steals : 205
+             Work : 32
+          No work : 220
+GC beans     : 2
+ GC bean : PS Scavenge
+   count : 984
+   time  : 126160
+ GC bean : PS MarkSweep
+   count : 105
+   time  : 49944
+Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 4) statistics
+ Time
+   total      : 1113134 ms.
+   active     : 1099099 ms. (98.73914551168143 %)
+        run() : 1098058 ms. (98.64562577371638 %)
+   command    : 25 ms. (0.002245911094261787 %)
+   sleep      : 14001 ms. (1.2578000492303711 %)
+   steal      : 0 ms. (0.0 %)
+   cpu time   : 752390 ms. (67.59204192846504 %)
+   user time  : 750480 ms. (67.42045432086344 %)
+   blocked    : 3 times
+   block time : 1551 ms. (0.13933632428800127 %)
+   waited     : 122 times
+   wait time  : 13994 ms. (1.2571711941239778 %)
+ Activities
+   submitted  : 163899
+   invoked    : 491598 (2.999395969469002 /act)
+ Messages
+   internal   : 163838
+   external   : 28
+ Steals
+   incoming   : 159
+Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 2) statistics
+ Time
+   total      : 1113151 ms.
+   active     : 1096207 ms. (98.47783454356147 %)
+        run() : 1095171 ms. (98.38476540918528 %)
+   command    : 32 ms. (0.002874722297334324 %)
+   sleep      : 16840 ms. (1.512822608972188 %)
+   steal      : 0 ms. (0.0 %)
+   cpu time   : 815100 ms. (73.22456701741274 %)
+   user time  : 813110 ms. (73.04579522454725 %)
+   blocked    : 3 times
+   block time : 21 ms. (0.0018865365076256501 %)
+   waited     : 126 times
+   wait time  : 16827 ms. (1.511654753038896 %)
+ Activities
+   submitted  : 164491
+   invoked    : 493352 (2.9992643974442372 /act)
+ Messages
+   internal   : 164418
+   external   : 35
+ Steals
+   incoming   : 165
+Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 3) statistics
+ Time
+   total      : 1113159 ms.
+   active     : 1100906 ms. (98.89925877614968 %)
+        run() : 1099830 ms. (98.8025969335917 %)
+   command    : 35 ms. (0.003144204915919469 %)
+   sleep      : 12215 ms. (1.0973275156558946 %)
+   steal      : 1 ms. (8.983442616912768E-5 %)
+   cpu time   : 804190 ms. (72.24394718095078 %)
+   user time  : 802310 ms. (72.07505845975282 %)
+   blocked    : 9 times
+   block time : 2449 ms. (0.22000450968819368 %)
+   waited     : 117 times
+   wait time  : 12205 ms. (1.0964291713942034 %)
+ Activities
+   submitted  : 163843
+   invoked    : 491426 (2.9993713494015615 /act)
+ Messages
+   internal   : 163780
+   external   : 28
+ Steals
+   incoming   : 155
+Cohort((Ibis 11, location node042@das3@cs@vu@nl) / 5) statistics
+ Time
+   total      : 1113166 ms.
+   active     : 1096505 ms. (98.50327803759727 %)
+        run() : 1094879 ms. (98.3572081791934 %)
+   command    : 36 ms. (0.0032340190052516874 %)
+   sleep      : 16608 ms. (1.4919607677561117 %)
+   steal      : 0 ms. (0.0 %)
+   cpu time   : 819430 ms. (73.6125609298164 %)
+   user time  : 816330 ms. (73.33407595991973 %)
+   blocked    : 5 times
+   block time : 114 ms. (0.010241060183297011 %)
+   waited     : 131 times
+   wait time  : 16598 ms. (1.491062429143542 %)
+ Activities
+   submitted  : 285205
+   invoked    : 855496 (2.999582756263039 /act)
+ Messages
+   internal   : 285133
+   external   : 34
+ Steals
+   incoming   : 172

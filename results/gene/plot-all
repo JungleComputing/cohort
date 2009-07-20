@@ -1,0 +1,103 @@
+set term postscript eps enhanced
+set output "cohort.eps"
+set font "Helvetica"
+set xlabel "Time (sec)"
+set ylabel "Core load (%)" 
+
+set key off
+
+set nokey
+
+set multiplot
+
+set size 1.0,0.5
+
+set origin 0,0
+
+plot [0:1200][0:115] \
+"out.0.0" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.0" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.0" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.0"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.1" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.1" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.1" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.1"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.2" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.2" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.2" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.2"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.3" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.3" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.3" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.3"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.4" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.4" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.4" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.4"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.5" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.5" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.5" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.5"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.6" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.6" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.6" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.6"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.7" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.7" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.7" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.7"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.8" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.8" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.8" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.8"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.9" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.9" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.9" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.9"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.10" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.10" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.10" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.10"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.11" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.11" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.11" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.11"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.12" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.12" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.12" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.12"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.13" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.13" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.13" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.13"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.14" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.14" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.14" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.14"  using (($1-1248089551468.0)/1000):2 with lines lt 1, \
+"out.0.15" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.15" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.15" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.15"  using (($1-1248089551468.0)/1000):2 with lines lt 1
+
+set origin 0,0.5
+
+plot [0:1200][0:115] \
+"out2.0" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.1" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.2" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.3" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.4" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.5" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.6" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.7" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.8" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.9" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.10" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.11" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.12" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.13" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.14" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.15" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.16" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.17" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.18" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.19" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.20" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.21" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.22" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.23" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.24" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.25" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.26" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.27" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.28" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.29" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.30" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.31" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.32" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.33" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.34" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.35" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.36" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.37" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.38" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.39" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.40" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.41" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.42" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.43" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.44" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.45" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.46" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.47" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.48" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.49" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.50" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.51" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.52" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.53" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.54" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.55" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.56" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.57" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.58" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.59" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.60" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.61" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.62" using (($1-1248095508389.0)/1000):2 with lines lt 1, \
+"out2.63" using (($1-1248095508389.0)/1000):2 with lines lt 1
+
+set nomultiplot
