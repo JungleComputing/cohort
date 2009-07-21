@@ -45,10 +45,16 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     private boolean done = false;
 
     private long sleepTime;
+    private long sleepCount;
+    
     private long activeTime;
     private long commandTime;
-    private long stealTime;
 
+    private long stealTime;
+    private long stealCount;
+    private long stealSuccess;
+
+    
     // NOTE: these are use for performance debugging...
     private long profileDelta = 5000;
     private long profileTime = 0;
@@ -258,6 +264,8 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
                 ActivityRecord r = parent.stealAttempt(identifier);
 
+                stealCount++;
+                
                 long t4 = System.currentTimeMillis();
 
                 if (r != null) {
@@ -266,7 +274,8 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                             .setLastKnownCohort((DistributedCohortIdentifier) identifier);
 
                     sequential.addActivityRecord(r);
-
+                    
+                    stealSuccess++;
                     stealTime += t4 - t3;
 
                 } else {
@@ -274,6 +283,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
                     try {
                         Thread.sleep(100);
+                        sleepCount++;
                     } catch (Exception e) {
                         // ignored
                     }
@@ -379,6 +389,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         final long messagesExternal = sequential.getMessagesExternal();
 
         final long steals = sequential.getSteals();
+        final long stealSuccessIn = sequential.getStealSuccess();
 
         final double comp = (100.0 * computationTime) / totalTime;
         final double fact = ((double) activitiesInvoked) / activitiesSubmitted;
@@ -425,11 +436,9 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             System.out.println("   command    : " + commandTime + " ms. ("
                     + commandPerc + " %)");
 
-            System.out.println("   sleep      : " + sleepTime + " ms. ("
+            System.out.println("   sleep count: " + sleepCount);
+            System.out.println("   sleep time : " + sleepTime + " ms. ("
                     + sleepPerc + " %)");
-
-            System.out.println("   steal      : " + stealTime + " ms. ("
-                    + stealPerc + " %)");
 
             if (PROFILE) {
 
@@ -460,6 +469,11 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             System.out.println("   external   : " + messagesExternal);
             System.out.println(" Steals");
             System.out.println("   incoming   : " + steals);
+            System.out.println("   success in : " + stealSuccessIn);
+            System.out.println("   outgoing   : " + stealCount);
+            System.out.println("   success out: " + stealSuccess);
+            System.out.println("   time       : " + stealTime + " ms. (" + stealPerc + " %)");
+        
         }
     }
 

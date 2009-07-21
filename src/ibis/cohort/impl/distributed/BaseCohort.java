@@ -32,7 +32,8 @@ class BaseCohort implements Cohort {
     private long activitiesInvoked;
 
     private long steals;
-
+    private long stealSuccess;
+    
     private long messagesInternal;
 
     private long messagesExternal;
@@ -205,6 +206,8 @@ class BaseCohort implements Cohort {
                     local.remove(r.identifier());
                     parent.addActivityRecord(r, true);
     
+                    stealSuccess++;
+                    
                     return;
                 }
             } 
@@ -263,6 +266,10 @@ class BaseCohort implements Cohort {
     
     long getSteals() { 
         return steals;
+    }
+    
+    long getStealSuccess() { 
+        return stealSuccess;
     }
     
     public void printStatus() {
