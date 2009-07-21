@@ -279,7 +279,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
 
         if (id != null) { 
             
-            System.out.println("Sending STEAL from " + local + " to " + id);
+        //    System.out.println("Sending STEAL from " + local + " to " + id);
             
             forwardObject(id, STEAL, getContext());
             
@@ -299,7 +299,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
         switch (opcode) { 
         case EVENT:
             
-            System.out.println("Received EVENT from " + rm.origin().ibisIdentifier() + " on " + local);
+        //    System.out.println("Received EVENT from " + rm.origin().ibisIdentifier() + " on " + local);
             
             Event e = (Event) rm.readObject();
             mt.deliverEvent(e);
@@ -312,7 +312,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             break;
         case STEAL:
             
-            System.out.println("Received STEAL from " + rm.origin().ibisIdentifier() + " on " + local);
+          //  System.out.println("Received STEAL from " + rm.origin().ibisIdentifier() + " on " + local);
             
             IbisIdentifier src = rm.origin().ibisIdentifier();
             Context c = (Context) rm.readObject();
@@ -323,7 +323,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             ActivityRecord tmp = stealRequest(src, c);
             
             if (tmp != null) { 
-                System.out.println("Sending WORK from " + local + " to " + src);
+         //       System.out.println("Sending WORK from " + local + " to " + src);
                 
                 forwardObject(src, WORK, tmp);
                 
@@ -332,7 +332,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
                 }
             } else { 
                 
-                System.out.println("Sending NO_WORK from " + local + " to " + src);
+           //     System.out.println("Sending NO_WORK from " + local + " to " + src);
                     
                 forwardOpcode(src, NO_WORK);                  
             
@@ -350,7 +350,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             
         case WORK: 
             
-            System.out.println("Received WORK from " + rm.origin().ibisIdentifier() + " on " + local);
+         //   System.out.println("Received WORK from " + rm.origin().ibisIdentifier() + " on " + local);
                         
             boolean ispending = setPendingSteal(false);
             
@@ -370,7 +370,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             
         case NO_WORK:
             
-            System.out.println("Received NO_WORK from " + rm.origin().ibisIdentifier() + " on " + local);
+        //    System.out.println("Received NO_WORK from " + rm.origin().ibisIdentifier() + " on " + local);
             
             boolean pending = setPendingSteal(false);
             
