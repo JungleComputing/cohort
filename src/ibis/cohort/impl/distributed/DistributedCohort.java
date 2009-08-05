@@ -259,6 +259,11 @@ public class DistributedCohort implements Cohort, MessageUpcall {
         return mt.stealRequest(null);
     }
 
+    
+    void postStealRequest(IbisIdentifier src, Context c) { 
+        // TODO: implement!
+    }
+    
     private synchronized boolean setPendingSteal(boolean value) { 
         boolean tmp = pendingSteal; 
         pendingSteal = value;
@@ -291,6 +296,14 @@ public class DistributedCohort implements Cohort, MessageUpcall {
         return null;
     }
 
+    void deliverEvent(Event e) { 
+        mt.deliverEvent(e);
+    }
+    
+    void addActivityRecord(ActivityRecord record) {
+        mt.addActivityRecord(record, false);
+    }
+    
     public void upcall(ReadMessage rm) 
         throws IOException, ClassNotFoundException {
 
