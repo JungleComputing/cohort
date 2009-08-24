@@ -23,7 +23,7 @@ import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 
-public class DistributedCohort implements Cohort, MessageUpcall {
+public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
 
     private static final boolean PROFILE = true;
     
@@ -32,13 +32,22 @@ public class DistributedCohort implements Cohort, MessageUpcall {
     private static final byte WORK    = 0x27;
     private static final byte NO_WORK = 0x29;
 
+    /*
     private final PortType portType = new PortType(
             PortType.COMMUNICATION_FIFO, 
             PortType.COMMUNICATION_RELIABLE, 
             PortType.SERIALIZATION_OBJECT, 
             PortType.RECEIVE_AUTO_UPCALLS,
             PortType.CONNECTION_MANY_TO_ONE);
-
+     */
+    
+    private final PortType portType = new PortType(
+            PortType.COMMUNICATION_FIFO, 
+            PortType.COMMUNICATION_RELIABLE, 
+            PortType.SERIALIZATION_OBJECT, 
+            PortType.RECEIVE_EXPLICIT,
+            PortType.CONNECTION_MANY_TO_ONE);
+        
     private static final IbisCapabilities ibisCapabilities =
         new IbisCapabilities(
                 IbisCapabilities.MALLEABLE,
@@ -50,7 +59,9 @@ public class DistributedCohort implements Cohort, MessageUpcall {
     private final IbisIdentifier local;
     private final ReceivePort rp;
     private final Pool pool;
-
+    
+    private final Receiver receiver;
+    
     private final CohortIdentifier identifier;
 
     private long startID = 0;
@@ -93,8 +104,12 @@ public class DistributedCohort implements Cohort, MessageUpcall {
 
         pool.setIbis(ibis);
 
+        /*
         rp = ibis.createReceivePort(portType, "cohort", this);
-
+         */
+        
+        rp = ibis.createReceivePort(portType, "cohort");
+        
         local = ibis.identifier();
 
         identifier = getCohortIdentifier();
@@ -102,8 +117,12 @@ public class DistributedCohort implements Cohort, MessageUpcall {
         mt = new MultiThreadedCohort(this, getCohortIdentifier(), 0);        
 
         rp.enableConnections();
+        /*
         rp.enableMessageUpcalls();
-
+         */
+        
+        receiver = new Receiver(rp, this);
+        receiver.start();
     }
 
     public synchronized DistributedActivityIdentifierGenerator getIDGenerator(
@@ -139,6 +158,9 @@ public class DistributedCohort implements Cohort, MessageUpcall {
     private void printStatistics() { 
         
         synchronized (System.out) {
+            
+            
+            
             System.out.println("Messages send     : " + messagesSend);
             System.out.println("           Events : " + eventsSend);
             System.out.println("           Steals : " + stealsSend);
@@ -253,15 +275,16 @@ public class DistributedCohort implements Cohort, MessageUpcall {
         }
     }
 
+    /*
     private ActivityRecord stealRequest(IbisIdentifier src, Context c) { 
     
         // TODO: improve
         return mt.stealRequest(null);
-    }
+    }*/
 
     
-    void postStealRequest(IbisIdentifier src, Context c) { 
-        // TODO: implement!
+    void postStealRequest(StealRequest request) {         
+        mt.postStealRequest(request);
     }
     
     private synchronized boolean setPendingSteal(boolean value) { 
@@ -304,6 +327,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
         mt.addActivityRecord(record, false);
     }
     
+    /*
     public void upcall(ReadMessage rm) 
         throws IOException, ClassNotFoundException {
 
@@ -402,6 +426,7 @@ public class DistributedCohort implements Cohort, MessageUpcall {
             throw new IOException("Unknown opcode: " + opcode);
         }
     }
+    */
 
     public synchronized CohortIdentifier getCohortIdentifier() {
         return new DistributedCohortIdentifier(local, cohortCount++);

@@ -110,6 +110,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         havePendingRequests = true;
     }
 
+    /*
     public void stealRequest(CohortIdentifier source) {
 
         synchronized (this) {
@@ -117,8 +118,17 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         }
 
         havePendingRequests = true;
-    }
+    }*/
+    
+    public void postStealRequest() {
 
+        synchronized (this) {
+            incoming.stealRequests++;
+        }
+
+        havePendingRequests = true;
+    }
+    
     public void deliverEvent(Event e) {
 
         synchronized (this) {

@@ -14,6 +14,8 @@ public class MultiThreadedCohort implements Cohort {
 
     private CircularBuffer activitiesGoingDown = new CircularBuffer(16);
     private CircularBuffer activitiesGoingUp = new CircularBuffer(16);
+    
+    private CircularBuffer stealRequests = new CircularBuffer(16);
 
     private SingleThreadedCohort [] workers;
     private int nextSubmit = 0;
@@ -148,6 +150,7 @@ public class MultiThreadedCohort implements Cohort {
     }
 
     // This one is top-down: a parent cohort is requesting work from below
+    /*
     ActivityRecord stealRequest(CohortIdentifier source) {
 
         synchronized (activitiesGoingUp) {
@@ -162,7 +165,20 @@ public class MultiThreadedCohort implements Cohort {
 
         return null;
     }
+     */
 
+    //  This one is top-down: a parent cohort is requesting work from below
+    void postStealRequest(StealRequest request) {
+
+        synchronized (stealRequests) {
+            stealRequests.insertLast(request);
+        }
+        
+        for (int i=0;i<workers.length;i++) { 
+            workers[i].postStealRequest();
+        }
+    }
+    
     // This one is bottom-up: a sub-cohort is requesting work from above 
     ActivityRecord stealAttempt(CohortIdentifier identifier) {
 

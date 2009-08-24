@@ -1,6 +1,9 @@
 package ibis.cohort.impl.distributed;
 
 import java.io.IOException;
+import java.lang.management.GarbageCollectorMXBean;
+
+import org.omg.CORBA.TIMEOUT;
 
 import ibis.cohort.Context;
 import ibis.cohort.Event;
@@ -16,6 +19,8 @@ class Receiver extends Thread {
     private static final byte WORK    = 0x27;
     private static final byte NO_WORK = 0x29;
 
+    private static final int STEAL_TIMEOUT = 1000;
+        
     private final ReceivePort rp;
     private final DistributedCohort parent;
 
@@ -27,6 +32,8 @@ class Receiver extends Thread {
 
     private boolean done = false;
 
+    private String stats;
+    
     Receiver(ReceivePort rp, DistributedCohort parent) { 
         this.rp = rp;
         this.parent = parent;
@@ -48,8 +55,9 @@ class Receiver extends Thread {
 
             case STEAL:
                 IbisIdentifier src = rm.origin().ibisIdentifier();
-                Context c = (Context) rm.readObject();
-                parent.postStealRequest(src, c);
+                Context c = (Context) rm.readObject();                
+                final long timeout = System.currentTimeMillis() + STEAL_TIMEOUT;                
+                parent.postStealRequest(new StealRequest(src, c, timeout));
                 messagesReceived++;
                 stealsReceived++;
                 break;
@@ -86,6 +94,23 @@ class Receiver extends Thread {
         return done;
     }
 
+    public synchronized String waitForStatistics() {
+        
+        while (stats == null) { 
+            try { 
+                wait();
+            } catch (Exception e) {
+                // ignore
+            }
+        } 
+        
+        return stats;
+    }
+
+    public synchronized void setStats(String s) { 
+        stats = s;
+        notifyAll();
+    }
 
     public void run() { 
 
@@ -104,5 +129,16 @@ class Receiver extends Thread {
                 handleMessage(rm);
             }
         }
+        
+        // TODO: bit of a mess....
+        StringBuilder tmp = new StringBuilder();
+
+        tmp.append("Messages received : " + messagesReceived + "\n");
+        tmp.append("           Events : " + eventsReceived + "\n");
+        tmp.append("           Steals : " + stealsReceived + "\n");
+        tmp.append("             Work : " + workReceived + "\n");
+        tmp.append("          No work : " + no_workReceived + "\n");
+        
+        setStats(tmp.toString());
     }
 }
