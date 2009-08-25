@@ -3,8 +3,7 @@ package ibis.cohort.impl.distributed;
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 
-import org.omg.CORBA.TIMEOUT;
-
+import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.ipl.IbisIdentifier;
@@ -16,9 +15,8 @@ class Receiver extends Thread {
 
     private static final byte EVENT   = 0x23;
     private static final byte STEAL   = 0x25;
-    private static final byte WORK    = 0x27;
-    private static final byte NO_WORK = 0x29;
-
+    private static final byte REPLY   = 0x27;
+    
     private static final int STEAL_TIMEOUT = 1000;
         
     private final ReceivePort rp;
@@ -54,24 +52,24 @@ class Receiver extends Thread {
                 break;
 
             case STEAL:
-                IbisIdentifier src = rm.origin().ibisIdentifier();
-                Context c = (Context) rm.readObject();                
-                final long timeout = System.currentTimeMillis() + STEAL_TIMEOUT;                
-                parent.postStealRequest(new StealRequest(src, c, timeout));
+                StealRequest r = (StealRequest) rm.readObject();
+                r.setTimeout(System.currentTimeMillis() + STEAL_TIMEOUT);
+                r.setLocal(false);
+                parent.postStealRequest(r);
                 messagesReceived++;
                 stealsReceived++;
                 break;
 
-            case WORK: 
-                ActivityRecord a = (ActivityRecord) rm.readObject();
-                parent.addActivityRecord(a);      
+            case REPLY: 
+                StealReply reply = (StealReply) rm.readObject();
+                parent.incomingStealReply(reply);      
                 messagesReceived++;
-                workReceived++;
-                break;
-
-            case NO_WORK:
-                messagesReceived++;
-                no_workReceived++;
+            
+                if (reply.work == null) { 
+                    no_workReceived++;
+                } else { 
+                    workReceived++;
+                }
                 break;
 
             default:

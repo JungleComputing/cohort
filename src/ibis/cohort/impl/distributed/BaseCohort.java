@@ -16,6 +16,8 @@ class BaseCohort implements Cohort {
 
     private final CohortIdentifier identifier;
 
+    private Context context;
+    
     private HashMap<ActivityIdentifier, ActivityRecord> local = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
 
@@ -24,7 +26,7 @@ class BaseCohort implements Cohort {
     private CircularBuffer runnable = new CircularBuffer(16);
 
     private DistributedActivityIdentifierGenerator generator;
-
+    
     private long computationTime;
     
     private long activitiesSubmitted;
@@ -42,6 +44,9 @@ class BaseCohort implements Cohort {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getIDGenerator(identifier);
+        
+        // default context is "ANY"
+        context = Context.ANY;
     }
 
     public void cancel(ActivityIdentifier id) {
@@ -73,7 +78,13 @@ class BaseCohort implements Cohort {
         }
 
         if (!fresh.empty()) {
-            return (ActivityRecord) fresh.removeLast();
+            
+            ActivityRecord tmp = (ActivityRecord) fresh.removeLast();
+            
+            DistributedActivityIdentifier id = 
+                (DistributedActivityIdentifier) tmp.activity.identifier();
+            id.setLastKnownCohort((DistributedCohortIdentifier) identifier);
+            return tmp;
         }
 
         return null;
@@ -164,6 +175,9 @@ class BaseCohort implements Cohort {
         ActivityRecord ar = local.get(e.target);
 
         if (ar == null) {
+            
+            System.err.println("EEP: failed to find " + e.target);
+            
             return false;
         }
 
@@ -179,8 +193,12 @@ class BaseCohort implements Cohort {
 
         return true;
     }
-
-    void steal() {
+  
+    int available() { 
+        return fresh.size();
+    }
+    
+    ActivityRecord steal(Context context) {
 
         steals++;
 
@@ -191,27 +209,26 @@ class BaseCohort implements Cohort {
             for (int i=0;i<size;i++) { 
                 // Get the first of the new jobs (this is assumed to be the 
                 // largest one) and check if we are allowed to return it. 
-                
                 ActivityRecord r = (ActivityRecord) fresh.get(i);
                 
-                if (r.activity.getContext() != Context.LOCAL) { 
-                    // TODO: fixme!!
-                    
-                    // Assume for now that we can return this safely. We should 
-                    // check the context of the cohort we are sending replying 
-                    // to!
-                  
+                Context tmp = r.activity.getContext();
+                
+                if (tmp != Context.LOCAL && tmp.match(context)) { 
+                   
                     fresh.remove(i);
            
                     local.remove(r.identifier());
-                    parent.addActivityRecord(r, true);
-    
+                  
                     stealSuccess++;
                     
-                    return;
+
+                    
+                    return r;
                 }
             } 
         }
+        
+        return null;
     }
 
     boolean process() {
@@ -285,12 +302,10 @@ class BaseCohort implements Cohort {
     }
 
     public Context getContext() {
-        // TODO Auto-generated method stub
-        return null;
+        return context;
     }
 
     public void setContext(Context context) {
-        // TODO Auto-generated method stub
-
+        this.context = context;
     }
 }

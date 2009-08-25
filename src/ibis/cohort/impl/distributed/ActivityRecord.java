@@ -105,6 +105,8 @@ class ActivityRecord implements Serializable {
 
             case INITIALIZING: 
 
+                System.err.println("Activity INITIALIZING " + activity.identifier());
+                
                 activity.initialize();
 
                 if (activity.mustSuspend()) { 
@@ -150,6 +152,9 @@ class ActivityRecord implements Serializable {
 
             case FINISHING: 
                 activity.cleanup();
+                
+                System.err.println("Activity DONE " + activity.identifier());
+                
                 state = DONE;
                 break;
 

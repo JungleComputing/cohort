@@ -29,9 +29,10 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     
     private static final byte EVENT   = 0x23;
     private static final byte STEAL   = 0x25;
-    private static final byte WORK    = 0x27;
-    private static final byte NO_WORK = 0x29;
+    private static final byte REPLY   = 0x27;
 
+    private static long STEAL_DEADLINE = 1000;
+    
     /*
     private final PortType portType = new PortType(
             PortType.COMMUNICATION_FIFO, 
@@ -46,6 +47,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
             PortType.COMMUNICATION_RELIABLE, 
             PortType.SERIALIZATION_OBJECT, 
             PortType.RECEIVE_EXPLICIT,
+            PortType.RECEIVE_TIMEOUT, 
             PortType.CONNECTION_MANY_TO_ONE);
         
     private static final IbisCapabilities ibisCapabilities =
@@ -64,6 +66,8 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     
     private final CohortIdentifier identifier;
 
+    private long stealReplyDeadLine;
+    
     private long startID = 0;
     private long blockSize = 1000000;
 
@@ -88,7 +92,8 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     private long stealsReceived;
     private long workReceived;
     private long no_workReceived;
-    
+
+       
     public DistributedCohort() throws Exception {         
 
         if (PROFILE) { 
@@ -275,57 +280,91 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         }
     }
 
-    /*
-    private ActivityRecord stealRequest(IbisIdentifier src, Context c) { 
-    
-        // TODO: improve
-        return mt.stealRequest(null);
-    }*/
-
+   
     
     void postStealRequest(StealRequest request) {         
         mt.postStealRequest(request);
     }
     
-    private synchronized boolean setPendingSteal(boolean value) { 
-        boolean tmp = pendingSteal; 
-        pendingSteal = value;
-        return tmp;
+    void sendStealReply(StealReply r) {
+        forwardObject(((DistributedCohortIdentifier)r.target).getIbis(), REPLY, r);
     }
     
-    ActivityRecord stealAttempt(CohortIdentifier source) {
+    void incomingStealReply(StealReply r) {
+        
+        if (r.work != null) { 
+            mt.addActivityRecord(r.target, r.work);
+        } else { 
+            // TODO: handle NACK
+        }
+    }
+    
+    private synchronized boolean setPendingSteal(boolean value) { 
+   
+        // When we are setting the value to false, we don't care about 
+        // the deadline. 
+        if (!value) { 
+            boolean tmp = pendingSteal; 
+            pendingSteal = false;
+            stealReplyDeadLine = 0;
+            return tmp;
+        } 
+
+        long time = System.currentTimeMillis();
+        
+        // When we are changing the value from false to true, we also
+        // need to set te deadline.
+        if (!pendingSteal) { 
+            pendingSteal = true;
+            stealReplyDeadLine = time + STEAL_DEADLINE;
+            return false;
+        }
+            
+        // When the old value was true but the deadline has passed, we act as 
+        // if the value was false to begin with
+        if (time > stealReplyDeadLine) { 
+            pendingSteal = true;
+            stealReplyDeadLine = time + STEAL_DEADLINE;
+            return false;
+        }
+        
+        // Otherwise, we leave the value and deadline unchanged
+        return true;    
+    }
+    
+    void stealAttempt(StealRequest sr) {
         
         boolean pending = setPendingSteal(true);
     
         if (pending) { 
             // Steal request was already pending, so ignore this one.
-            return null;
+            System.err.println("Ignoring steal request!");
+            return;
         }
         
         // Find some other cohort and send it a steal request.
         IbisIdentifier id = pool.selectTarget();
 
+        System.err.println("Send steal request to: " + id);
+        
         if (id != null) { 
             
-        //    System.out.println("Sending STEAL from " + local + " to " + id);
-            
-            forwardObject(id, STEAL, getContext());
+            forwardObject(id, STEAL, sr);
             
             synchronized (this) {
                 stealsSend++;
             }
+        } else { 
+            // Failed to selecta steal target. Try again next time...
+            setPendingSteal(false);
         }
-       
-        return null;
     }
 
     void deliverEvent(Event e) { 
         mt.deliverEvent(e);
     }
     
-    void addActivityRecord(ActivityRecord record) {
-        mt.addActivityRecord(record, false);
-    }
+   
     
     /*
     public void upcall(ReadMessage rm) 
@@ -451,4 +490,6 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     public synchronized void setContext(Context context) {
         // TODO: implement
     }
+
+  
 }

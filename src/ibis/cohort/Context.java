@@ -14,4 +14,8 @@ public class Context implements Serializable {
     public Context(String name) { 
         this.name = name;
     }
+    
+    public boolean match(Context other) { 
+        return true;
+    }
 }
