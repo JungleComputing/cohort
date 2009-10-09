@@ -5,7 +5,6 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Event;
 
 import java.io.Serializable;
-import java.util.LinkedList;
 
 class ActivityRecord implements Serializable { 
 
