@@ -36,27 +36,37 @@ public class DistributedActivityIdentifier extends ActivityIdentifier {
         return "Activity(origin: " + cohortOfOrigin + " last: " + 
             lastKnownCohort + " id: " + id + ")";
     }
+    
+    public String localName() { 
+        return "" + id;
+    }
 
+    
     @Override
     public int hashCode() {
-       return cohortOfOrigin.hashCode() + (int) id;
+        final int PRIME = 31;
+        int result = 1;
+        result = PRIME * result + ((cohortOfOrigin == null) ? 0 : cohortOfOrigin.hashCode());
+        result = PRIME * result + (int) (id ^ (id >>> 32));
+        return result;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (obj == null)
+        if (!super.equals(obj))
             return false;
         if (getClass() != obj.getClass())
             return false;
-        
         final DistributedActivityIdentifier other = (DistributedActivityIdentifier) obj;
-      
-        if (id != other.id) { 
+        if (cohortOfOrigin == null) {
+            if (other.cohortOfOrigin != null)
+                return false;
+        } else if (!cohortOfOrigin.equals(other.cohortOfOrigin))
             return false;
-        }
-        
-        return cohortOfOrigin.equals(other.cohortOfOrigin);
+        if (id != other.id)
+            return false;
+        return true;
     }
 }

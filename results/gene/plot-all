@@ -1,8 +1,8 @@
-set term postscript eps enhanced
-set output "cohort.eps"
+set term postscript enhanced
+set output "cohort.ps"
 set font "Helvetica"
 set xlabel "Time (sec)"
-set ylabel "Core load (%)" 
+set ylabel "Core load 16x4 (%)" 
 
 set key off
 
@@ -33,6 +33,8 @@ plot [0:1200][0:115] \
 "out.0.15" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.1.15" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.2.15" using (($1-1248089551468.0)/1000):2 with lines lt 1, "out.3.15"  using (($1-1248089551468.0)/1000):2 with lines lt 1
 
 set origin 0,0.5
+
+set ylabel "Core load 64x1 (%)" 
 
 plot [0:1200][0:115] \
 "out2.0" using (($1-1248095508389.0)/1000):2 with lines lt 1, \

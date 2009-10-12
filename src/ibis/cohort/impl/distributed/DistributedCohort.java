@@ -11,14 +11,11 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
-import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.List;
@@ -334,18 +331,20 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     
     void stealAttempt(StealRequest sr) {
         
+        // FIXME: should check if we have a pending steal of the same context!
+        
         boolean pending = setPendingSteal(true);
     
         if (pending) { 
             // Steal request was already pending, so ignore this one.
-            System.err.println("Ignoring steal request!");
+   //         System.err.println("Ignoring steal request!");
             return;
         }
         
         // Find some other cohort and send it a steal request.
         IbisIdentifier id = pool.selectTarget();
 
-        System.err.println("Send steal request to: " + id);
+    //    System.err.println("Send steal request to: " + id);
         
         if (id != null) { 
             

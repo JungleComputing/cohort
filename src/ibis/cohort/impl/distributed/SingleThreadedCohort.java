@@ -30,38 +30,46 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     private final int workerID;
     
     private static class PendingRequests {
+        
+        // These are the new submits 
         final ArrayList<Activity> pendingSubmit = new ArrayList<Activity>();
-
+        
+        final ArrayList<ActivityRecord> deliveredActivityRecords = new ArrayList<ActivityRecord>();
+       
         final ArrayList<Event> pendingEvents = new ArrayList<Event>();
 
         final ArrayList<Event> deliveredEvents = new ArrayList<Event>();
 
         final ArrayList<ActivityIdentifier> pendingCancelations = new ArrayList<ActivityIdentifier>();
 
-        final ArrayList<StealRequest> stealRequests = new ArrayList<StealRequest>();
+        final ArrayList<LocalStealRequest> stealRequests = new ArrayList<LocalStealRequest>();
         
         boolean cancelAll = false;
+        
+        public String print() { 
+            return "QUEUES: " + pendingSubmit.size() + " " 
+                    + deliveredActivityRecords.size() + " " 
+                    + pendingEvents.size() + " " 
+                    + deliveredEvents.size() + " "
+                    + pendingCancelations.size() + " " + 
+                    + stealRequests.size();
+        }
     }
-
+    
     private PendingRequests incoming = new PendingRequests();
     private PendingRequests processing = new PendingRequests();
-    
-    private StealRequest currentSteal;
-    
-    private int sleepIndex;
-    
+
     private boolean done = false;
 
-    private long sleepTime;
-    private long sleepCount;
+    private boolean idle = false;
+        
     
+    
+    
+    private long eventTime;
     private long activeTime;
-    private long commandTime;
-
-    private long stealTime;
-    private long stealCount;
-    private long stealSuccess;
-
+    private long idleTime;
+    private long idleCount;
     
     // NOTE: these are use for performance debugging...
     private long profileDelta = 5000;
@@ -80,7 +88,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     private long profileMessageE = 0;
     private long profileSteals = 0;
 
-    private volatile boolean havePendingRequests = false;
+    private boolean havePendingRequests = false;
 
     SingleThreadedCohort(MultiThreadedCohort parent, int workerID, 
             CohortIdentifier identifier) {
@@ -108,82 +116,86 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         sequential = new BaseCohort(parent, identifier);
     }
 
-    public void cancel(ActivityIdentifier id) {
+    public synchronized void cancel(ActivityIdentifier id) {
 
-        synchronized (this) {
-            incoming.pendingCancelations.add(id);
-        }
-
+        incoming.pendingCancelations.add(id);
         havePendingRequests = true;
     }
     
-    public void postStealRequest(StealRequest s) {
+    public synchronized void postStealRequest(LocalStealRequest s) {
 
-        synchronized (this) {
-            incoming.stealRequests.add(s);
-      
-            System.err.println("Worker " + workerID + " now has " 
-                    + incoming.stealRequests.size() + " pending steals");
-        }
-
+        incoming.stealRequests.add(s);
         havePendingRequests = true;
     }
     
-    public void deliverEvent(Event e) {
+    public synchronized void deliverEvent(Event e) {
 
-        synchronized (this) {
-            incoming.deliveredEvents.add(e);
-        }
-
+        incoming.deliveredEvents.add(e);
         havePendingRequests = true;
     }
+    
+    public synchronized void deliverActivityRecord(ActivityRecord a) {
+
+        incoming.deliveredActivityRecords.add(a);
+        havePendingRequests = true;
+    }
+
     
     public ActivityIdentifier submit(Activity a) {
 
         // System.out.println("ST submit");
 
         ActivityIdentifier id = sequential.prepareSubmission(a);
-
+        
+      //  System.out.println("Activity " + id.localName() + " created!");
+     
         synchronized (this) {
             incoming.pendingSubmit.add(a);
+            havePendingRequests = true;
         }
-
-        havePendingRequests = true;
-
+        
         return id;
     }
 
-    public void send(ActivityIdentifier source, ActivityIdentifier target,
+    public synchronized void send(ActivityIdentifier source, ActivityIdentifier target,
             Object o) {
-
-        synchronized (this) {
-            incoming.pendingEvents.add(new MessageEvent(source, target, o));
-        }
-
+        
+        incoming.pendingEvents.add(new MessageEvent(source, target, o));
         havePendingRequests = true;
     }
 
     private synchronized boolean getDone() {
         return done;
     }
-    
-    
-
+  
     public synchronized void done() {
         done = true;
     }
 
-    private synchronized void swapPendingRequests() {
+    private synchronized void swapEventQueues() {
+        
+        if (idle) { 
+            System.out.println("Processing events while idle!\n" + incoming.print() + "\n" + processing.print());
+        }
+        
         PendingRequests tmp = incoming;
         incoming = processing;
         processing = tmp;
         havePendingRequests = false;
     }
 
-    private void processNextCommands() {
+    private void processActivityRecords() { 
+        if (processing.deliveredActivityRecords.size() > 0) {
 
-        swapPendingRequests();
+            for (int i = 0; i < processing.deliveredActivityRecords.size(); i++) {
+                sequential.addActivityRecord(processing.deliveredActivityRecords.get(i));
+            }
 
+            processing.deliveredActivityRecords.clear();
+        }
+    }
+    
+    private void processSubmits() { 
         if (processing.pendingSubmit.size() > 0) {
 
             for (int i = 0; i < processing.pendingSubmit.size(); i++) {
@@ -192,7 +204,9 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
             processing.pendingSubmit.clear();
         }
-
+    }
+    
+    private void processLocalEvents() { 
         if (processing.pendingEvents.size() > 0) {
 
             for (int i = 0; i < processing.pendingEvents.size(); i++) {
@@ -207,7 +221,9 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
             processing.pendingEvents.clear();
         }
-
+    }
+    
+    private void processRemoteEvents() { 
         if (processing.deliveredEvents.size() > 0) {
 
             for (int i = 0; i < processing.deliveredEvents.size(); i++) {
@@ -228,7 +244,9 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
             processing.deliveredEvents.clear();
         }
-
+    }
+    
+    private void processCancellations() { 
         if (processing.pendingCancelations.size() > 0) {
 
             for (int i = 0; i < processing.pendingCancelations.size(); i++) {
@@ -237,41 +255,41 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
             processing.pendingCancelations.clear();
         }
+    }
 
+    private void processStealRequests() { 
+        
         while (processing.stealRequests.size() > 0) {
 
-            StealRequest r = processing.stealRequests.remove(0);
+            LocalStealRequest s = processing.stealRequests.remove(0);
             
-            long time = System.currentTimeMillis();
-            
-            if (time <= r.getTimeout()) { 
-                
-                ActivityRecord a = sequential.steal(r.context);
+            ActivityRecord a = sequential.steal(s.context);
 
-                if (a != null) { 
-                
-                    System.err.println("Worker " + workerID + " sending steal " 
-                            + "reply"); 
-                      
-                    parent.sendStealReply(r, a);
-                } else { 
-               
-                    System.err.println("Worker " + workerID + " returning steal " 
-                            + "reply"); 
-                    
-                    parent.returnStealRequest(workerID, r);
-                }
+            if (a != null) { 
+                parent.stealReply(workerID, s, a);
             } else { 
-            
-                System.err.println("Worker " + workerID + " sending failed " 
-                        + " steal reply (timeout)"); 
-                
-                // Stale request!
-                parent.sendStealReply(r);
+                parent.stealReply(workerID, s, null);
             }
         }
     }
+    
+    
+    private void processEvents() {
+       
+        swapEventQueues();
+        
+        processActivityRecords();
+        processSubmits();
+        processLocalEvents();
+        processRemoteEvents();
+        processCancellations();
+        processStealRequests();
+    }
 
+    private synchronized boolean havePendingRequests() {
+        return havePendingRequests;
+    }
+    
     public void run() {
 
         // NOTE: For D&C applications it seems to be most efficient to
@@ -284,17 +302,16 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
             long t1 = System.currentTimeMillis();
 
-            if (PROFILE && t1 > profileDeadline) {
-                printProfileInfo(t1);
-                profileDeadline = t1 + profileDelta;
-            }
+        //    if (PROFILE && t1 > profileDeadline) {
+       //         printProfileInfo(t1);
+        //        profileDeadline = t1 + profileDelta;
+        //    }
 
-            if (havePendingRequests) { 
-                processNextCommands();
+            if (havePendingRequests()) { 
+                processEvents();
             }
                 
             long t2 = System.currentTimeMillis();
-            
             
             // NOTE: one problem here is that we cannot tell if we did any work 
             // or not. We would like to know, since this allows us to reset
@@ -302,21 +319,74 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             
             boolean more = sequential.process();
 
-            while (more && !havePendingRequests) {
+            while (more) {
                 more = sequential.process();
+           
+                // FIXME performance killer!
+                more = more && !havePendingRequests();
             }
 
             long t3 = System.currentTimeMillis();
 
-            if (!more && !havePendingRequests) {
+            while (!more && !havePendingRequests()) {
                 
-                ActivityRecord tmp = null;
+                synchronized (this) {
+                    System.out.println(System.currentTimeMillis() 
+                            + " IDLE(" + workerID + ") " 
+                            + sequential.printState() + " " 
+                            + incoming.print() 
+                            + " / " + processing.print());
+                    idle = true;
+                }
                 
-                if (currentSteal == null || t3 > currentSteal.getTimeout()) { 
-                    // Last steal is answered or has timed out
+                more = parent.idle(workerID, getContext());
+           
+                if (!more) { 
+                    
+                    if (getDone()) { 
+                        break;
+                    }
+                    
+                    try { 
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        // ignored
+                    }
+                }
+            }
+    
+            // FIXME: remove when debugged!
+            synchronized (this) {
+                idle = false;
+            }
+            
+            long t4 = System.currentTimeMillis();
+                
+            eventTime   += t2 - t1;
+            activeTime  += t3 - t2;
+            idleTime    += t4 - t3;
+        }
+
+        long time = System.currentTimeMillis() - start;
+
+        printStatistics(time);
+    }
+
+    /*
+    private ActivityRecord idle() { 
+        
+        ActivityRecord tmp = null;
+                
+        if (currentSteal == null || t3 > currentSteal.getTimeout()) { 
+                    
+            // Last steal is answered or has timed out
+            if (currentSteal != null) { 
+                stealTimeout++;
+            }
+                    
                     currentSteal = new StealRequest(identifier, getContext());
                     currentSteal.setLocal(true);
-                    currentSteal.setTimeout(t3 + 1000);
+                    currentSteal.setTimeout(t3 + 1000); // FIXME (use property)
                         
                     tmp = parent.stealAttempt(workerID, currentSteal);
 
@@ -324,14 +394,18 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                 } else { 
                     tmp = parent.getStoredActivity(getContext());
                 }
-               
+            
+                long t4 = System.currentTimeMillis();
+
+                stealTime += t4 - t3;
+                
                 if (tmp != null) { 
+                    stealSuccess++;
+                    
                     currentSteal = null;
                     sleepIndex= 0;
                     sequential.addActivityRecord(tmp);
                 } else { 
-                    long t4 = System.currentTimeMillis();
-
                     try {
                         
                         long sleepTime = SLEEP_TIMES[sleepIndex];
@@ -356,15 +430,9 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                     sleepTime += t5 - t4;
                 }
             }
-                
-            commandTime += t2 - t1;
-            activeTime += t3 - t2;
-        }
-
-        long time = System.currentTimeMillis() - start;
-
-        printStatistics(time);
-    }
+*/
+        
+   
 
     private void printProfileInfo(long t) {
 
@@ -457,11 +525,10 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         final double comp = (100.0 * computationTime) / totalTime;
         final double fact = ((double) activitiesInvoked) / activitiesSubmitted;
 
-        final double stealPerc = (100.0 * stealTime) / totalTime;
-        final double commandPerc = (100.0 * commandTime) / totalTime;
+        final double eventPerc = (100.0 * eventTime) / totalTime;
         final double activePerc = (100.0 * activeTime) / totalTime;
-        final double sleepPerc = (100.0 * sleepTime) / totalTime;
-
+        final double idlePerc = (100.0 * idleTime) / totalTime;
+        
         if (PROFILE) {
             // Get the cpu/user time (in nanos)
             cpuTime = management.getCurrentThreadCpuTime();
@@ -496,12 +563,12 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             System.out.println("        run() : " + computationTime + " ms. ("
                     + comp + " %)");
 
-            System.out.println("   command    : " + commandTime + " ms. ("
-                    + commandPerc + " %)");
+            System.out.println("   command    : " + eventTime + " ms. ("
+                    + eventPerc + " %)");
 
-            System.out.println("   sleep count: " + sleepCount);
-            System.out.println("   sleep time : " + sleepTime + " ms. ("
-                    + sleepPerc + " %)");
+            System.out.println("   idle count: " + idleCount);
+            System.out.println("   idle time : " + idleTime + " ms. ("
+                    + idlePerc + " %)");
 
             if (PROFILE) {
 
@@ -533,10 +600,6 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             System.out.println(" Steals");
             System.out.println("   incoming   : " + steals);
             System.out.println("   success in : " + stealSuccessIn);
-            System.out.println("   outgoing   : " + stealCount);
-            System.out.println("   success out: " + stealSuccess);
-            System.out.println("   time       : " + stealTime + " ms. (" + stealPerc + " %)");
-        
         }
     }
 

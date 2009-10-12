@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0 EPSF-2.0
 %%Title: cohort.eps
-%%Creator: gnuplot 4.2 patchlevel 2 
-%%CreationDate: Mon Jul 20 16:23:19 2009
+%%Creator: gnuplot 4.2 patchlevel 3 
+%%CreationDate: Thu Oct  1 17:48:46 2009
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 410 302
 %%EndComments
@@ -44,11 +44,11 @@ systemdict /pdfmark known not {
 SDict begin [
   /Title (cohort.eps)
   /Subject (gnuplot plot)
-  /Creator (gnuplot 4.2 patchlevel 2 )
+  /Creator (gnuplot 4.2 patchlevel 3 )
   /Author (Jason Maassen,,,)
 %  /Producer (gnuplot)
 %  /Keywords ()
-  /CreationDate (Mon Jul 20 16:23:19 2009)
+  /CreationDate (Thu Oct  1 17:48:46 2009)
   /DOCINFO pdfmark
 end
 } ifelse
@@ -303,7 +303,7 @@ end
   ColR ColG ColB setrgbcolor} def
 /BoxColFill {gsave Rec PolyFill} def
 /PolyFill {gsave Density fill grestore grestore} def
-/h {rlineto rlineto rlineto gsave fill grestore} bind def
+/h {rlineto rlineto rlineto gsave closepath fill grestore} bind def
 %
 % PostScript Level 1 Pattern Fill routine for rectangles
 % Usage: x y w h s a XX PatternFill
@@ -599,7 +599,7 @@ Z stroke
 LCb setrgbcolor
 140 1386 M
 currentpoint gsave translate 90 rotate 0 0 moveto
-[ [(Helvetica) 140.0 0.0 true true 0 (Core load \(%\))]
+[ [(Helvetica) 140.0 0.0 true true 0 (Core load 16x4 \(%\))]
 ] -46.7 MCshow
 grestore
 LTb
@@ -3461,7 +3461,7 @@ Z stroke
 LCb setrgbcolor
 140 3906 M
 currentpoint gsave translate 90 rotate 0 0 moveto
-[ [(Helvetica) 140.0 0.0 true true 0 (Core load \(%\))]
+[ [(Helvetica) 140.0 0.0 true true 0 (Core load 64x1 \(%\))]
 ] -46.7 MCshow
 grestore
 LTb
@@ -4428,6 +4428,7 @@ LT0
 31 -172 V
 26 -304 V
 27 -453 V
+/Helvetica findfont 140 scalefont setfont
 /Helvetica findfont 140 scalefont setfont
 2562 4593 M
 193 12 V
@@ -5451,6 +5452,7 @@ LT0
 31 -79 V
 26 -98 V
 27 -484 V
+/Helvetica findfont 140 scalefont setfont
 /Helvetica findfont 140 scalefont setfont
 1968 4565 M
 390 40 V

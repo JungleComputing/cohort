@@ -88,4 +88,8 @@ public abstract class Activity implements Serializable {
     public abstract void cleanup() throws Exception;
     
     public abstract void cancel() throws Exception;
+    
+    public String toString() { 
+        return identifier.localName();
+    }
 }

@@ -18,16 +18,21 @@ public class DivCon extends Activity {
     private ArrayList<ResSeq> [] sub;    
     private int count;
     
-    public DivCon(ActivityIdentifier parent, WorkUnit workUnit, int myIndex) {
+    private boolean root;
+    
+    public DivCon(ActivityIdentifier parent, WorkUnit workUnit, int myIndex, boolean root) {
         super(Context.ANY);
         this.parent = parent;
         this.workUnit = workUnit;
         this.myIndex = myIndex;
+        this.root = root;
     }
 
     @Override
     public void initialize() throws Exception {
 
+       // System.out.println("Start Activity " + identifier().localName() + " parent " + parent.localName());
+        
         // We first split the problem into 2 subproblems until it is small 
         // enough to solve trivially.  
 
@@ -42,28 +47,35 @@ public class DivCon extends Activity {
         } else {
             // Split case. Note that the order of the results is important, so 
             // we pass an 'index' to each subjob.
-
+            
             if (databaseSize <= workUnit.threshold) {
                 // Only split queries if the database is small enough. 
                 
                 int newSplitSize = querySize / 2;
                 
-                cohort.submit(new DivCon(identifier(), 
-                        workUnit.splitQuerySequences(0, newSplitSize), 0));
+                ActivityIdentifier id1 = cohort.submit(new DivCon(identifier(), 
+                        workUnit.splitQuerySequences(0, newSplitSize), 0, false));
                 
-                cohort.submit(new DivCon(identifier(), 
-                        workUnit.splitQuerySequences(newSplitSize, querySize), 1));
-                                              
+                ActivityIdentifier id2 = cohort.submit(new DivCon(identifier(), 
+                        workUnit.splitQuerySequences(newSplitSize, querySize), 1, false));
+            
+              //  System.out.println("Activity " + identifier().localName() 
+              //          + " created " + id1.localName() + " " + id2.localName());
+                
+                
             } else {
                 
                 // If the database is large we split it first.                 
                 int newSplitSize = databaseSize / 2;
                 
-                cohort.submit(new DivCon(identifier(),
-                        workUnit.splitDatabaseSequences(0, newSplitSize), 0));
+                ActivityIdentifier id1 = cohort.submit(new DivCon(identifier(),
+                        workUnit.splitDatabaseSequences(0, newSplitSize), 0, false));
                 
-                cohort.submit(new DivCon(identifier(),
-                        workUnit.splitDatabaseSequences(newSplitSize, databaseSize), 1));
+                ActivityIdentifier id2 = cohort.submit(new DivCon(identifier(),
+                        workUnit.splitDatabaseSequences(newSplitSize, databaseSize), 1, false));
+                
+             //   System.out.println("Activity " + identifier().localName() 
+             //           + " created " + id1.localName() + " " + id2.localName());
             }
             
             suspend();
@@ -97,7 +109,14 @@ public class DivCon extends Activity {
 
     @Override
     public void cleanup() throws Exception {
+        
+        //System.out.println("Finished Activity " + identifier().localName());
+        
         // Send the result to our parent
+        if (root) { 
+            System.out.println("Root done at " + System.currentTimeMillis());
+        }
+        
         cohort.send(identifier(), parent, new Result(myIndex, result));
     }
 

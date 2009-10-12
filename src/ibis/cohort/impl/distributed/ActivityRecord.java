@@ -20,7 +20,8 @@ class ActivityRecord implements Serializable {
     final Activity activity;
     private CircularBuffer queue;
     private int state = INITIALIZING;
-
+    private boolean stolen;
+    
     ActivityRecord(Activity activity) {
         this.activity = activity;
     }
@@ -69,6 +70,15 @@ class ActivityRecord implements Serializable {
         return (state == RUNNABLE);
     }
 
+    boolean isStolen() { 
+        return (stolen);
+    }
+
+    void setStolen(boolean value) { 
+        stolen = value;
+    }
+
+    
     boolean isDone() { 
         return (state == DONE || state == ERROR);
     }
@@ -104,7 +114,7 @@ class ActivityRecord implements Serializable {
 
             case INITIALIZING: 
 
-                System.err.println("Activity INITIALIZING " + activity.identifier());
+                //System.err.println("Activity INITIALIZING " + activity.identifier());
                 
                 activity.initialize();
 
@@ -152,7 +162,7 @@ class ActivityRecord implements Serializable {
             case FINISHING: 
                 activity.cleanup();
                 
-                System.err.println("Activity DONE " + activity.identifier());
+          //      System.err.println("Activity DONE " + activity.identifier());
                 
                 state = DONE;
                 break;
@@ -204,8 +214,6 @@ class ActivityRecord implements Serializable {
     }
 
     public String toString() { 
-
-        return activity + " STATE: " + getStateAsString();
-
+        return activity + " STATE: " + getStateAsString() + " " + (queue == null ? -1 : queue.size());
     }    
 }

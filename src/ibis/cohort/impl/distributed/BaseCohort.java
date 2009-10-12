@@ -51,6 +51,9 @@ class BaseCohort implements Cohort {
 
     public void cancel(ActivityIdentifier id) {
 
+      //  System.out.println("CANCEL " + id.localName());
+        
+        
         ActivityRecord ar = local.remove(id);
 
         if (ar == null) {
@@ -110,21 +113,27 @@ class BaseCohort implements Cohort {
     }
 
     public ActivityIdentifier prepareSubmission(Activity a) {
-
+        
         ActivityIdentifier id = createActivityID();
         a.initialize(id);
+
+        //System.out.println("BASE CREATE " + id.localName());
+        
         return id;
     }
 
     public void finishSubmission(Activity a) {
 
         ActivityRecord ar = new ActivityRecord(a);
+       
         local.put(a.identifier(), ar);
+       
         fresh.insertLast(ar);
         activitiesSubmitted++;
     }
 
     void addActivityRecord(ActivityRecord a) {
+        
         local.put(a.identifier(), a);
 
         if (a.isFresh()) {
@@ -211,19 +220,25 @@ class BaseCohort implements Cohort {
                 // largest one) and check if we are allowed to return it. 
                 ActivityRecord r = (ActivityRecord) fresh.get(i);
                 
-                Context tmp = r.activity.getContext();
-                
-                if (tmp != Context.LOCAL && tmp.match(context)) { 
-                   
-                    fresh.remove(i);
-           
-                    local.remove(r.identifier());
-                  
-                    stealSuccess++;
-                    
+                if (!r.isStolen()) { 
 
-                    
-                    return r;
+
+                    Context tmp = r.activity.getContext();
+
+                    if (tmp != Context.LOCAL && tmp.match(context)) { 
+
+                        fresh.remove(i);
+
+                        local.remove(r.identifier());
+
+                        stealSuccess++;
+
+                 //       System.out.println("STEAL " + r.identifier().localName());
+
+                        r.setStolen(true);
+
+                        return r;
+                    }
                 }
             } 
         }
@@ -231,6 +246,26 @@ class BaseCohort implements Cohort {
         return null;
     }
 
+    public String printState() { 
+        
+        String tmp = "BASE contains " + local.size()
+                + " activities " + runnable.size() + " runnable  " 
+                + fresh.size() + " fresh";
+        
+        for (ActivityIdentifier i : local.keySet()) { 
+           
+            ActivityRecord a = local.get(i);
+            
+            if (a != null) { 
+                tmp += " [ " + i.localName()  + " " + a + " ] ";
+            } else { 
+                tmp += " < " + i.localName() + " > ";
+            }
+        }
+        
+        return tmp;
+    }
+    
     boolean process() {
 
         ActivityRecord tmp = dequeue();

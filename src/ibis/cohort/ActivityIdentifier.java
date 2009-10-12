@@ -4,6 +4,10 @@ import java.io.Serializable;
 
 public abstract class ActivityIdentifier implements Serializable {
 
+    public String localName() { 
+        return null;
+    }
+    
     /*
     private static long nextID = 0;
 

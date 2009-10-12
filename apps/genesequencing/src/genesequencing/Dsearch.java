@@ -115,9 +115,12 @@ public class Dsearch {
         
         SingleEventCollector a = new SingleEventCollector();
         cohort.submit(a);
-        cohort.submit(new DivCon(a.identifier(), workUnit, 0));
+        cohort.submit(new DivCon(a.identifier(), workUnit, 0, true));
         
-        Result tmp = (Result) ((MessageEvent) a.waitForEvent()).message;        
+        Result tmp = (Result) ((MessageEvent) a.waitForEvent()).message;  
+        
+        System.out.println("App done at " + System.currentTimeMillis());
+        
         return tmp.result;
         
         /*
