@@ -8,6 +8,9 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -19,7 +22,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
     private static final int [] SLEEP_TIMES = { 1, 1, 2, 5, 10, 20, 50, 100, 200, 1000 }; 
     
-    private final ThreadMXBean management;
+   // private final ThreadMXBean management;
 
     private final MultiThreadedCohort parent;
 
@@ -28,6 +31,8 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     private final CohortIdentifier identifier;
     
     private final int workerID;
+    
+    private PrintStream out; 
     
     private static class PendingRequests {
         
@@ -56,6 +61,8 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         }
     }
     
+    private long sleepTime; 
+    
     private PendingRequests incoming = new PendingRequests();
     private PendingRequests processing = new PendingRequests();
 
@@ -64,14 +71,13 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     private boolean idle = false;
         
     
-    
-    
     private long eventTime;
     private long activeTime;
     private long idleTime;
     private long idleCount;
     
     // NOTE: these are use for performance debugging...
+    /*
     private long profileDelta = 5000;
     private long profileTime = 0;
     private long profileDeadline;
@@ -87,13 +93,42 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     private long profileMessageI = 0;
     private long profileMessageE = 0;
     private long profileSteals = 0;
-
+     */
+    
     private boolean havePendingRequests = false;
 
     SingleThreadedCohort(MultiThreadedCohort parent, int workerID, 
             CohortIdentifier identifier) {
 
-        if (PROFILE) {
+        String outfile = System.getProperty("ibis.cohort.outputfile");
+        
+        if (outfile != null) {
+            String filename = outfile + "." + workerID;
+            
+            try {
+                out = new PrintStream(new BufferedOutputStream(
+                        new FileOutputStream(filename)));
+            } catch (Exception e) {
+                System.err.println("Failed to open output file " + outfile);
+                out = System.out;
+            }
+            
+        } else { 
+            out = System.out;
+        }
+        
+        String tmp = System.getProperty("ibis.cohort.sleep");
+        
+        if (tmp != null && tmp.length() > 0) { 
+            sleepTime = Integer.parseInt(tmp);
+        } else { 
+            sleepTime = 1000;
+        }
+        
+        out.println("SingleThreaded: sleepTime set to " + sleepTime 
+                + " ms.");
+        
+        if (PROFILE) {/*
             profileTime = System.currentTimeMillis();
             profileDeadline = profileTime + profileDelta;
             
@@ -107,15 +142,19 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             if (management.isThreadContentionMonitoringSupported()
                     && !management.isThreadContentionMonitoringEnabled()) {
                 management.setThreadContentionMonitoringEnabled(true);
-            }
+            }*/
         }
 
         this.parent = parent;
         this.workerID = workerID;
         this.identifier = identifier;
-        sequential = new BaseCohort(parent, identifier);
+        sequential = new BaseCohort(parent, identifier, out);
     }
-
+    
+    public PrintStream getOutput() {
+        return out;
+    }
+    
     public synchronized void cancel(ActivityIdentifier id) {
 
         incoming.pendingCancelations.add(id);
@@ -175,7 +214,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     private synchronized void swapEventQueues() {
         
         if (idle) { 
-            System.out.println("Processing events while idle!\n" + incoming.print() + "\n" + processing.print());
+            out.println("Processing events while idle!\n" + incoming.print() + "\n" + processing.print());
         }
         
         PendingRequests tmp = incoming;
@@ -290,6 +329,33 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         return havePendingRequests;
     }
     
+    private boolean sleep(long time) { 
+        
+        long end = System.currentTimeMillis() + time;
+        
+        boolean wake = havePendingRequests() || getDone(); 
+
+        while (!wake) { 
+            
+            try { 
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                // ignored
+            }
+            
+            wake = (System.currentTimeMillis() > end) 
+                || havePendingRequests() 
+                || getDone();  
+        }
+
+        if (!wake) { 
+            out.println("SLEEP(" + workerID + ") slept entire slot of " 
+                    + time + " ms.");
+        }
+        
+        return wake;
+    }
+    
     public void run() {
 
         // NOTE: For D&C applications it seems to be most efficient to
@@ -331,27 +397,17 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             while (!more && !havePendingRequests()) {
                 
                 synchronized (this) {
-                    System.out.println(System.currentTimeMillis() 
-                            + " IDLE(" + workerID + ") " 
-                            + sequential.printState() + " " 
-                            + incoming.print() 
-                            + " / " + processing.print());
+                    out.println("IDLE " + workerID + " at " 
+                            + System.currentTimeMillis());                             
+                    out.flush();
+                    
                     idle = true;
                 }
                 
                 more = parent.idle(workerID, getContext());
            
                 if (!more) { 
-                    
-                    if (getDone()) { 
-                        break;
-                    }
-                    
-                    try { 
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        // ignored
-                    }
+                    more = sleep(sleepTime);
                 }
             }
     
@@ -435,7 +491,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
    
 
     private void printProfileInfo(long t) {
-
+/*
         long tempTime = t - profileTime;  
         
         long tempComputation = sequential.getComputationTime(); 
@@ -492,6 +548,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         profileMessageI = tempMessageI;
         profileMessageE = tempMessageE;
         profileSteals = tempSteals;        
+        */
     }
 
     public void printStatistics(long totalTime) {
@@ -512,13 +569,14 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         double blockedPerc = 0.0;
         double waitedPerc = 0.0;
 
-        final long computationTime = sequential.getComputationTime();
-        final long activitiesInvoked = sequential.getActivitiesInvoked();
-        final long activitiesSubmitted = sequential.getActivitiesSubmitted();
-
         final long messagesInternal = sequential.getMessagesInternal();
         final long messagesExternal = sequential.getMessagesExternal();
+        final long messagesTime = sequential.getMessagesTime();
 
+        final long computationTime = sequential.getComputationTime() - messagesTime;
+        final long activitiesInvoked = sequential.getActivitiesInvoked();
+        final long activitiesSubmitted = sequential.getActivitiesSubmitted();
+        
         final long steals = sequential.getSteals();
         final long stealSuccessIn = sequential.getStealSuccess();
 
@@ -528,9 +586,11 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         final double eventPerc = (100.0 * eventTime) / totalTime;
         final double activePerc = (100.0 * activeTime) / totalTime;
         final double idlePerc = (100.0 * idleTime) / totalTime;
+        final double messPerc = (100.0 * messagesTime) / totalTime;
         
         if (PROFILE) {
             // Get the cpu/user time (in nanos)
+            /*
             cpuTime = management.getCurrentThreadCpuTime();
             userTime = management.getCurrentThreadUserTime();
 
@@ -551,56 +611,62 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
             blockedPerc = (100.0 * blockedTime) / totalTime;
             waitedPerc = (100.0 * waitedTime) / totalTime;
+            */
         }
 
         synchronized (System.out) {
 
-            System.out.println(identifier + " statistics");
-            System.out.println(" Time");
-            System.out.println("   total      : " + totalTime + " ms.");
-            System.out.println("   active     : " + activeTime + " ms. ("
+            out.println(identifier + " statistics");
+            out.println(" Time");
+            out.println("   total      : " + totalTime + " ms.");
+            out.println("   active     : " + activeTime + " ms. ("
                     + activePerc + " %)");
-            System.out.println("        run() : " + computationTime + " ms. ("
+            out.println("        run() : " + computationTime + " ms. ("
                     + comp + " %)");
 
-            System.out.println("   command    : " + eventTime + " ms. ("
+            out.println("   command    : " + eventTime + " ms. ("
                     + eventPerc + " %)");
 
-            System.out.println("   idle count: " + idleCount);
-            System.out.println("   idle time : " + idleTime + " ms. ("
+            out.println("   idle count: " + idleCount);
+            out.println("   idle time : " + idleTime + " ms. ("
                     + idlePerc + " %)");
 
+            out.println("   mess time : " + messagesTime + " ms. ("
+                    + messPerc + " %)");
+            
             if (PROFILE) {
 
-                System.out.println("   cpu time   : " + cpuTime + " ms. ("
+                out.println("   cpu time   : " + cpuTime + " ms. ("
                         + cpuPerc + " %)");
 
-                System.out.println("   user time  : " + userTime + " ms. ("
+                out.println("   user time  : " + userTime + " ms. ("
                         + userPerc + " %)");
 
-                System.out.println("   blocked    : " + blocked + " times");
+                out.println("   blocked    : " + blocked + " times");
 
-                System.out.println("   block time : " + blockedTime + " ms. ("
+                out.println("   block time : " + blockedTime + " ms. ("
                         + blockedPerc + " %)");
 
-                System.out.println("   waited     : " + waited + " times");
+                out.println("   waited     : " + waited + " times");
 
-                System.out.println("   wait time  : " + waitedTime + " ms. ("
+                out.println("   wait time  : " + waitedTime + " ms. ("
                         + waitedPerc + " %)");
 
             }
 
-            System.out.println(" Activities");
-            System.out.println("   submitted  : " + activitiesSubmitted);
-            System.out.println("   invoked    : " + activitiesInvoked + " ("
+            out.println(" Activities");
+            out.println("   submitted  : " + activitiesSubmitted);
+            out.println("   invoked    : " + activitiesInvoked + " ("
                     + fact + " /act)");
-            System.out.println(" Messages");
-            System.out.println("   internal   : " + messagesInternal);
-            System.out.println("   external   : " + messagesExternal);
-            System.out.println(" Steals");
-            System.out.println("   incoming   : " + steals);
-            System.out.println("   success in : " + stealSuccessIn);
+            out.println(" Messages");
+            out.println("   internal   : " + messagesInternal);
+            out.println("   external   : " + messagesExternal);
+            out.println(" Steals");
+            out.println("   incoming   : " + steals);
+            out.println("   success in : " + stealSuccessIn);
         }
+        
+        out.flush();        
     }
 
     public CohortIdentifier identifier() {

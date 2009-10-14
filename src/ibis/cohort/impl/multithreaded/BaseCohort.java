@@ -8,6 +8,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
+import java.io.PrintStream;
 import java.util.HashMap;
 
 public class BaseCohort implements Cohort {
@@ -35,7 +36,11 @@ public class BaseCohort implements Cohort {
         this.identifier = identifier;
         this.generator = parent.getIDGenerator();
     }
-
+    
+    public PrintStream getOutput() {
+        return System.out;
+    }
+    
     public void cancel(ActivityIdentifier id) {
 
         ActivityRecord ar = local.remove(id);

@@ -8,6 +8,7 @@ import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -210,6 +211,10 @@ public class Sequential implements Cohort {
         if (ar.needsToRun()) { 
             runnable.remove(ar);
         }
+    }
+    
+    public PrintStream getOutput() {
+        return System.out;
     }
     
     public void done() {

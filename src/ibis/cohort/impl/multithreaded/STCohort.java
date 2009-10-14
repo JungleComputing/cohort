@@ -8,6 +8,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 public class STCohort implements Cohort, Runnable {
@@ -38,7 +39,11 @@ public class STCohort implements Cohort, Runnable {
         this.identifier = identifier;
         sequential = new BaseCohort(parent, identifier);
     }
-
+    
+    public PrintStream getOutput() {
+        return System.out;
+    }
+    
     public void cancel(ActivityIdentifier id) {
         // TODO: check pending submits first!
 

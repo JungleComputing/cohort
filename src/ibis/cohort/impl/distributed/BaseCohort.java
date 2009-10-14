@@ -8,6 +8,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 
+import java.io.PrintStream;
 import java.util.HashMap;
 
 class BaseCohort implements Cohort {
@@ -16,14 +17,16 @@ class BaseCohort implements Cohort {
 
     private final CohortIdentifier identifier;
 
+    private final PrintStream out;
+    
     private Context context;
     
     private HashMap<ActivityIdentifier, ActivityRecord> local = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
 
-    private CircularBuffer fresh = new CircularBuffer(16);
+    private CircularBuffer fresh = new CircularBuffer(1);
 
-    private CircularBuffer runnable = new CircularBuffer(16);
+    private CircularBuffer runnable = new CircularBuffer(1);
 
     private DistributedActivityIdentifierGenerator generator;
     
@@ -37,23 +40,24 @@ class BaseCohort implements Cohort {
     private long stealSuccess;
     
     private long messagesInternal;
-
     private long messagesExternal;
+    private long messagesTime;
 
-    BaseCohort(MultiThreadedCohort parent, CohortIdentifier identifier) {
+    private ActivityRecord current;
+    
+    BaseCohort(MultiThreadedCohort parent, CohortIdentifier identifier, 
+            PrintStream out) {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getIDGenerator(identifier);
+        this.out = out;
         
         // default context is "ANY"
         context = Context.ANY;
     }
-
+    
     public void cancel(ActivityIdentifier id) {
 
-      //  System.out.println("CANCEL " + id.localName());
-        
-        
         ActivityRecord ar = local.remove(id);
 
         if (ar == null) {
@@ -117,7 +121,9 @@ class BaseCohort implements Cohort {
         ActivityIdentifier id = createActivityID();
         a.initialize(id);
 
-        //System.out.println("BASE CREATE " + id.localName());
+        out.println("CREATE " + id.localName() + " at " 
+                + System.currentTimeMillis() + " from " 
+                + (current == null ? "ROOT" : current.identifier().localName()));
         
         return id;
     }
@@ -153,9 +159,13 @@ class BaseCohort implements Cohort {
 
     public void send(ActivityIdentifier source, ActivityIdentifier target,
             Object o) {
-
+        
+long t1 = System.currentTimeMillis();
+        
         MessageEvent e = new MessageEvent(source, target, o);
-
+        
+        out.println("SEND " + source.localName() + " to " + target.localName() + " at " + System.currentTimeMillis());
+        
         ActivityRecord ar = local.get(target);
 
         if (ar == null) {
@@ -176,7 +186,13 @@ class BaseCohort implements Cohort {
             if (change) {
                 runnable.insertLast(ar);
             }
+            
+
         }
+        
+long t2 = System.currentTimeMillis();
+
+messagesTime += (t2-t1); 
     }
 
     public boolean queueEvent(Event e) {
@@ -233,7 +249,7 @@ class BaseCohort implements Cohort {
 
                         stealSuccess++;
 
-                 //       System.out.println("STEAL " + r.identifier().localName());
+                        out.println("STOLEN " + r.identifier().localName());
 
                         r.setStolen(true);
 
@@ -267,29 +283,50 @@ class BaseCohort implements Cohort {
     }
     
     boolean process() {
-
+        
         ActivityRecord tmp = dequeue();
 
         if (tmp != null) {
 
-            // System.out.println(workerID + ": Running " + tmp.identifier());
-
             tmp.activity.setCohort(this);
 
+            current = tmp;
+            
             long start = System.currentTimeMillis();
 
+            out.println("RUN " + tmp.identifier().localName() + " at " + start);
+            
             tmp.run();
 
-            computationTime += System.currentTimeMillis() - start;
-
+            long end = System.currentTimeMillis();
+            
+            computationTime += end - start;
+            
             activitiesInvoked++;
 
             if (tmp.needsToRun()) {
+                
+                //out.println("REQUEUE " + tmp.identifier().localName() + " at " + end  
+                //        + " " + (end - start));
+                
                 runnable.insertFirst(tmp);
             } else if (tmp.isDone()) {
+                
+                out.println("CANCEL " + tmp.identifier().localName() + " at " + end);
+                
+                //out.println("CANCEL " + tmp.identifier().localName() + " at " + end  
+                //        + " " + (end - start));
+                
                 cancel(tmp.identifier());
-            }
+            } 
+            
+            //else { 
+            //  out.println("SUSPEND " + tmp.identifier().localName() + " at " + end  
+            //          + " " + (end - start));
+            //}
 
+            current = null;
+            
             return true;
         }
 
@@ -314,6 +351,10 @@ class BaseCohort implements Cohort {
     
     long getMessagesExternal() { 
         return messagesExternal;
+    }
+    
+    long getMessagesTime() { 
+        return messagesTime;
     }
     
     long getSteals() { 
@@ -342,5 +383,9 @@ class BaseCohort implements Cohort {
 
     public void setContext(Context context) {
         this.context = context;
+    }
+
+    public PrintStream getOutput() {
+        return out;
     }
 }

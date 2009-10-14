@@ -1,5 +1,6 @@
 package ibis.cohort.impl.distributed;
 
+import java.io.PrintStream;
 import java.util.Random;
 
 import ibis.cohort.Activity;
@@ -105,6 +106,10 @@ public class MultiThreadedCohort implements Cohort {
         }
     }
 
+    public PrintStream getOutput() {
+        return System.out;
+    }
+    
     public void cancel(ActivityIdentifier activity) {
         for (SingleThreadedCohort u : workers) {
             u.cancel(activity);

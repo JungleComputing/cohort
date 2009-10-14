@@ -1,5 +1,6 @@
 package ibis.cohort.impl.multithreaded;
 
+import java.io.PrintStream;
 import java.util.LinkedList;
 
 import ibis.cohort.Activity;
@@ -53,6 +54,11 @@ public class MTCohort implements Cohort {
             new Thread(workers[i], "Cohort ComputationUnit " + i).start();
         }
     }
+    
+    public PrintStream getOutput() {
+        return System.out;
+    }
+    
     
     public void cancel(ActivityIdentifier activity) {
         for (STCohort u : workers) { 

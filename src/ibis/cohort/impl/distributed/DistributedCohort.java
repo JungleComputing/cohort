@@ -16,6 +16,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
+import java.io.PrintStream;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.List;
@@ -127,6 +128,10 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         receiver.start();
     }
 
+    public PrintStream getOutput() {
+        return System.out;
+    }
+    
     public synchronized DistributedActivityIdentifierGenerator getIDGenerator(
             CohortIdentifier identifier) {
 
