@@ -13,6 +13,8 @@ import java.util.HashMap;
 
 class BaseCohort implements Cohort {
 
+    private static final boolean DEBUG = false;
+    
     private final MultiThreadedCohort parent;
 
     private final CohortIdentifier identifier;
@@ -121,10 +123,11 @@ class BaseCohort implements Cohort {
         ActivityIdentifier id = createActivityID();
         a.initialize(id);
 
-        out.println("CREATE " + id.localName() + " at " 
+        if (DEBUG) {
+            out.println("CREATE " + id.localName() + " at " 
                 + System.currentTimeMillis() + " from " 
                 + (current == null ? "ROOT" : current.identifier().localName()));
-        
+        }
         return id;
     }
 
@@ -160,11 +163,15 @@ class BaseCohort implements Cohort {
     public void send(ActivityIdentifier source, ActivityIdentifier target,
             Object o) {
         
-long t1 = System.currentTimeMillis();
+        long start, end;
+        
+        if (DEBUG) {
+            start = System.currentTimeMillis();
+            out.println("SEND " + source.localName() + " to " 
+                    + target.localName() + " at " + start);
+        }
         
         MessageEvent e = new MessageEvent(source, target, o);
-        
-        out.println("SEND " + source.localName() + " to " + target.localName() + " at " + System.currentTimeMillis());
         
         ActivityRecord ar = local.get(target);
 
@@ -186,13 +193,12 @@ long t1 = System.currentTimeMillis();
             if (change) {
                 runnable.insertLast(ar);
             }
-            
-
         }
         
-long t2 = System.currentTimeMillis();
-
-messagesTime += (t2-t1); 
+        if (DEBUG) {       
+            end = System.currentTimeMillis();
+            messagesTime += (end-start); 
+        }
     }
 
     public boolean queueEvent(Event e) {
@@ -249,7 +255,9 @@ messagesTime += (t2-t1);
 
                         stealSuccess++;
 
-                        out.println("STOLEN " + r.identifier().localName());
+                        if (DEBUG) {
+                            out.println("STOLEN " + r.identifier().localName());
+                        }
 
                         r.setStolen(true);
 
@@ -284,6 +292,8 @@ messagesTime += (t2-t1);
     
     boolean process() {
         
+        long start, end;
+        
         ActivityRecord tmp = dequeue();
 
         if (tmp != null) {
@@ -292,18 +302,21 @@ messagesTime += (t2-t1);
 
             current = tmp;
             
-            long start = System.currentTimeMillis();
-
-            out.println("RUN " + tmp.identifier().localName() + " at " + start);
+            if (DEBUG) {
+                start = System.currentTimeMillis();
+                out.println("RUN " + tmp.identifier().localName() + " at " + start);
+            }
             
             tmp.run();
 
-            long end = System.currentTimeMillis();
+            if (DEBUG) { 
+                end = System.currentTimeMillis();
             
-            computationTime += end - start;
+                computationTime += end - start;
             
-            activitiesInvoked++;
-
+                activitiesInvoked++;
+            }
+            
             if (tmp.needsToRun()) {
                 
                 //out.println("REQUEUE " + tmp.identifier().localName() + " at " + end  
@@ -311,8 +324,10 @@ messagesTime += (t2-t1);
                 
                 runnable.insertFirst(tmp);
             } else if (tmp.isDone()) {
-                
-                out.println("CANCEL " + tmp.identifier().localName() + " at " + end);
+            
+                if (DEBUG) {
+                    out.println("CANCEL " + tmp.identifier().localName() + " at " + end);
+                }
                 
                 //out.println("CANCEL " + tmp.identifier().localName() + " at " + end  
                 //        + " " + (end - start));
