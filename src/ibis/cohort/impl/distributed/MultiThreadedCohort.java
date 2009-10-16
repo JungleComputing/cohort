@@ -160,6 +160,11 @@ public class MultiThreadedCohort implements Cohort {
     
     void undeliverableEvent(int workerID, Event e) {
         
+        if (workerCount == 1) { 
+            System.err.println("EEP: cannot forwarding undeliverable event! " + e);
+            return;
+        }
+        
         int next = (workerID + 1) % workerCount;
         
         System.err.println("EEP: forwarding undeliverable event from " 
