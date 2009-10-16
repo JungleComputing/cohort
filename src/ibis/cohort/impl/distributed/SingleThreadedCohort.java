@@ -95,7 +95,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     private long profileSteals = 0;
      */
     
-    private boolean havePendingRequests = false;
+    private volatile boolean havePendingRequests = false;
 
     SingleThreadedCohort(MultiThreadedCohort parent, int workerID, 
             CohortIdentifier identifier) {
@@ -155,27 +155,31 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         return out;
     }
     
-    public synchronized void cancel(ActivityIdentifier id) {
-
-        incoming.pendingCancelations.add(id);
+    public void cancel(ActivityIdentifier id) {
+        synchronized (incoming) { 
+            incoming.pendingCancelations.add(id);
+        }
         havePendingRequests = true;
     }
     
-    public synchronized void postStealRequest(LocalStealRequest s) {
-
-        incoming.stealRequests.add(s);
+    public void postStealRequest(LocalStealRequest s) {
+        synchronized (incoming) { 
+            incoming.stealRequests.add(s);
+        }
         havePendingRequests = true;
     }
     
-    public synchronized void deliverEvent(Event e) {
-
-        incoming.deliveredEvents.add(e);
+    public void deliverEvent(Event e) {
+        synchronized (incoming) { 
+            incoming.deliveredEvents.add(e);
+        }
         havePendingRequests = true;
     }
     
-    public synchronized void deliverActivityRecord(ActivityRecord a) {
-
-        incoming.deliveredActivityRecords.add(a);
+    public void deliverActivityRecord(ActivityRecord a) {
+        synchronized (incoming) { 
+            incoming.deliveredActivityRecords.add(a);
+        }
         havePendingRequests = true;
     }
 
@@ -188,18 +192,21 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         
       //  System.out.println("Activity " + id.localName() + " created!");
      
-        synchronized (this) {
+        synchronized (incoming) {
             incoming.pendingSubmit.add(a);
-            havePendingRequests = true;
         }
+        
+        havePendingRequests = true;
         
         return id;
     }
 
-    public synchronized void send(ActivityIdentifier source, ActivityIdentifier target,
+    public void send(ActivityIdentifier source, ActivityIdentifier target,
             Object o) {
         
-        incoming.pendingEvents.add(new MessageEvent(source, target, o));
+        synchronized (incoming) {
+            incoming.pendingEvents.add(new MessageEvent(source, target, o));
+        }
         havePendingRequests = true;
     }
 
@@ -211,16 +218,22 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         done = true;
     }
 
-    private synchronized void swapEventQueues() {
+    private void swapEventQueues() {
         
         if (idle) { 
             out.println("Processing events while idle!\n" + incoming.print() + "\n" + processing.print());
         }
         
-        PendingRequests tmp = incoming;
-        incoming = processing;
-        processing = tmp;
-        havePendingRequests = false;
+        synchronized (incoming) { 
+            PendingRequests tmp = incoming;
+            incoming = processing;
+            processing = tmp;
+            // NOTE: havePendingRequests needs to be set here to prevent a gap 
+            // between doing the swap + setting it to false. Another submit 
+            // could potentially use this gap to insert a new event. This would 
+            // lead to a race condition!
+            havePendingRequests = false;
+        }
     }
 
     private void processActivityRecords() { 
@@ -325,15 +338,15 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         processStealRequests();
     }
 
-    private synchronized boolean havePendingRequests() {
-        return havePendingRequests;
-    }
+   // private synchronized boolean havePendingRequests() {
+   //     return havePendingRequests;
+   // }
     
     private boolean sleep(long time) { 
         
         long end = System.currentTimeMillis() + time;
         
-        boolean wake = havePendingRequests() || getDone(); 
+        boolean wake = havePendingRequests|| getDone(); 
 
         while (!wake) { 
             
@@ -343,8 +356,8 @@ public class SingleThreadedCohort implements Cohort, Runnable {
                 // ignored
             }
             
-            wake = (System.currentTimeMillis() > end) 
-                || havePendingRequests() 
+            wake = havePendingRequests 
+                || (System.currentTimeMillis() > end) 
                 || getDone();  
         }
 
@@ -373,7 +386,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         //        profileDeadline = t1 + profileDelta;
         //    }
 
-            if (havePendingRequests()) { 
+            if (havePendingRequests) { 
                 processEvents();
             }
                 
@@ -385,35 +398,23 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             
             boolean more = sequential.process();
 
-            while (more) {
-                more = sequential.process();
-           
-                // FIXME performance killer!
-                more = more && !havePendingRequests();
+            while (more && !havePendingRequests) {
+                more = sequential.process(); 
             }
 
             long t3 = System.currentTimeMillis();
 
-            while (!more && !havePendingRequests()) {
+            while (!more && !havePendingRequests) {
                 
-                synchronized (this) {
-                    out.println("IDLE " + workerID + " at " 
+                out.println("IDLE " + workerID + " at " 
                             + System.currentTimeMillis());                             
-                    out.flush();
-                    
-                    idle = true;
-                }
-                
+                out.flush();
+               
                 more = parent.idle(workerID, getContext());
            
                 if (!more) { 
                     more = sleep(sleepTime);
                 }
-            }
-    
-            // FIXME: remove when debugged!
-            synchronized (this) {
-                idle = false;
             }
             
             long t4 = System.currentTimeMillis();
