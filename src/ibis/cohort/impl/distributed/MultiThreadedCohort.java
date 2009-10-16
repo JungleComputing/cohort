@@ -276,8 +276,9 @@ public class MultiThreadedCohort implements Cohort {
                 
                 ActivityRecord tmp = (ActivityRecord) incomingRemoteActivities.get(i);
 
-                System.out.println("Returning stolen remote activity: " + tmp 
-                        + " contexts " + c + " " + tmp.activity);
+                System.out.println("Returning stolen remote activity: " 
+                        + tmp.identifier().localName() + " contexts " + c + " " 
+                        + tmp.activity);
                 
                 if (c.match(tmp.activity.getContext())) {
                     incomingRemoteActivities.remove(i);
