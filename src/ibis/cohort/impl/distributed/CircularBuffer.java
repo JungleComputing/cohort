@@ -1,15 +1,16 @@
 package ibis.cohort.impl.distributed;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class CircularBuffer implements Serializable {
 
     private static final long serialVersionUID = 5853279675709435595L;
 
-    public Object [] array;
+    private Object [] array;
 
-    public int first, next;
-    public int size; 
+    private int first, next;
+    private int size; 
 
     public CircularBuffer(int initialSize) {
         array = new Object[initialSize];
@@ -191,14 +192,19 @@ public class CircularBuffer implements Serializable {
     
     public void clear() { 
 
-        while (size > 0) { 
-            array[first++] = null;
-            size--;
-
-            if (first >= array.length) { 
-                first = 0;
-            }
+        if (size > 0) {
+            // Note; may be inefficient with large, relatively empty arrays!
+            Arrays.fill(array, null);
         }
+        
+        //while (size > 0) { 
+        //    array[first++] = null;
+        //    size--;
+//
+ //           if (first >= array.length) { 
+   //             first = 0;
+     //       }
+      //  }
 
         first = next = size = 0;                
     }

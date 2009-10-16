@@ -20,17 +20,17 @@ public class MultiThreadedCohort implements Cohort {
 
     private final int workerCount;
 
-    private CircularBuffer incomingActivities = new CircularBuffer(16);
+    private CircularBuffer incomingRemoteActivities = new CircularBuffer(16);
 
     private SingleThreadedCohort[] workers;
 
     private static class StealState { 
         
-        private LocalStealRequest pending; 
+        private StealRequest pending; 
         private long steals;
         private long succes;
         
-        public synchronized boolean atomicSet(LocalStealRequest s) {
+        public synchronized boolean atomicSet(StealRequest s) {
             
             if (pending != null) {
                 return false;
@@ -193,7 +193,7 @@ public class MultiThreadedCohort implements Cohort {
         // e.target).getCohort().getWorkerID()].deliverEvent(e);
     }
 
-    void addActivityRecord(CohortIdentifier target, ActivityRecord record) {
+    void addRemoteActivity(CohortIdentifier t, ActivityRecord record) {
 
         if (record == null) {
             System.out.println("EEP: steal reply is null!!");
@@ -202,8 +202,8 @@ public class MultiThreadedCohort implements Cohort {
 
         // NOTE: for the moment we store all incoming jobs here. Any idle
         // workers will poll us for work anyway.
-        synchronized (incomingActivities) {
-            incomingActivities.insertLast(record);
+        synchronized (incomingRemoteActivities) {
+            incomingRemoteActivities.insertLast(record);
         }
     }
 
@@ -227,12 +227,12 @@ public class MultiThreadedCohort implements Cohort {
     }
 
     // This one is top-down: a parent cohort is requesting work from below
-    void postStealRequest(StealRequest request) {
+    void incomingRemoteStealRequest(StealRequest request) {
 
         // Notify a (random) worker that there is a steal request pending...
-       // workers[selectTargetWorker()].postStealRequest(request);
+        workers[selectTargetWorker()].postStealRequest(request);
   
-        // FIXME FIXME implement!
+        // FIXME FIXME better implementation!
     }
 
     /*
@@ -262,11 +262,11 @@ public class MultiThreadedCohort implements Cohort {
     }
 */
     
-    ActivityRecord getStoredActivity(Context c) {
+    ActivityRecord getStoredRemoteActivity(Context c) {
 
-        synchronized (incomingActivities) {
+        synchronized (incomingRemoteActivities) {
 
-            int size = incomingActivities.size();
+            int size = incomingRemoteActivities.size();
 
             if (size == 0) {
                 return null;
@@ -274,12 +274,13 @@ public class MultiThreadedCohort implements Cohort {
 
             for (int i = 0; i < size; i++) {   
                 
-                ActivityRecord tmp = (ActivityRecord) incomingActivities.get(i);
+                ActivityRecord tmp = (ActivityRecord) incomingRemoteActivities.get(i);
 
-                System.out.println("Activity: " + tmp + " contexts " + c + " " + tmp.activity);
+                System.out.println("Returning stolen remote activity: " + tmp 
+                        + " contexts " + c + " " + tmp.activity);
                 
                 if (c.match(tmp.activity.getContext())) {
-                    incomingActivities.remove(i);
+                    incomingRemoteActivities.remove(i);
                     return tmp;
                 }
             }
@@ -349,9 +350,10 @@ public class MultiThreadedCohort implements Cohort {
         // A worker has become idle and will remain so until we give it an 
         // event or activity. 
         
-        // We first check the local queue for work. We need to check the 
-        // context to make sure that the idle worker can process it.
-        ActivityRecord tmp = getStoredActivity(c);
+        // We first check the queue containing the activities stolen from remote
+        // machines. We need to check the context to make sure that the idle 
+        // worker can process it.
+        ActivityRecord tmp = getStoredRemoteActivity(c);
 
         if (tmp != null) {
             workers[workerID].deliverActivityRecord(tmp);
@@ -372,7 +374,7 @@ public class MultiThreadedCohort implements Cohort {
 
             // No pending request, so notify all other local workers that we need 
             // work. Register each request so we can (async) wait for the reply. 
-            LocalStealRequest s = new LocalStealRequest(workerID, c);
+            StealRequest s = new StealRequest(workerID, c);
 
             int target = selectTargetWorker();
 
@@ -385,23 +387,28 @@ public class MultiThreadedCohort implements Cohort {
             }
         }
         
-        // Next, we should also fire a remote steal. FIXME FIXME
-        // parent.stealAttempt(c);
+        // Next, we should also fire a remote steal. 
+        parent.stealAttempt(c);
         
         // Tell the worker I don't have work (yet). 
         return false;
     }
 
-    public void stealReply(int workerID, LocalStealRequest s, ActivityRecord a) {
+    public void sendStealReply(StealRequest s, ActivityRecord a) {
     
         // FIXME: Maybe we should check if the worker is still interested ? 
         // If not, we can keep the job to ourselves!
         
-        if (a != null) { 
-            workers[s.workerID].deliverActivityRecord(a);
-            localSteals[s.workerID].clear(true);
+        if (s.isLocal()) { 
+
+            if (a != null) { 
+                workers[s.localSource].deliverActivityRecord(a);
+                localSteals[s.localSource].clear(true);
+            } else { 
+                localSteals[s.localSource].clear(false);
+            }
         } else { 
-            localSteals[s.workerID].clear(false);
+            parent.sendStealReply(new StealReply(s.remoteSource, a));
         }
     }
     

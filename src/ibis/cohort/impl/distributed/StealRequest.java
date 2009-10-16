@@ -9,17 +9,26 @@ class StealRequest implements Serializable {
     
     private static final long serialVersionUID = 2655647847327367590L;
    
-    public final CohortIdentifier src;
+    public final CohortIdentifier remoteSource;
     public final Context context;
-    
+    public final int localSource;
+      
     private transient long timeout = -1;
-    private transient boolean local = false; 
-    private transient int hops = 0;
     
     public StealRequest(final CohortIdentifier src, final Context context) {  
+        // Use this for a remote steal request;
         super();
-        this.src = src;
+        this.remoteSource = src;
         this.context = context;
+        this.localSource = -1;
+    }
+    
+    public StealRequest(final int workerID, final Context context) {
+        // Use this for a local steal request;
+        super();
+        this.localSource = workerID;
+        this.context = context;
+        this.remoteSource = null;
     }
     
     public void setTimeout(long timeout) { 
@@ -30,16 +39,7 @@ class StealRequest implements Serializable {
         return timeout;
     }
     
-    public void setLocal(boolean local) { 
-        this.local = local;
+    public boolean isLocal() { 
+        return localSource != -1;
     }
-    
-    public boolean getLocal() { 
-        return local;
-    }
-    
-    public int incrementHops() { 
-        return ++hops;
-    }
-    
 }

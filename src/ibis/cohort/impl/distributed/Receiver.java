@@ -50,8 +50,7 @@ class Receiver extends Thread {
             case STEAL:
                 StealRequest r = (StealRequest) rm.readObject();
                 r.setTimeout(System.currentTimeMillis() + STEAL_TIMEOUT);
-                r.setLocal(false);
-                parent.postStealRequest(r);
+                parent.incomingRemoteStealRequest(r);
                 messagesReceived++;
                 stealsReceived++;
                 break;

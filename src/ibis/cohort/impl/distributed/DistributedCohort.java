@@ -284,8 +284,8 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
 
    
     
-    void postStealRequest(StealRequest request) {         
-        mt.postStealRequest(request);
+    void incomingRemoteStealRequest(StealRequest request) {         
+        mt.incomingRemoteStealRequest(request);
     }
     
     void sendStealReply(StealReply r) {
@@ -295,7 +295,8 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     void incomingStealReply(StealReply r) {
         
         if (r.work != null) { 
-            mt.addActivityRecord(r.target, r.work);
+            r.work.setRemote(true);
+            mt.addRemoteActivity(r.target, r.work);
         } else { 
             // TODO: handle NACK
         }
@@ -334,7 +335,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         return true;    
     }
     
-    void stealAttempt(StealRequest sr) {
+    void stealAttempt(Context c) {
         
         // FIXME: should check if we have a pending steal of the same context!
         
@@ -353,7 +354,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         
         if (id != null) { 
             
-            forwardObject(id, STEAL, sr);
+            forwardObject(id, STEAL, new StealRequest(identifier, c));
             
             synchronized (this) {
                 stealsSend++;

@@ -20,7 +20,9 @@ class ActivityRecord implements Serializable {
     final Activity activity;
     private CircularBuffer queue;
     private int state = INITIALIZING;
-    private boolean stolen;
+    
+    private boolean stolen = false;
+    private boolean remote = false;
     
     ActivityRecord(Activity activity) {
         this.activity = activity;
@@ -78,6 +80,13 @@ class ActivityRecord implements Serializable {
         stolen = value;
     }
 
+    boolean isRemote() { 
+        return (remote);
+    }
+
+    void setRemote(boolean value) { 
+        remote = value;
+    }
     
     boolean isDone() { 
         return (state == DONE || state == ERROR);
@@ -215,5 +224,7 @@ class ActivityRecord implements Serializable {
 
     public String toString() { 
         return activity + " STATE: " + getStateAsString() + " " + (queue == null ? -1 : queue.size());
-    }    
+    }
+
+   
 }

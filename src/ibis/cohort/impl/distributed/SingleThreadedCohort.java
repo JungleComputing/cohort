@@ -47,7 +47,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
         final ArrayList<ActivityIdentifier> pendingCancelations = new ArrayList<ActivityIdentifier>();
 
-        final ArrayList<LocalStealRequest> stealRequests = new ArrayList<LocalStealRequest>();
+        final ArrayList<StealRequest> stealRequests = new ArrayList<StealRequest>();
         
         boolean cancelAll = false;
         
@@ -162,7 +162,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         havePendingRequests = true;
     }
     
-    public void postStealRequest(LocalStealRequest s) {
+    public void postStealRequest(StealRequest s) {
         synchronized (incoming) { 
             incoming.stealRequests.add(s);
         }
@@ -313,14 +313,13 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         
         while (processing.stealRequests.size() > 0) {
 
-            LocalStealRequest s = processing.stealRequests.remove(0);
-            
+            StealRequest s = processing.stealRequests.remove(0);
             ActivityRecord a = sequential.steal(s.context);
 
             if (a != null) { 
-                parent.stealReply(workerID, s, a);
+                parent.sendStealReply(s, a);
             } else { 
-                parent.stealReply(workerID, s, null);
+                parent.sendStealReply(s, null);
             }
         }
     }
