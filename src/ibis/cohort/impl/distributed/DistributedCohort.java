@@ -57,6 +57,8 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
 
     private final Ibis ibis;
     private final IbisIdentifier local;
+    private final long rank;
+    
     private final ReceivePort rp;
     private final Pool pool;
     
@@ -90,7 +92,6 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     private long stealsReceived;
     private long workReceived;
     private long no_workReceived;
-
        
     public DistributedCohort() throws Exception {         
 
@@ -104,16 +105,13 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         pool = new Pool(portType);
 
         ibis = IbisFactory.createIbis(ibisCapabilities, pool, portType);
-
+        
         pool.setIbis(ibis);
 
-        /*
-        rp = ibis.createReceivePort(portType, "cohort", this);
-         */
-        
         rp = ibis.createReceivePort(portType, "cohort");
         
         local = ibis.identifier();
+        rank = pool.getRank();
 
         identifier = getCohortIdentifier();
 
@@ -156,6 +154,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         }
         
         mt.done();        
+        receiver.done();
         
         printStatistics();
         
@@ -473,7 +472,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     */
 
     public synchronized CohortIdentifier getCohortIdentifier() {
-        return new DistributedCohortIdentifier(local, cohortCount++);
+        return new DistributedCohortIdentifier(local, rank, cohortCount++);
     }
 
     public CohortIdentifier identifier() {
@@ -495,6 +494,4 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     public synchronized void setContext(Context context) {
         // TODO: implement
     }
-
-  
 }

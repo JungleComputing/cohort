@@ -8,8 +8,6 @@ import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.impl.multithreaded.MTCohort;
-import ibis.cohort.impl.sequential.Sequential;
 
 public class DivideAndConquerWithLoad extends Activity {
 
@@ -55,7 +53,8 @@ public class DivideAndConquerWithLoad extends Activity {
             finish();
         } else {
             for (int i=0;i<branch;i++) { 
-                cohort.submit(new DivideAndConquerWithLoad(identifier(), branch, depth-1, load));
+                cohort.submit(new DivideAndConquerWithLoad(identifier(),
+                        branch, depth-1, load));
             }
             suspend();
         } 
@@ -87,64 +86,60 @@ public class DivideAndConquerWithLoad extends Activity {
     }
 
     public static void main(String [] args) { 
+        
+        try {
+            long start = System.currentTimeMillis();
 
-        long start = System.currentTimeMillis();
+            Cohort cohort = CohortFactory.createCohort();
+        
+            if (cohort.isMaster()) { 
 
-        //  Cohort cohort = new Sequential();
+                int branch = Integer.parseInt(args[0]);
+                int depth =  Integer.parseInt(args[1]);
+                int load =  Integer.parseInt(args[2]);
+                int workers = Integer.parseInt(args[3]);
 
-        Cohort cohort = null; 
+                long count = 0;
 
-        int index = 0;
+                for (int i=0;i<=depth;i++) { 
+                    count += Math.pow(branch, i);
+                }
 
-        try { 
-            cohort = CohortFactory.createCohort();
+                double time = (load * Math.pow(branch, depth)) / (1000*workers); 
+
+                System.out.println("Running D&C with branch factor " + branch + 
+                        " and depth " + depth + " load " + load + 
+                        " (expected jobs: " + count + ", expected time: " + 
+                        time + " sec.)");
+
+                SingleEventCollector a = new SingleEventCollector();
+
+                cohort.submit(a);
+                cohort.submit(new DivideAndConquerWithLoad(a.identifier(), branch, 
+                        depth, load));
+
+                long result = ((MessageEvent<Long>)a.waitForEvent()).message;
+
+                long end = System.currentTimeMillis();
+
+                double nsPerJob = (1000.0*1000.0 * (end-start)) / count;
+
+                String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
+
+                System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
+                        correct + " total time = " + (end-start) + " job time = " + 
+                        nsPerJob + " nsec/job");
+
+            }
+            
+            cohort.done();
+        
         } catch (Exception e) {
             System.err.println("Oops: " + e);
             e.printStackTrace(System.err);
             System.exit(1);
         }
 
-        if (cohort.isMaster()) { 
-
-            int branch = Integer.parseInt(args[0]);
-            int depth =  Integer.parseInt(args[1]);
-            int load =  Integer.parseInt(args[2]);
-            int workers =  Integer.parseInt(args[3]);
-
-            long count = 0;
-
-            for (int i=0;i<=depth;i++) { 
-                count += Math.pow(branch, i);
-            }
-
-            double time = (load * Math.pow(branch, depth)) / (1000 * workers); 
-
-            System.out.println("Running D&C with branch factor " + branch + 
-                    " and depth " + depth + " load " + load + 
-                    " (expected jobs: " + count + ", expected time: " + time + 
-            " sec.)");
-
-            SingleEventCollector a = new SingleEventCollector();
-
-            cohort.submit(a);
-            cohort.submit(new DivideAndConquerWithLoad(a.identifier(), branch, 
-                    depth, load));
-
-            long result = ((MessageEvent<Long>)a.waitForEvent()).message;
-
-            long end = System.currentTimeMillis();
-
-            double nsPerJob = (1000.0*1000.0 * (end-start)) / count;
-
-            String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
-
-            System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
-                    correct + " total time = " + (end-start) + " job time = " + 
-                    nsPerJob + " nsec/job");
-
-        }
-        
-        cohort.done();
     }
 
     @Override

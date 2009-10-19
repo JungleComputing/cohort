@@ -8,11 +8,14 @@ public class DistributedCohortIdentifier extends CohortIdentifier {
     private static final long serialVersionUID = -1145931224872635119L;
   
     private final IbisIdentifier ibis;
-    private final int workerID;
+    private final long rank;              // Note: "rank:worker" is a nice human    
+    private final int workerID;           //       readable ID!
     
-    public DistributedCohortIdentifier(final IbisIdentifier ibis, final int workerID) {
+    public DistributedCohortIdentifier(final IbisIdentifier ibis, 
+            final long rank, final int workerID) {
         super();
         this.ibis = ibis;
+        this.rank = rank;
         this.workerID = workerID;
     }
     
@@ -54,6 +57,10 @@ public class DistributedCohortIdentifier extends CohortIdentifier {
         return workerID;
     }
   
+    public String simpleName() { 
+        return rank + ":" + workerID;
+    }
+    
     public String toString() { 
         return "Cohort(" + ibis.toString() + " / " + workerID + ")";
     }

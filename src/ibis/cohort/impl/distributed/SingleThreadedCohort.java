@@ -177,6 +177,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     }
     
     public void deliverActivityRecord(ActivityRecord a) {
+        
         synchronized (incoming) { 
             incoming.deliveredActivityRecords.add(a);
         }
@@ -284,10 +285,19 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
                 if (!sequential.queueEvent(e)) {
                     // Failed to deliver event locally, so dispatch to parent
-                    System.err.println("EEP: Cohort " + identifier
-                            + " failed to deliver event: " + e);
-                    new Exception().printStackTrace(System.err);
-              
+                  
+                    if (e instanceof MessageEvent) {
+                        MessageEvent m = (MessageEvent) e; 
+                     
+                        out.println("ERROR Failed to deliver message from " 
+                                + m.source.localName() + " to " 
+                                + m.target.localName() + " payload " + m.message);
+                    } else { 
+                        out.println("ERROR Failed to deliver event: " + e);
+                    }
+                    
+                    new Exception().printStackTrace(out);
+                    
                     parent.undeliverableEvent(workerID, e);
                     
                     //System.exit(1);
@@ -405,8 +415,8 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
             while (!more && !havePendingRequests) {
                 
-                out.println("IDLE " + workerID + " at " 
-                            + System.currentTimeMillis());                             
+             //   out.println("IDLE " + workerID + " at " 
+             //               + System.currentTimeMillis());                             
                 out.flush();
                
                 more = parent.idle(workerID, getContext());

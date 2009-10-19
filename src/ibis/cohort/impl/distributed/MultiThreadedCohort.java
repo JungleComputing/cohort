@@ -161,7 +161,7 @@ public class MultiThreadedCohort implements Cohort {
     void undeliverableEvent(int workerID, Event e) {
         
         if (workerCount == 1) { 
-            System.err.println("EEP: cannot forwarding undeliverable event! " + e);
+            System.err.println("EEP: cannot forward undeliverable event! " + e);
             return;
         }
         
@@ -281,9 +281,9 @@ public class MultiThreadedCohort implements Cohort {
                 
                 ActivityRecord tmp = (ActivityRecord) incomingRemoteActivities.get(i);
 
-                System.out.println("Returning stolen remote activity: " 
-                        + tmp.identifier().localName() + " contexts " + c + " " 
-                        + tmp.activity);
+        //        System.out.println("Returning stolen remote activity: " 
+        //                + tmp.identifier().localName() + " contexts " + c + " " 
+        //                + tmp.activity);
                 
                 if (c.match(tmp.activity.getContext())) {
                     incomingRemoteActivities.remove(i);

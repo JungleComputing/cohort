@@ -24,7 +24,8 @@ class Pool implements RegistryEventHandler {
 
     private IbisIdentifier local;
     private IbisIdentifier master;
-
+    private long rank;
+    
     private boolean isMaster;
 
     private final Random random = new Random();
@@ -44,7 +45,9 @@ class Pool implements RegistryEventHandler {
         // Elect a server
         master = ibis.registry().elect("Cohort Master");
 
-        System.out.println("Cohort master is " + master);
+        rank = ibis.registry().getSequenceNumber("cohort-pool-" + master.toString());
+        
+        System.out.println("Cohort master is " + master + " rank is " + rank);
 
         isMaster = local.equals(master);
     }
@@ -87,7 +90,10 @@ class Pool implements RegistryEventHandler {
     }
 
     public synchronized void joined(IbisIdentifier id) {
-        others.add(id);
+        
+        if (!id.equals(local)) {
+            others.add(id);
+        }
     }
 
     public synchronized void left(IbisIdentifier id) {
@@ -124,27 +130,25 @@ class Pool implements RegistryEventHandler {
         return local;
     }
 
+    public long getRank() {
+        return rank;
+    }
+    
     public boolean isMaster() {
         return isMaster;
     }
     
     public IbisIdentifier selectTarget() {
-
+        
         synchronized (this) {
-            final int size = others.size();
-
-            IbisIdentifier tmp = others.get(random.nextInt(size));
-
-            while (local.equals(tmp)) {
-
-                if (size == 1) { 
-                    return null;
-                }
-
-                tmp = others.get(random.nextInt(size));
+            
+            int size = others.size();
+            
+            if (size == 0) { 
+                return null;
             }
-
-            return tmp;
+            
+            return others.get(random.nextInt(size));
         }   
     }
 }

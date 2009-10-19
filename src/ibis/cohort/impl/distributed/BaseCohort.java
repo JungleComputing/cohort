@@ -10,6 +10,7 @@ import ibis.cohort.MessageEvent;
 
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.Set;
 
 class BaseCohort implements Cohort {
 
@@ -143,6 +144,11 @@ class BaseCohort implements Cohort {
 
     void addActivityRecord(ActivityRecord a) {
         
+        if (DEBUG) {
+            out.println("RECEIVED " + a.identifier().localName() + " at " 
+                + System.currentTimeMillis());
+        }
+        
         local.put(a.identifier(), a);
 
         if (a.isFresh()) {
@@ -206,8 +212,18 @@ class BaseCohort implements Cohort {
         ActivityRecord ar = local.get(e.target);
 
         if (ar == null) {
-            
-            System.err.println("EEP: failed to find " + e.target);
+            if (DEBUG) { 
+                out.println("ERROR Failed to find activity " + e.target.localName() + " " + e.target.hashCode());
+                out.println("ERROR Contains: " + local.containsKey(e.target));
+                
+                out.println("ERROR Available: ");
+                
+                Set<ActivityIdentifier> tmp = local.keySet();
+                
+                for (ActivityIdentifier a : tmp) { 
+                    out.println(a.localName() + " " + (a.equals(e.target)) + " " + a.hashCode());      
+                }
+            } 
             
             return false;
         }

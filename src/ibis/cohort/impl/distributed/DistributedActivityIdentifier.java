@@ -2,8 +2,8 @@ package ibis.cohort.impl.distributed;
 
 import ibis.cohort.ActivityIdentifier;
 
-public class DistributedActivityIdentifier extends ActivityIdentifier {
     
+public class DistributedActivityIdentifier extends ActivityIdentifier {
     private static final long serialVersionUID = -2306905988828294374L;
     
     private final DistributedCohortIdentifier cohortOfOrigin;
@@ -38,7 +38,7 @@ public class DistributedActivityIdentifier extends ActivityIdentifier {
     }
     
     public String localName() { 
-        return "" + id;
+        return cohortOfOrigin.simpleName() + ":" + id;
     }
 
     
@@ -55,18 +55,22 @@ public class DistributedActivityIdentifier extends ActivityIdentifier {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (!super.equals(obj))
-            return false;
+        
         if (getClass() != obj.getClass())
             return false;
+        
         final DistributedActivityIdentifier other = (DistributedActivityIdentifier) obj;
+       
         if (cohortOfOrigin == null) {
-            if (other.cohortOfOrigin != null)
+            if (other.cohortOfOrigin != null) { 
                 return false;
-        } else if (!cohortOfOrigin.equals(other.cohortOfOrigin))
-            return false;
-        if (id != other.id)
-            return false;
-        return true;
+            }
+        } else {
+            if (!cohortOfOrigin.equals(other.cohortOfOrigin)) {
+                return false;
+            }
+        }
+        
+        return (id == other.id); 
     }
 }
