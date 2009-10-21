@@ -44,7 +44,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
             PortType.COMMUNICATION_FIFO, 
             PortType.COMMUNICATION_RELIABLE, 
             PortType.SERIALIZATION_OBJECT, 
-            PortType.RECEIVE_EXPLICIT,
+            PortType.RECEIVE_AUTO_UPCALLS,
             PortType.RECEIVE_TIMEOUT, 
             PortType.CONNECTION_MANY_TO_ONE);
         
@@ -108,7 +108,9 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         
         pool.setIbis(ibis);
 
-        rp = ibis.createReceivePort(portType, "cohort");
+        receiver = new Receiver(this);
+        
+        rp = ibis.createReceivePort(portType, "cohort", receiver);
         
         local = ibis.identifier();
         rank = pool.getRank();
@@ -118,12 +120,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         mt = new MultiThreadedCohort(this, getCohortIdentifier(), 0);        
 
         rp.enableConnections();
-        /*
         rp.enableMessageUpcalls();
-         */
-        
-        receiver = new Receiver(rp, this);
-        receiver.start();
     }
 
     public PrintStream getOutput() {
@@ -475,6 +472,10 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         return new DistributedCohortIdentifier(local, rank, cohortCount++);
     }
 
+    public long getRank() {
+        return rank;
+    }
+    
     public CohortIdentifier identifier() {
         return identifier;
     }

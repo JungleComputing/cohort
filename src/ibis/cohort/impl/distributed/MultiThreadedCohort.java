@@ -95,8 +95,8 @@ public class MultiThreadedCohort implements Cohort {
         localSteals = new StealState[workerCount];
         
         for (int i = 0; i < workerCount; i++) {
-            workers[i] = new SingleThreadedCohort(this, i, parent
-                    .getCohortIdentifier());
+            workers[i] = new SingleThreadedCohort(this, parent.getRank(), 
+                    workerCount, i, parent.getCohortIdentifier());
         
             localSteals[i] = new StealState();
         }

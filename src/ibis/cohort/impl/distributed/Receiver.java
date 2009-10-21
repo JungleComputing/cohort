@@ -1,13 +1,14 @@
 package ibis.cohort.impl.distributed;
 
 import ibis.cohort.Event;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
-import ibis.ipl.ReceiveTimedOutException;
+//import ibis.ipl.ReceiveTimedOutException;
 
 import java.io.IOException;
 
-class Receiver extends Thread {
+class Receiver implements MessageUpcall { 
 
     private static final byte EVENT   = 0x23;
     private static final byte STEAL   = 0x25;
@@ -15,7 +16,6 @@ class Receiver extends Thread {
     
     private static final int STEAL_TIMEOUT = 1000;
         
-    private final ReceivePort rp;
     private final DistributedCohort parent;
 
     private long messagesReceived;
@@ -28,12 +28,12 @@ class Receiver extends Thread {
 
     private String stats;
     
-    Receiver(ReceivePort rp, DistributedCohort parent) { 
-        this.rp = rp;
+    Receiver(DistributedCohort parent) { 
         this.parent = parent;
-        setName("Receiver");
+        //setName("Receiver");
     }
 
+    /*
     void handleMessage(ReadMessage rm) {
 
         try { 
@@ -77,7 +77,7 @@ class Receiver extends Thread {
         } catch (IOException e) {
             rm.finish(e);
         }
-    }
+    }*/
 
     public synchronized void done() { 
         done = true;
@@ -105,6 +105,7 @@ class Receiver extends Thread {
         notifyAll();
     }
 
+    /*
     public void run() { 
 
         while (!getDone()) {
@@ -133,5 +134,50 @@ class Receiver extends Thread {
         tmp.append("          No work : " + no_workReceived + "\n");
         
         setStats(tmp.toString());
+    }*/
+    
+    public void upcall(ReadMessage rm) throws IOException, ClassNotFoundException {
+        
+        byte opcode = rm.readByte();
+
+        switch (opcode) { 
+        case EVENT:
+            Event e = (Event) rm.readObject();
+            parent.deliverEvent(e);
+            
+            synchronized (this) {
+                messagesReceived++;
+                eventsReceived++;
+            }
+            break;
+
+        case STEAL:
+            StealRequest r = (StealRequest) rm.readObject();
+            r.setTimeout(System.currentTimeMillis() + STEAL_TIMEOUT);
+            parent.incomingRemoteStealRequest(r);
+            synchronized (this) {
+                messagesReceived++;
+                stealsReceived++;
+            }
+            break;
+
+        case REPLY: 
+            StealReply reply = (StealReply) rm.readObject();
+            parent.incomingStealReply(reply);
+            
+            synchronized (this) {
+                messagesReceived++;
+
+                if (reply.work == null) { 
+                    no_workReceived++;
+                } else { 
+                    workReceived++;
+                }
+            }
+            break;
+
+        default:
+            throw new IOException("Unknown opcode: " + opcode);
+        }
     }
 }

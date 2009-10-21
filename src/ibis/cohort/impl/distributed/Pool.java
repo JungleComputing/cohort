@@ -24,7 +24,7 @@ class Pool implements RegistryEventHandler {
 
     private IbisIdentifier local;
     private IbisIdentifier master;
-    private long rank;
+    private long rank = -1;
     
     private boolean isMaster;
 
@@ -45,7 +45,23 @@ class Pool implements RegistryEventHandler {
         // Elect a server
         master = ibis.registry().elect("Cohort Master");
 
-        rank = ibis.registry().getSequenceNumber("cohort-pool-" + master.toString());
+        // We determine our rank here. This rank should only be used for 
+        // debugging purposes ??
+        String tmp = System.getProperty("ibis.cohort.rank");
+        
+        if (tmp != null) {
+            try {
+                rank = Long.parseLong(tmp);
+            } catch (Exception e) {
+                System.err.println("Failed to parse rank: " + tmp);
+                rank = -1;            
+            }
+        } 
+        
+        if (rank == -1) { 
+            rank = ibis.registry().getSequenceNumber("cohort-pool-" 
+                    + master.toString());
+        }
         
         System.out.println("Cohort master is " + master + " rank is " + rank);
 

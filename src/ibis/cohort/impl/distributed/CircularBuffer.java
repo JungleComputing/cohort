@@ -69,7 +69,7 @@ public class CircularBuffer implements Serializable {
 
     private void resize() {
 
-        System.out.println("RESIZE " + array.length + " -> " + array.length*2);
+        //System.out.println("RESIZE " + array.length + " -> " + array.length*2);
         
         Object [] old = array;
         array = new Object[array.length*2];

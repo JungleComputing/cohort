@@ -11,16 +11,16 @@ import ibis.cohort.MessageEvent;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
+//import java.lang.management.ManagementFactory;
+//import java.lang.management.ThreadInfo;
+//import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 
 public class SingleThreadedCohort implements Cohort, Runnable {
 
     private static final boolean PROFILE = true;
 
-    private static final int [] SLEEP_TIMES = { 1, 1, 2, 5, 10, 20, 50, 100, 200, 1000 }; 
+   // private static final int [] SLEEP_TIMES = { 1, 1, 2, 5, 10, 20, 50, 100, 200, 1000 }; 
     
    // private final ThreadMXBean management;
 
@@ -97,13 +97,18 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     
     private volatile boolean havePendingRequests = false;
 
-    SingleThreadedCohort(MultiThreadedCohort parent, int workerID, 
-            CohortIdentifier identifier) {
+    SingleThreadedCohort(MultiThreadedCohort parent, long rank, int workers, 
+            int workerID, CohortIdentifier identifier) {
 
+        this.parent = parent;
+        this.workerID = workerID;
+        this.identifier = identifier;
+                
         String outfile = System.getProperty("ibis.cohort.outputfile");
         
         if (outfile != null) {
-            String filename = outfile + "." + workerID;
+            String filename = outfile + "." + rank + "." + workers  
+                + "." + workerID;
             
             try {
                 out = new PrintStream(new BufferedOutputStream(
@@ -125,8 +130,8 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             sleepTime = 1000;
         }
         
-        out.println("SingleThreaded: sleepTime set to " + sleepTime 
-                + " ms.");
+        //out.println("SingleThreaded: sleepTime set to " + sleepTime 
+        //        + " ms.");
         
         if (PROFILE) {/*
             profileTime = System.currentTimeMillis();
@@ -145,9 +150,6 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             }*/
         }
 
-        this.parent = parent;
-        this.workerID = workerID;
-        this.identifier = identifier;
         sequential = new BaseCohort(parent, identifier, out);
     }
     
