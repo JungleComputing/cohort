@@ -26,8 +26,8 @@ public class DivideAndConquerWithLoad extends Activity {
     private final int load;
 
     private int merged = 0;    
-    private long count = 1;
-
+    private long took = 0;
+    
     public DivideAndConquerWithLoad(ActivityIdentifier parent, int branch, 
             int depth, int load) {
         super(Context.ANY);
@@ -42,12 +42,16 @@ public class DivideAndConquerWithLoad extends Activity {
 
         if (depth == 0) {            
 
-            if (load > 0) { 
-                try { 
-                    Thread.sleep(load);
-                } catch (Exception e) {
-                    // ignore
+            if (load > 0) {
+                
+                long start = System.currentTimeMillis();
+                long time = 0;
+                
+                while (time < load) { 
+                    time = System.currentTimeMillis() - start;
                 }
+                
+                took = time;
             }
 
             finish();
@@ -64,7 +68,7 @@ public class DivideAndConquerWithLoad extends Activity {
     @Override
     public void process(Event e) throws Exception {
 
-        count += ((MessageEvent<Long>) e).message;
+        took += ((MessageEvent<Long>) e).message;
 
         merged++;
 
@@ -77,19 +81,17 @@ public class DivideAndConquerWithLoad extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        cohort.send(identifier(), parent, count);        
+        cohort.send(identifier(), parent, took);        
     }
 
     public String toString() { 
         return "DC(" + identifier() + ") " + branch + ", " + depth + ", " 
-        + merged + " -> " + count;
+            + merged + " -> " + took;
     }
 
     public static void main(String [] args) { 
         
-        try {
-            long start = System.currentTimeMillis();
-
+        try {        
             Cohort cohort = CohortFactory.createCohort();
         
             if (cohort.isMaster()) { 
@@ -112,6 +114,8 @@ public class DivideAndConquerWithLoad extends Activity {
                         " (expected jobs: " + count + ", expected time: " + 
                         time + " sec.)");
 
+                long start = System.currentTimeMillis();
+                
                 SingleEventCollector a = new SingleEventCollector();
 
                 cohort.submit(a);
@@ -122,13 +126,12 @@ public class DivideAndConquerWithLoad extends Activity {
 
                 long end = System.currentTimeMillis();
 
-                double nsPerJob = (1000.0*1000.0 * (end-start)) / count;
+                double msPerJob = ((double)(end-start)) / count;
 
-                String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
-
-                System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
-                        correct + " total time = " + (end-start) + " job time = " + 
-                        nsPerJob + " nsec/job");
+                System.out.println("D&C(" + branch + ", " + depth + ") " 
+                        + " wall clock time = " + (end-start) 
+                        + " processing time = " + result  
+                        + " avg job time = " + msPerJob + " msec/job");
 
             }
             
