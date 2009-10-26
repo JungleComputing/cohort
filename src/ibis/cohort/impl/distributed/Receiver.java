@@ -14,8 +14,6 @@ class Receiver implements MessageUpcall {
     private static final byte STEAL   = 0x25;
     private static final byte REPLY   = 0x27;
     
-    private static final int STEAL_TIMEOUT = 1000;
-        
     private final DistributedCohort parent;
 
     private long messagesReceived;
@@ -153,7 +151,6 @@ class Receiver implements MessageUpcall {
 
         case STEAL:
             StealRequest r = (StealRequest) rm.readObject();
-            r.setTimeout(System.currentTimeMillis() + STEAL_TIMEOUT);
             parent.incomingRemoteStealRequest(r);
             synchronized (this) {
                 messagesReceived++;

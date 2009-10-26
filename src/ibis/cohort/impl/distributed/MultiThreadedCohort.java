@@ -12,6 +12,12 @@ import ibis.cohort.Event;
 
 public class MultiThreadedCohort implements Cohort {
 
+    private static final int REMOTE_STEAL_RANDOM = 0;
+    private static final int REMOTE_STEAL_ALL    = 1;
+    
+    private static final int REMOTE_STEAL_POLICY = 
+        determineRemoteStealPolicy(REMOTE_STEAL_RANDOM);
+    
     private final DistributedCohort parent;
 
     private final CohortIdentifier identifier;
@@ -60,7 +66,28 @@ public class MultiThreadedCohort implements Cohort {
    // private long printLoadDeadLine = -1;
     
     private int nextSubmit = 0;
+    
+    private static int determineRemoteStealPolicy(int def) { 
+       
+        String tmp = System.getProperty("ibis.cohort.remotesteal.policy");
 
+        if (tmp != null && tmp.length() > 0) {
+            
+            if (tmp.equals("all")) { 
+                return REMOTE_STEAL_ALL;
+            }
+            
+            if (tmp.equals("random")) { 
+                return REMOTE_STEAL_RANDOM;
+            }
+            
+            System.err.println("Failed to parse property " +
+                            "ibis.cohort.remotesteal: " + tmp);
+        }
+        
+        return def;
+    }
+    
     public MultiThreadedCohort(DistributedCohort parent,
             CohortIdentifier identifier, int workerCount) {
 
@@ -234,10 +261,20 @@ public class MultiThreadedCohort implements Cohort {
     // This one is top-down: a parent cohort is requesting work from below
     void incomingRemoteStealRequest(StealRequest request) {
 
-        // Notify a (random) worker that there is a steal request pending...
-        workers[selectTargetWorker()].postStealRequest(request);
-  
-        // FIXME FIXME better implementation!
+        switch (REMOTE_STEAL_POLICY) {
+        
+        case REMOTE_STEAL_ALL:
+            for (int i=0;i<workers.length;i++) { 
+                workers[i].postStealRequest(request);
+            }
+            return;
+       
+        case REMOTE_STEAL_RANDOM:
+        default:
+            // Notify a (random) worker that there is a steal request pending...
+            workers[selectTargetWorker()].postStealRequest(request);
+            return;
+        } 
     }
 
     /*
@@ -348,7 +385,9 @@ public class MultiThreadedCohort implements Cohort {
     }
 
     public void setContext(Context context) {
-        throw new IllegalStateException("setContext not allowed!");
+        for (int i=0;i<workers.length;i++) { 
+            workers[i].setContext(context);
+        }
     }
     
     public boolean idle(int workerID, Context c) {
@@ -399,12 +438,9 @@ public class MultiThreadedCohort implements Cohort {
         // Tell the worker I don't have work (yet). 
         return false;
     }
-
-    public void sendStealReply(StealRequest s, ActivityRecord a) {
     
-        // FIXME: Maybe we should check if the worker is still interested ? 
-        // If not, we can keep the job to ourselves!
-        
+    public boolean sendStealReply(StealRequest s, ActivityRecord a) {
+      
         if (s.isLocal()) { 
 
             if (a != null) { 
@@ -413,8 +449,26 @@ public class MultiThreadedCohort implements Cohort {
             } else { 
                 localSteals[s.localSource].clear(false);
             }
-        } else { 
+            
+            // We are always interested in the answer of local steals.
+            return true;
+            
+        } else {
+            
+            // We check if the worker is still interested.  
+            // If not, we keep the job to ourselves
+            boolean stale = s.atomicSetStale();
+            
+            if (stale) {
+                // The steal request was already answered by someone else
+                return false;
+            }
+            
+            // TODO: also check timeout here!
+           
             parent.sendStealReply(new StealReply(s.remoteSource, a));
+        
+            return true;
         }
     }
     

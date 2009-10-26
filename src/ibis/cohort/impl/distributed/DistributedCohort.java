@@ -29,8 +29,9 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     private static final byte STEAL   = 0x25;
     private static final byte REPLY   = 0x27;
 
-    private static long STEAL_DEADLINE = 1000;
-    
+    private static boolean REMOTE_STEAL_THROTTLE = false;
+    private static long REMOTE_STEAL_TIMEOUT = 1000;
+       
     /*
     private final PortType portType = new PortType(
             PortType.COMMUNICATION_FIFO, 
@@ -97,6 +98,30 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
 
         if (PROFILE) { 
            gcbeans = ManagementFactory.getGarbageCollectorMXBeans();
+        }
+        
+        String tmp = System.getProperty("ibis.cohort.remotesteal.throttle");
+        
+        if (tmp != null) {
+          
+            try { 
+                REMOTE_STEAL_THROTTLE = Boolean.parseBoolean(tmp);
+            } catch (Exception e) {
+                System.err.println("Failed to parse " +
+                        "ibis.cohort.remotesteal.throttle: " + tmp);
+            }
+        }
+    
+        tmp = System.getProperty("ibis.cohort.remotesteal.timeout");
+        
+        if (tmp != null) {
+          
+            try { 
+                REMOTE_STEAL_TIMEOUT = Long.parseLong(tmp);
+            } catch (Exception e) {
+                System.err.println("Failed to parse " +
+                        "ibis.cohort.remotesteal.timeout: " + tmp);
+            }
         }
         
         context = Context.ANY;
@@ -280,7 +305,10 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
 
    
     
-    void incomingRemoteStealRequest(StealRequest request) {         
+    void incomingRemoteStealRequest(StealRequest request) { 
+        
+        request.setTimeout(System.currentTimeMillis() + REMOTE_STEAL_TIMEOUT);
+        
         mt.incomingRemoteStealRequest(request);
     }
     
@@ -289,6 +317,10 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     }
     
     void incomingStealReply(StealReply r) {
+        
+        if (!REMOTE_STEAL_THROTTLE) { 
+            setPendingSteal(false);
+        }
         
         if (r.work != null) { 
             r.work.setRemote(true);
@@ -315,7 +347,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         // need to set te deadline.
         if (!pendingSteal) { 
             pendingSteal = true;
-            stealReplyDeadLine = time + STEAL_DEADLINE;
+            stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
             return false;
         }
             
@@ -323,7 +355,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         // if the value was false to begin with
         if (time > stealReplyDeadLine) { 
             pendingSteal = true;
-            stealReplyDeadLine = time + STEAL_DEADLINE;
+            stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
             return false;
         }
         
@@ -356,7 +388,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
                 stealsSend++;
             }
         } else { 
-            // Failed to selecta steal target. Try again next time...
+            // Failed to select a steal target. Try again next time...
             setPendingSteal(false);
         }
     }
@@ -493,6 +525,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     }
 
     public synchronized void setContext(Context context) {
-        // TODO: implement
+        // TODO: this sucks!
+        mt.setContext(context);
     }
 }

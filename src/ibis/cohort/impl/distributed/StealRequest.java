@@ -14,6 +14,7 @@ class StealRequest implements Serializable {
     public final int localSource;
       
     private transient long timeout = -1;
+    private transient boolean stale = false;
     
     public StealRequest(final CohortIdentifier src, final Context context) {  
         // Use this for a remote steal request;
@@ -31,12 +32,22 @@ class StealRequest implements Serializable {
         this.remoteSource = null;
     }
     
-    public void setTimeout(long timeout) { 
+    public synchronized void setTimeout(long timeout) { 
         this.timeout = timeout;
     }
     
-    public long getTimeout() { 
+    public synchronized long getTimeout() { 
         return timeout;
+    }
+  
+    public synchronized boolean getStale() {
+        return stale;
+    }
+    
+    public synchronized boolean atomicSetStale() {
+        boolean old = stale;
+        stale = true;
+        return old;
     }
     
     public boolean isLocal() { 

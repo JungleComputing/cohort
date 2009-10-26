@@ -326,12 +326,20 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         while (processing.stealRequests.size() > 0) {
 
             StealRequest s = processing.stealRequests.remove(0);
-            ActivityRecord a = sequential.steal(s.context);
 
-            if (a != null) { 
-                parent.sendStealReply(s, a);
-            } else { 
-                parent.sendStealReply(s, null);
+            // Make sure the steal request is still valid!
+            if (!s.getStale()) { 
+                ActivityRecord a = sequential.steal(s.context);
+
+                if (a != null) { 
+                    if (!parent.sendStealReply(s, a)) { 
+                        // The parent was no longer interested in the steal reply, 
+                        // so just return the job to the queue
+                        sequential.addActivityRecord(a);
+                    }
+                } else { 
+                    parent.sendStealReply(s, null);
+                }
             }
         }
     }
@@ -587,8 +595,14 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
         final long computationTime = sequential.getComputationTime() - messagesTime;
         final long activitiesInvoked = sequential.getActivitiesInvoked();
+   
         final long activitiesSubmitted = sequential.getActivitiesSubmitted();
+        final long activitiesAdded = sequential.getActivitiesSubmitted();
         
+        final long wrongContextSubmitted = sequential.getWrongContextSubmitted();
+        final long wrongContextAdded = sequential.getWrongContextAdded();
+        final long wrongContextDiscovered = sequential.getWrongContextDicovered();
+             
         final long steals = sequential.getSteals();
         final long stealSuccessIn = sequential.getStealSuccess();
 
@@ -668,8 +682,13 @@ public class SingleThreadedCohort implements Cohort, Runnable {
 
             out.println(" Activities");
             out.println("   submitted  : " + activitiesSubmitted);
+            out.println("   added      : " + activitiesAdded);
             out.println("   invoked    : " + activitiesInvoked + " ("
                     + fact + " /act)");
+            out.println("  Wrong Context");
+            out.println("   submitted  : " + wrongContextSubmitted);
+            out.println("   added      : " + wrongContextAdded);
+            out.println("   discovered : " + wrongContextDiscovered);
             out.println(" Messages");
             out.println("   internal   : " + messagesInternal);
             out.println("   external   : " + messagesExternal);
@@ -694,6 +713,6 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     }
 
     public void setContext(Context context) {
-        throw new IllegalStateException("setContext not allowed!");
+        sequential.setContext(context);
     }
 }

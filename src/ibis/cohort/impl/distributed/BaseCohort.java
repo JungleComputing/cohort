@@ -27,6 +27,9 @@ class BaseCohort implements Cohort {
     private HashMap<ActivityIdentifier, ActivityRecord> local = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
 
+    // TODO: replace by more efficient datastructure
+    private CircularBuffer wrongContext = new CircularBuffer(1);
+    
     private CircularBuffer fresh = new CircularBuffer(1);
 
     private CircularBuffer runnable = new CircularBuffer(1);
@@ -36,6 +39,12 @@ class BaseCohort implements Cohort {
     private long computationTime;
     
     private long activitiesSubmitted;
+    private long activitiesAdded;
+    
+    private long wrongContextSubmitted;
+    private long wrongContextAdded;
+    
+    private long wrongContextDicovered;
 
     private long activitiesInvoked;
 
@@ -134,12 +143,20 @@ class BaseCohort implements Cohort {
 
     public void finishSubmission(Activity a) {
 
-        ActivityRecord ar = new ActivityRecord(a);
-       
-        local.put(a.identifier(), ar);
-       
-        fresh.insertLast(ar);
         activitiesSubmitted++;
+        
+        ActivityRecord ar = new ActivityRecord(a);
+        
+        local.put(a.identifier(), ar);
+        
+        Context c = a.getContext();
+        
+        if (c.isAny || c.isLocal || context.match(c)) { 
+            fresh.insertLast(ar);
+        } else {
+            wrongContextSubmitted++;
+            wrongContext.insertLast(ar);
+        }
     }
 
     void addActivityRecord(ActivityRecord a) {
@@ -149,13 +166,21 @@ class BaseCohort implements Cohort {
                 + System.currentTimeMillis());
         }
         
+        activitiesAdded++;
+        
         local.put(a.identifier(), a);
 
-        if (a.isFresh()) {
-            fresh.insertLast(a);
-            activitiesSubmitted++;
+        Context c = a.activity.getContext();
+        
+        if (c.isAny || c.isLocal || context.match(c)) { 
+            if (a.isFresh()) {
+                fresh.insertLast(a);
+            } else {
+                runnable.insertLast(a);
+            }
         } else {
-            runnable.insertLast(a);
+            wrongContextAdded++;
+            wrongContext.insertLast(a);
         }
     }
 
@@ -249,7 +274,44 @@ class BaseCohort implements Cohort {
 
         steals++;
 
-        int size = fresh.size();
+        int size = wrongContext.size();
+        
+        if (size > 0) {
+
+            for (int i=0;i<size;i++) { 
+                // Get the first of the jobs (this is assumed to be the 
+                // largest one) and check if we are allowed to return it. 
+                ActivityRecord r = (ActivityRecord) wrongContext.get(i);
+                
+                if (!r.isStolen()) { 
+
+                    Context tmp = r.activity.getContext();
+
+                    if (tmp.match(context)) { 
+
+                        wrongContext.remove(i);
+
+                        local.remove(r.identifier());
+
+                        stealSuccess++;
+
+                        if (DEBUG) {
+                            out.println("STOLEN " + r.identifier().localName());
+                        }
+
+                        r.setStolen(true);
+
+                        return r;
+                    }
+               
+                } else { 
+                    // TODO: fix this!
+                    System.err.println("EEP: stolen job not runnable on " + identifier);
+                }
+            } 
+        }
+        
+        size = fresh.size();
 
         if (size > 0) {
 
@@ -263,7 +325,7 @@ class BaseCohort implements Cohort {
 
                     Context tmp = r.activity.getContext();
 
-                    if (tmp != Context.LOCAL && tmp.match(context)) { 
+                    if (!tmp.isLocal && tmp.match(context)) { 
 
                         fresh.remove(i);
 
@@ -306,6 +368,55 @@ class BaseCohort implements Cohort {
         return tmp;
     }
     
+    private void process(ActivityRecord tmp) { 
+
+        long start, end;
+        
+        tmp.activity.setCohort(this);
+
+        current = tmp;
+
+        if (DEBUG) {
+            start = System.currentTimeMillis();
+            out.println("RUN " + tmp.identifier().localName() + " at " + start);
+        }
+
+        tmp.run();
+
+        if (DEBUG) { 
+            end = System.currentTimeMillis();
+
+            computationTime += end - start;
+
+            activitiesInvoked++;
+        }
+
+        if (tmp.needsToRun()) {
+
+            //out.println("REQUEUE " + tmp.identifier().localName() + " at " + end  
+            //        + " " + (end - start));
+
+            runnable.insertFirst(tmp);
+        } else if (tmp.isDone()) {
+
+            if (DEBUG) {
+                out.println("CANCEL " + tmp.identifier().localName() + " at " + end);
+            }
+
+            //out.println("CANCEL " + tmp.identifier().localName() + " at " + end  
+            //        + " " + (end - start));
+
+            cancel(tmp.identifier());
+        } 
+
+        //else { 
+        //  out.println("SUSPEND " + tmp.identifier().localName() + " at " + end  
+        //          + " " + (end - start));
+        //}
+
+        current = null;
+    }
+    
     boolean process() {
         
         long start, end;
@@ -314,53 +425,25 @@ class BaseCohort implements Cohort {
 
         if (tmp != null) {
 
-            tmp.activity.setCohort(this);
-
-            current = tmp;
+            Context c = tmp.activity.getContext();
             
-            if (DEBUG) {
-                start = System.currentTimeMillis();
-                out.println("RUN " + tmp.identifier().localName() + " at " + start);
+            
+            if (c.isAny || c.isLocal || context.match(c)) { 
+                // The context matches, so we are allowed to run this task...
+         //       out.println("Running activity with context " + c);
+                
+                process(tmp);
+                return true;
+            } else { 
+         //       out.println("Skipping activity with context " + c);
+                
+                // The context doesn't match, so we are not allowed to run 
+                // this job (anymore).
+                wrongContextDicovered++;
+                wrongContext.insertLast(tmp);
             }
-            
-            tmp.run();
-
-            if (DEBUG) { 
-                end = System.currentTimeMillis();
-            
-                computationTime += end - start;
-            
-                activitiesInvoked++;
-            }
-            
-            if (tmp.needsToRun()) {
-                
-                //out.println("REQUEUE " + tmp.identifier().localName() + " at " + end  
-                //        + " " + (end - start));
-                
-                runnable.insertFirst(tmp);
-            } else if (tmp.isDone()) {
-            
-                if (DEBUG) {
-                    out.println("CANCEL " + tmp.identifier().localName() + " at " + end);
-                }
-                
-                //out.println("CANCEL " + tmp.identifier().localName() + " at " + end  
-                //        + " " + (end - start));
-                
-                cancel(tmp.identifier());
-            } 
-            
-            //else { 
-            //  out.println("SUSPEND " + tmp.identifier().localName() + " at " + end  
-            //          + " " + (end - start));
-            //}
-
-            current = null;
-            
-            return true;
         }
-
+        
         return false;
     }
 
@@ -370,6 +453,22 @@ class BaseCohort implements Cohort {
 
     long getActivitiesSubmitted() { 
         return activitiesSubmitted;
+    }
+    
+    long getActivitiesAdded() { 
+        return activitiesAdded;
+    }
+    
+    long getWrongContextSubmitted() { 
+        return wrongContextSubmitted;
+    }
+    
+    long getWrongContextAdded() { 
+        return wrongContextAdded;
+    }
+    
+    long getWrongContextDicovered() { 
+        return wrongContextDicovered;
     }
     
     long getActivitiesInvoked() { 
