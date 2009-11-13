@@ -91,7 +91,7 @@ public class Fibonacci extends Activity {
         
         } else  if (args[index].equals("dist")) { 
             index++;
-            cohort = new DistributedCohort();
+            cohort = new DistributedCohort(null);
        
             System.out.println("Using DISTRIBUTED Cohort implementation");
             

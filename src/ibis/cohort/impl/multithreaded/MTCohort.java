@@ -161,4 +161,14 @@ public class MTCohort implements Cohort {
         // TODO Auto-generated method stub
         
     }
+
+    public Cohort[] getSubCohorts() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean activate() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }

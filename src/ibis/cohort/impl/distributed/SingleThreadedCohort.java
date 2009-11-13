@@ -15,6 +15,7 @@ import java.io.PrintStream;
 //import java.lang.management.ThreadInfo;
 //import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class SingleThreadedCohort implements Cohort, Runnable {
 
@@ -97,14 +98,14 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     
     private volatile boolean havePendingRequests = false;
 
-    SingleThreadedCohort(MultiThreadedCohort parent, long rank, int workers, 
-            int workerID, CohortIdentifier identifier) {
+    SingleThreadedCohort(MultiThreadedCohort parent, Properties p, long rank, 
+            int workers, int workerID, CohortIdentifier identifier) {
 
         this.parent = parent;
         this.workerID = workerID;
         this.identifier = identifier;
                 
-        String outfile = System.getProperty("ibis.cohort.outputfile");
+        String outfile = p.getProperty("ibis.cohort.outputfile");
         
         if (outfile != null) {
             String filename = outfile + "." + rank + "." + workers  
@@ -122,7 +123,7 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             out = System.out;
         }
         
-        String tmp = System.getProperty("ibis.cohort.sleep");
+        String tmp = p.getProperty("ibis.cohort.sleep");
         
         if (tmp != null && tmp.length() > 0) { 
             sleepTime = Integer.parseInt(tmp);
@@ -150,7 +151,11 @@ public class SingleThreadedCohort implements Cohort, Runnable {
             }*/
         }
 
-        sequential = new BaseCohort(parent, identifier, out);
+        sequential = new BaseCohort(parent, p, identifier, out);
+    }
+    
+    public Cohort[] getSubCohorts() {
+        return new Cohort [] { sequential };
     }
     
     public PrintStream getOutput() {
@@ -213,6 +218,11 @@ public class SingleThreadedCohort implements Cohort, Runnable {
         havePendingRequests = true;
     }
 
+    public boolean activate() { 
+        // ignored
+        return false;
+    }
+    
     private synchronized boolean getDone() {
         return done;
     }

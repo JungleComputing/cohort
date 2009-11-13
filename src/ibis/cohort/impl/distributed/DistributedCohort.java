@@ -20,6 +20,7 @@ import java.io.PrintStream;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.List;
+import java.util.Properties;
 
 public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
 
@@ -94,13 +95,13 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     private long workReceived;
     private long no_workReceived;
        
-    public DistributedCohort() throws Exception {         
+    public DistributedCohort(Properties p) throws Exception {         
 
         if (PROFILE) { 
            gcbeans = ManagementFactory.getGarbageCollectorMXBeans();
         }
         
-        String tmp = System.getProperty("ibis.cohort.remotesteal.throttle");
+        String tmp = p.getProperty("ibis.cohort.remotesteal.throttle");
         
         if (tmp != null) {
           
@@ -112,7 +113,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
             }
         }
     
-        tmp = System.getProperty("ibis.cohort.remotesteal.timeout");
+        tmp = p.getProperty("ibis.cohort.remotesteal.timeout");
         
         if (tmp != null) {
           
@@ -142,12 +143,16 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
 
         identifier = getCohortIdentifier();
 
-        mt = new MultiThreadedCohort(this, getCohortIdentifier(), 0);        
+        mt = new MultiThreadedCohort(this, p, getCohortIdentifier(), 0);        
 
         rp.enableConnections();
         rp.enableMessageUpcalls();
     }
 
+    public boolean activate() { 
+        return mt.activate();
+    }
+    
     public PrintStream getOutput() {
         return System.out;
     }
@@ -527,5 +532,9 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
     public synchronized void setContext(Context context) {
         // TODO: this sucks!
         mt.setContext(context);
+    }
+
+    public Cohort[] getSubCohorts() {
+        return new Cohort [] { mt };
     }
 }

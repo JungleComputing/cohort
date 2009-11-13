@@ -7,9 +7,11 @@ import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.extra.CircularBuffer;
 
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.Set;
 
 class BaseCohort implements Cohort {
@@ -57,8 +59,8 @@ class BaseCohort implements Cohort {
 
     private ActivityRecord current;
     
-    BaseCohort(MultiThreadedCohort parent, CohortIdentifier identifier, 
-            PrintStream out) {
+    BaseCohort(MultiThreadedCohort parent, Properties p, 
+            CohortIdentifier identifier, PrintStream out) {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getIDGenerator(identifier);
@@ -517,5 +519,14 @@ class BaseCohort implements Cohort {
 
     public PrintStream getOutput() {
         return out;
+    }
+
+    public Cohort[] getSubCohorts() {
+        return null;
+    }
+    
+    public boolean activate() { 
+        // ignored
+        return true;
     }
 }

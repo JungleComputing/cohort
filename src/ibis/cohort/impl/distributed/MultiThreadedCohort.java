@@ -1,6 +1,7 @@
 package ibis.cohort.impl.distributed;
 
 import java.io.PrintStream;
+import java.util.Properties;
 import java.util.Random;
 
 import ibis.cohort.Activity;
@@ -9,6 +10,7 @@ import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
+import ibis.cohort.extra.CircularBuffer;
 
 public class MultiThreadedCohort implements Cohort {
 
@@ -26,6 +28,8 @@ public class MultiThreadedCohort implements Cohort {
 
     private final int workerCount;
 
+    private boolean active = false;
+    
     private CircularBuffer incomingRemoteActivities = new CircularBuffer(16);
 
     private SingleThreadedCohort[] workers;
@@ -67,6 +71,10 @@ public class MultiThreadedCohort implements Cohort {
     
     private int nextSubmit = 0;
     
+    public Cohort[] getSubCohorts() {
+        return (Cohort []) workers.clone();
+    }
+    
     private static int determineRemoteStealPolicy(int def) { 
        
         String tmp = System.getProperty("ibis.cohort.remotesteal.policy");
@@ -88,7 +96,7 @@ public class MultiThreadedCohort implements Cohort {
         return def;
     }
     
-    public MultiThreadedCohort(DistributedCohort parent,
+    public MultiThreadedCohort(DistributedCohort parent, Properties p, 
             CohortIdentifier identifier, int workerCount) {
 
         this.parent = parent;
@@ -96,7 +104,7 @@ public class MultiThreadedCohort implements Cohort {
 
         if (workerCount == 0) {
 
-            String tmp = System.getProperty("ibis.cohort.workers");
+            String tmp = p.getProperty("ibis.cohort.workers");
 
             if (tmp != null && tmp.length() > 0) {
                 try {
@@ -122,17 +130,32 @@ public class MultiThreadedCohort implements Cohort {
         localSteals = new StealState[workerCount];
         
         for (int i = 0; i < workerCount; i++) {
-            workers[i] = new SingleThreadedCohort(this, parent.getRank(), 
+            workers[i] = new SingleThreadedCohort(this, p, parent.getRank(), 
                     workerCount, i, parent.getCohortIdentifier());
         
             localSteals[i] = new StealState();
         }
 
+   
+    }
+
+    public boolean activate() { 
+       
+        synchronized (this) {
+            if (active) { 
+                return false;
+            }
+        
+            active = true;
+        }
+            
         for (int i = 0; i < workerCount; i++) {
             new Thread(workers[i], "Cohort ComputationUnit " + i).start();
         }
+        
+        return true;
     }
-
+    
     public PrintStream getOutput() {
         return System.out;
     }

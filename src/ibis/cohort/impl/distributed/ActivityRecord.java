@@ -3,6 +3,7 @@ package ibis.cohort.impl.distributed;
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Event;
+import ibis.cohort.extra.CircularBuffer;
 
 import java.io.Serializable;
 

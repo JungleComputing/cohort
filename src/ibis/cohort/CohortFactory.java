@@ -27,7 +27,7 @@ public class CohortFactory {
             } else if (name.equals("mt") || name.equals("multithreaded")) { 
                 return new MTCohort(0);                
             } else if (name.equals("dist") || name.equals("distributed")) { 
-                return new DistributedCohort();
+                return new DistributedCohort(p);
             } else { 
                 throw new Exception("Unknown Cohort implementation \"" + name 
                         + "\" selected");

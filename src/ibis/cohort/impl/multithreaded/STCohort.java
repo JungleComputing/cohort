@@ -220,5 +220,15 @@ public class STCohort implements Cohort, Runnable {
     public void setContext(Context context) {
         // TODO Auto-generated method stub
         
+    }
+
+    public Cohort[] getSubCohorts() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean activate() {
+        // TODO Auto-generated method stub
+        return false;
     }    
 }
