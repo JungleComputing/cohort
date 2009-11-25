@@ -153,7 +153,6 @@ import java.util.ArrayList;
         bodyCount = 0;
 
         // calculate if original can be cut off
-
         double distsq = calcSquare(com_x, job.center_x, job.halfSize);
         distsq += calcSquare(com_y, job.center_y, job.halfSize);
         distsq += calcSquare(com_z, job.center_z, job.halfSize);
@@ -162,7 +161,6 @@ import java.util.ArrayList;
             return; // cutoff IS possible, don't copy the original 
 
         // no cutoff possible, copy the necessary parts of original
-
         if (original.children == null) {
             bodies = original.bodies;
             bodyCount = original.bodyCount;

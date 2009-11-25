@@ -92,8 +92,7 @@ public class BarnesJob extends Activity {
 
     @Override
     public void process(Event e) throws Exception {
-        // TODO Auto-generated method stub
-
+       
        subResults[count++] = (BodyUpdates) ((MessageEvent) e).message;
         
        if (count == subResults.length) { 

@@ -451,18 +451,18 @@ import java.util.Arrays;
             break;
         default:
             System.out.println("EEK! Using unknown implementation #" + params.IMPLEMENTATION);
-        System.exit(1);
-        break; //blah
+            System.exit(1);
+            break; //blah
         }
 
         runSim();
 
-        System.out.println("update took             " + updateTime / 1000.0
-                + " s");
-        System.out.println("Force calculation took  " + forceCalcTime / 1000.0
-                + " s");
-        System.out
-        .println("visualization took      " + vizTime / 1000.0 + " s");
+        System.out.println("update took             " 
+                + updateTime / 1000.0 + " s");
+        System.out.println("Force calculation took  " 
+                + forceCalcTime / 1000.0 + " s");
+        System.out.println("visualization took      " 
+                + vizTime / 1000.0 + " s");
         System.out.println("application barnes took "
                 + (double) (totalTime / 1000.0) + " s");
 
