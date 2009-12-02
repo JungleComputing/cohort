@@ -5,6 +5,7 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 
 public class SOR extends Activity { 
@@ -69,7 +70,7 @@ public class SOR extends Activity {
     public SOR(ActivityIdentifier parent, int workers, int rank, int N, 
             int iterations) {
 
-        super(new Context("C-" + rank));
+        super(new UnitContext("C-" + rank));
 
         this.parent = parent;
         this.size = workers;

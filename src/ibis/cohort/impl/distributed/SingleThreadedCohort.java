@@ -725,4 +725,23 @@ public class SingleThreadedCohort implements Cohort, Runnable {
     public void setContext(Context context) {
         sequential.setContext(context);
     }
+
+    public void clearContext() {
+        sequential.clearContext();
+    }
+    
+    public boolean deregister(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public ActivityIdentifier lookup(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean register(String name, ActivityIdentifier id, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }

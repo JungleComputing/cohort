@@ -11,6 +11,7 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.MultiEventCollector;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.context.UnitContext;
 import ibis.cohort.impl.multithreaded.MTCohort;
 import ibis.cohort.impl.sequential.Sequential;
 
@@ -32,7 +33,7 @@ public class RigidSOR {
             // We've arrived at the leaf Cohort.
          System.out.println("Setting context C-" + start);
             
-            cohort.setContext(new Context("C-" + start));
+            cohort.setContext(new UnitContext("C-" + start));
             start++;
         } else { 
             // More levels to go!

@@ -8,6 +8,7 @@ import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.context.UnitContext;
 
 public class DivideAndConquerWithLoadAndContext extends Activity {
 
@@ -59,8 +60,8 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
 
             finish();
         } else {
-            Context even = new Context("Even");
-            Context odd = new Context("Odd");
+            Context even = new UnitContext("Even");
+            Context odd = new UnitContext("Odd");
             
             for (int i=0;i<branch;i++) { 
                 Context tmp = (i % 2) == 0 ? even : odd;
@@ -123,12 +124,12 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
                 // even
                 System.out.println("Setting context to Even");
                 
-                cohort.setContext(new Context("Even"));
+                cohort.setContext(new UnitContext("Even"));
             } else { 
                 // odd
                 System.out.println("Setting context to Odd");
                 
-                cohort.setContext(new Context("Odd"));
+                cohort.setContext(new UnitContext("Odd"));
             }
             
             if (cohort.isMaster()) { 
@@ -153,7 +154,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
                 cohort.submit(a);
                 cohort.submit(new DivideAndConquerWithLoadAndContext(
                         a.identifier(), branch, depth, load, 
-                        new Context("Even")));
+                        new UnitContext("Even")));
 
                 long result = ((MessageEvent<Long>)a.waitForEvent()).message;
 

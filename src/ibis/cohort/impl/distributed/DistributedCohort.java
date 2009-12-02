@@ -19,6 +19,7 @@ import ibis.ipl.WriteMessage;
 import java.io.PrintStream;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -229,7 +230,7 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
 
         return mt.submit(job);
     }
-
+    
     private void forwardObject(IbisIdentifier id, byte opcode, Object data) { 
 
         SendPort sp = pool.getSendPort(id);         
@@ -525,16 +526,34 @@ public class DistributedCohort implements Cohort /*, MessageUpcall*/ {
         return pool.isMaster();
     }
 
-    public synchronized Context getContext() {
-        return context;
+    public Context getContext() {
+        return mt.getContext();
     }
 
-    public synchronized void setContext(Context context) {
-        // TODO: this sucks!
+    public void setContext(Context context) {
         mt.setContext(context);
+    }
+    
+    public void clearContext() {
+        
     }
 
     public Cohort[] getSubCohorts() {
         return new Cohort [] { mt };
+    }
+
+    public boolean deregister(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public ActivityIdentifier lookup(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean register(String name, ActivityIdentifier id, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
     }
 }

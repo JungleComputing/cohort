@@ -1,45 +1,59 @@
 package ibis.cohort;
 
+import ibis.cohort.context.AnyContext;
+import ibis.cohort.context.CohortContext;
+import ibis.cohort.context.LocalContext;
+
 import java.io.Serializable;
 
-public class Context implements Serializable {
+public abstract class Context implements Serializable {
+    
+    /* Valid contexts: 
+     * 
+     *      context = LOCAL | ANY | COHORT | UNIT | and
+     *      and     = (UNIT UNIT+) | (COHORT UNIT+)       
+     *      
+     * Valid contextsets:
+     * 
+     *      set     = ANY | LOCAL | COHORT | 
+     *                (UNIT (UNIT* | and*)) | (and (UNIT* | and*))
+     *      
+     */
+    
+    // Special values     
+    public final static Context LOCAL  = new LocalContext();
+    public final static Context COHORT = new CohortContext();    
+    public final static Context ANY    = new AnyContext();
 
-    private static final long serialVersionUID = -2442900962246421740L;
+    protected Context() { 
+        // empty
+    }
+        
+    public abstract boolean equals(Object other);
+    public abstract boolean contains(Context other);
+    
+    public boolean isLocal() { 
+        return false;
+    }    
+    
+    public boolean isCohort() { 
+        return false;
+    }
+    
+    public boolean isAny() { 
+        return false;
+    }
+    
+    public boolean isUnit() { 
+        return false;
+    }
+    
+    public boolean isAnd() { 
+        return false;
+    }
+    
+    public boolean isSet() { 
+        return false;
+    }
 
-    public final static Context LOCAL = new Context("local", false, true);
-    public final static Context ANY   = new Context("any", true, false);
-
-    public final String name; 
-    public final boolean isAny; 
-    public final boolean isLocal; 
-    
-    private Context(String name, boolean isAny, boolean isLocal) { 
-        this.name = name;
-        this.isAny = isAny;
-        this.isLocal = isLocal;
-    }
-    
-    public Context(String name) { 
-        this.name = name;
-        
-        isAny = name.equals(ANY.name);
-        isLocal = name.equals(LOCAL.name);
-    }
-    
-    public boolean match(Context other) {
-        
-        if (isAny || other.isAny) { 
-            return true;
-        }
-        
-        if (isLocal && other.isLocal) { 
-            return true;
-        }
-        
-        return name.equals(other.name);
-    }
-    
-    public String toString() { 
-        return name;
-    }
 }

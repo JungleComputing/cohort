@@ -230,5 +230,25 @@ public class STCohort implements Cohort, Runnable {
     public boolean activate() {
         // TODO Auto-generated method stub
         return false;
+    }
+
+    public boolean deregister(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public ActivityIdentifier lookup(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean register(String name, ActivityIdentifier id, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void clearContext() {
+        // TODO Auto-generated method stub
+        
     }    
 }

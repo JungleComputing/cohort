@@ -1,6 +1,7 @@
 package ibis.cohort.impl.distributed;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 
@@ -227,7 +228,8 @@ public class MultiThreadedCohort implements Cohort {
 
         // TODO: optimize!
 
-        DistributedActivityIdentifier did = (DistributedActivityIdentifier) e.target;
+        DistributedActivityIdentifier did = 
+            (DistributedActivityIdentifier) e.target;
 
         CohortIdentifier target = did.getLastKnownCohort();
 
@@ -236,6 +238,11 @@ public class MultiThreadedCohort implements Cohort {
             CohortIdentifier id = workers[i].identifier();
 
             if (target.equals(id)) {
+                
+             System.out.println("Last known cohort of " + e.target + " is " 
+                     + target + " which equals " + id);
+             new Exception().printStackTrace(System.out);
+                
                 workers[i].deliverEvent(e);
                 return;
             }
@@ -327,7 +334,7 @@ public class MultiThreadedCohort implements Cohort {
     }
 */
     
-    ActivityRecord getStoredRemoteActivity(Context c) {
+    ActivityRecord getStoredRemoteActivity(Context threadContext) {
 
         synchronized (incomingRemoteActivities) {
 
@@ -339,13 +346,14 @@ public class MultiThreadedCohort implements Cohort {
 
             for (int i = 0; i < size; i++) {   
                 
-                ActivityRecord tmp = (ActivityRecord) incomingRemoteActivities.get(i);
+                ActivityRecord tmp = 
+                    (ActivityRecord) incomingRemoteActivities.get(i);
 
         //        System.out.println("Returning stolen remote activity: " 
         //                + tmp.identifier().localName() + " contexts " + c + " " 
         //                + tmp.activity);
                 
-                if (c.match(tmp.activity.getContext())) {
+                if (threadContext.contains(tmp.activity.getContext())) {
                     incomingRemoteActivities.remove(i);
                     return tmp;
                 }
@@ -403,17 +411,9 @@ public class MultiThreadedCohort implements Cohort {
         return parent.isMaster();
     }
 
-    public Context getContext() {
-        throw new IllegalStateException("getContext not allowed!");
-    }
-
-    public void setContext(Context context) {
-        for (int i=0;i<workers.length;i++) { 
-            workers[i].setContext(context);
-        }
-    }
+ 
     
-    public boolean idle(int workerID, Context c) {
+    public boolean idle(int workerID, Context threadContext) {
       
         // A worker has become idle and will remain so until we give it an 
         // event or activity. 
@@ -421,7 +421,7 @@ public class MultiThreadedCohort implements Cohort {
         // We first check the queue containing the activities stolen from remote
         // machines. We need to check the context to make sure that the idle 
         // worker can process it.
-        ActivityRecord tmp = getStoredRemoteActivity(c);
+        ActivityRecord tmp = getStoredRemoteActivity(threadContext);
 
         if (tmp != null) {
             workers[workerID].deliverActivityRecord(tmp);
@@ -442,7 +442,7 @@ public class MultiThreadedCohort implements Cohort {
 
             // No pending request, so notify all other local workers that we need 
             // work. Register each request so we can (async) wait for the reply. 
-            StealRequest s = new StealRequest(workerID, c);
+            StealRequest s = new StealRequest(workerID, threadContext);
 
             int target = selectTargetWorker();
 
@@ -456,7 +456,7 @@ public class MultiThreadedCohort implements Cohort {
         }
         
         // Next, we should also fire a remote steal. 
-        parent.stealAttempt(c);
+        parent.stealAttempt(threadContext);
         
         // Tell the worker I don't have work (yet). 
         return false;
@@ -493,6 +493,33 @@ public class MultiThreadedCohort implements Cohort {
         
             return true;
         }
+    }
+
+    public boolean deregister(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public ActivityIdentifier lookup(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean register(String name, ActivityIdentifier id, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public Context getContext() {
+        throw new IllegalStateException("getContext not allowed!");
+    }
+
+    public void setContext(Context context) {
+        throw new IllegalStateException("setContext not allowed!");
+    }
+    
+    public void clearContext() {
+        throw new IllegalStateException("setContext not allowed!");           
     }
     
     /*

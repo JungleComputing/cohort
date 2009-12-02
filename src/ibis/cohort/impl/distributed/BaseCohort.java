@@ -5,14 +5,18 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
+import ibis.cohort.ContextSet;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Arrays;
 
 class BaseCohort implements Cohort {
 
@@ -24,7 +28,11 @@ class BaseCohort implements Cohort {
 
     private final PrintStream out;
     
-    private Context context;
+    // Default context is ANY
+    private Context myContext = Context.ANY;
+    
+    private HashMap<String, ActivityIdentifier> registry = 
+        new HashMap<String, ActivityIdentifier>();
     
     private HashMap<ActivityIdentifier, ActivityRecord> local = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
@@ -65,9 +73,6 @@ class BaseCohort implements Cohort {
         this.identifier = identifier;
         this.generator = parent.getIDGenerator(identifier);
         this.out = out;
-        
-        // default context is "ANY"
-        context = Context.ANY;
     }
     
     public void cancel(ActivityIdentifier id) {
@@ -153,7 +158,7 @@ class BaseCohort implements Cohort {
         
         Context c = a.getContext();
         
-        if (c.isAny || c.isLocal || context.match(c)) { 
+        if (c.isAny() || c.isLocal() || myContext.contains(c)) { 
             fresh.insertLast(ar);
         } else {
             wrongContextSubmitted++;
@@ -174,7 +179,7 @@ class BaseCohort implements Cohort {
 
         Context c = a.activity.getContext();
         
-        if (c.isAny || c.isLocal || context.match(c)) { 
+        if (c.isAny() || c.isLocal() || myContext.contains(c)) { 
             if (a.isFresh()) {
                 fresh.insertLast(a);
             } else {
@@ -193,6 +198,52 @@ class BaseCohort implements Cohort {
         return id;
     }
 
+    private ActivityIdentifier lookup(String name) { 
+        return registry.get(name);
+    }
+    
+    private boolean register(String name, ActivityIdentifier id) {
+        
+        if (registry.containsKey(name)) { 
+            return false;
+        }
+        
+        registry.put(name, id);
+        return true;
+    }
+    
+    private boolean deregister(String name) {
+        return (registry.remove(name) != null);
+    }
+    
+    public ActivityIdentifier lookup(String name, Context scope) {
+        
+        if (scope.isLocal()) { 
+            return lookup(name);
+        }
+        
+        return parent.lookup(name, scope);
+    }    
+    
+    public boolean register(String name, ActivityIdentifier id, Context scope) {
+        
+        if (scope.isLocal()) { 
+            return register(name, id);
+        }
+        
+        return parent.register(name, id, scope);
+    }
+    
+    public boolean deregister(String name, Context scope) {
+
+        if (scope.isLocal()) { 
+            return deregister(name);
+        }
+        
+        return parent.deregister(name, scope);
+    }
+    
+    
     public void send(ActivityIdentifier source, ActivityIdentifier target,
             Object o) {
         
@@ -289,7 +340,7 @@ class BaseCohort implements Cohort {
 
                     Context tmp = r.activity.getContext();
 
-                    if (tmp.match(context)) { 
+                    if (tmp.contains(context)) { 
 
                         wrongContext.remove(i);
 
@@ -308,7 +359,8 @@ class BaseCohort implements Cohort {
                
                 } else { 
                     // TODO: fix this!
-                    System.err.println("EEP: stolen job not runnable on " + identifier);
+                    System.err.println("EEP: stolen job not runnable on " 
+                            + identifier);
                 }
             } 
         }
@@ -324,10 +376,9 @@ class BaseCohort implements Cohort {
                 
                 if (!r.isStolen()) { 
 
-
                     Context tmp = r.activity.getContext();
 
-                    if (!tmp.isLocal && tmp.match(context)) { 
+                    if (!tmp.isLocal() && tmp.contains(context)) { 
 
                         fresh.remove(i);
 
@@ -421,16 +472,13 @@ class BaseCohort implements Cohort {
     
     boolean process() {
         
-        long start, end;
-        
         ActivityRecord tmp = dequeue();
 
         if (tmp != null) {
 
             Context c = tmp.activity.getContext();
             
-            
-            if (c.isAny || c.isLocal || context.match(c)) { 
+            if (c.isAny() || c.isLocal() || myContext.contains(c)) { 
                 // The context matches, so we are allowed to run this task...
          //       out.println("Running activity with context " + c);
                 
@@ -510,13 +558,19 @@ class BaseCohort implements Cohort {
     }
 
     public Context getContext() {
-        return context;
+        return myContext;
     }
 
-    public void setContext(Context context) {
-        this.context = context;
+    public void setContext(Context c) {
+        myContext = c;
+        
+        // TODO: check status of local jobs 
     }
-
+    
+    public void clearContext() {
+        myContext = Context.ANY;
+    }
+    
     public PrintStream getOutput() {
         return out;
     }
@@ -529,4 +583,6 @@ class BaseCohort implements Cohort {
         // ignored
         return true;
     }
+
+   
 }
