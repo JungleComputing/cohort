@@ -303,6 +303,8 @@ import java.util.Arrays;
 
         printMemStats("post bodies");
 
+        cohort.activate();
+        
         start = System.currentTimeMillis();
 
         for (int iteration = 0; iteration < params.ITERATIONS; iteration++) {
@@ -629,6 +631,8 @@ import java.util.Arrays;
             }
         } 
             
+        
+        
         cohort.done();
     }
 }
