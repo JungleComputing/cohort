@@ -5,9 +5,6 @@ import ibis.cohort.CohortFactory;
 import ibis.cohort.Context;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.impl.distributed.DistributedCohort;
-import ibis.cohort.impl.multithreaded.MTCohort;
-import ibis.cohort.impl.sequential.Sequential;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

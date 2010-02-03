@@ -13,7 +13,7 @@ public interface Cohort {
     
     public void send(ActivityIdentifier source, ActivityIdentifier target, Object o);    
 
-    
+    public void send(Event e);    
     
     public boolean register(String name, ActivityIdentifier id, Context scope);
 
@@ -26,14 +26,14 @@ public interface Cohort {
     
     public Context getContext();
     
-    public void setContext(Context context);
+    public void setContext(Context context) throws Exception;
+    public void setContext(CohortIdentifier id, Context context) throws Exception;
     
   //  public void addContext(Context ... contexts);
     
   //  public void removeContext(Context ...contexts);
     
-    public void clearContext();
-    
+  //  public void clearContext();
     
     public Cohort [] getSubCohorts();
     

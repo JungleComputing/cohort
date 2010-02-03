@@ -13,7 +13,7 @@ public abstract class Activity implements Serializable {
     protected transient Cohort cohort;
     
     private ActivityIdentifier identifier;
-    private Context context; 
+    private final Context context; 
    
     private byte next = REQUEST_UNKNOWN;
         
@@ -90,6 +90,6 @@ public abstract class Activity implements Serializable {
     public abstract void cancel() throws Exception;
     
     public String toString() { 
-        return identifier.localName();
+        return identifier.toString();
     }
 }

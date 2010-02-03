@@ -1,16 +1,15 @@
 package test.lowlevel;
 
-import java.util.Arrays;
-
 import ibis.cohort.Activity;
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
+import ibis.cohort.CohortFactory;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
-import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.impl.multithreaded.MTCohort;
-import ibis.cohort.impl.sequential.Sequential;
+
+import java.util.Arrays;
 
 public class DivideAndConquerWithChecks extends Activity {
 
@@ -118,34 +117,16 @@ public class DivideAndConquerWithChecks extends Activity {
             + merged + " -> " + count;
     }
 
-    public static void main(String [] args) { 
+    public static void main(String [] args) throws Exception { 
 
         long start = System.currentTimeMillis();
 
       //  Cohort cohort = new Sequential();
-
-        Cohort cohort = null; 
+        
+        Cohort cohort = CohortFactory.createCohort();
         
         int index = 0;
         
-        if (args[index].equals("seq")) { 
-            cohort = new Sequential();
-            index++;
-            
-            System.out.println("Using SEQUENTIAL Cohort implementation");
-            
-        } else  if (args[index].equals("mt")) { 
-            index++;
-            int threads = Integer.parseInt(args[index++]);
-            cohort = new MTCohort(threads);
-       
-            System.out.println("Using MULTITHREADED(" + threads + ") Cohort implementation");
-            
-        } else { 
-            System.out.println("Unknown Cohort implementation selected!");
-            System.exit(1);
-        }
-         
         int branch = Integer.parseInt(args[index++]);
         int depth =  Integer.parseInt(args[index++]);
         

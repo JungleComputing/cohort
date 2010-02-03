@@ -1,19 +1,18 @@
 package ibis.cohort.impl.distributed;
 
-import java.io.Serializable;
-
 import ibis.cohort.CohortIdentifier;
 
-class StealReply implements Serializable {
+public class StealReply extends Message {
     
     private static final long serialVersionUID = 2655647847327367590L;
    
-    public final CohortIdentifier target;
     public final ActivityRecord work;
     
-    public StealReply(final CohortIdentifier target, final ActivityRecord work) {  
-        super();
-        this.target = target;
+    public StealReply(
+            final CohortIdentifier source, 
+            final CohortIdentifier target, 
+            final ActivityRecord work) { 
+        super(source, target);
         this.work = work;
     }
 }

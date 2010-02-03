@@ -18,7 +18,8 @@ public class SingleEventCollector extends Activity {
     @Override
     public synchronized void process(Event e) throws Exception {
       
-        System.out.println("GOT RESULT!");
+        System.out.println("SINGLE EVENT COLLECTOR ( " + identifier() 
+                + ") GOT RESULT!");
         
         event = e;
         notifyAll();

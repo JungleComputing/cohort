@@ -7,7 +7,7 @@ import ibis.cohort.extra.CircularBuffer;
 
 import java.io.Serializable;
 
-class ActivityRecord implements Serializable { 
+public class ActivityRecord implements Serializable { 
 
     private static final long serialVersionUID = 6938326535791839797L;
 
@@ -18,18 +18,18 @@ class ActivityRecord implements Serializable {
     static final int DONE         = 5;
     static final int ERROR        = Integer.MAX_VALUE;
 
-    final Activity activity;
+    public final Activity activity;
     private CircularBuffer queue;
     private int state = INITIALIZING;
     
     private boolean stolen = false;
     private boolean remote = false;
     
-    ActivityRecord(Activity activity) {
+    public ActivityRecord(Activity activity) {
         this.activity = activity;
     }
 
-    void enqueue(Event e) { 
+    public void enqueue(Event e) { 
 
         if (state >= FINISHING) { 
             throw new IllegalStateException("Cannot deliver an event to a finished activity! " + activity + " (event from " + e.source + ")");
@@ -65,7 +65,7 @@ class ActivityRecord implements Serializable {
         return queue.size();
     }
 
-    ActivityIdentifier identifier() { 
+    public ActivityIdentifier identifier() { 
         return activity.identifier();
     }
 
@@ -73,11 +73,11 @@ class ActivityRecord implements Serializable {
         return (state == RUNNABLE);
     }
 
-    boolean isStolen() { 
+    public boolean isStolen() { 
         return (stolen);
     }
 
-    void setStolen(boolean value) { 
+    public void setStolen(boolean value) { 
         stolen = value;
     }
 
@@ -85,11 +85,11 @@ class ActivityRecord implements Serializable {
         return (remote);
     }
 
-    void setRemote(boolean value) { 
+    public void setRemote(boolean value) { 
         remote = value;
     }
     
-    boolean isDone() { 
+    public boolean isDone() { 
         return (state == DONE || state == ERROR);
     }
 
@@ -97,11 +97,11 @@ class ActivityRecord implements Serializable {
         return (state == INITIALIZING);
     }
 
-    boolean needsToRun() { 
+    public boolean needsToRun() { 
         return (state == INITIALIZING || state == RUNNABLE || state == FINISHING);
     }
 
-    boolean setRunnable()  { 
+    public boolean setRunnable()  { 
 
         if (state == RUNNABLE || state == INITIALIZING) { 
             // it's already runnable 
@@ -195,7 +195,7 @@ class ActivityRecord implements Serializable {
 
     } 
 
-    void run() {
+    public void run() {
 
         //do { 
             runStateMachine();
@@ -225,6 +225,10 @@ class ActivityRecord implements Serializable {
 
     public String toString() { 
         return activity + " STATE: " + getStateAsString() + " " + (queue == null ? -1 : queue.size());
+    }
+
+    public long getHopCount() {
+        return 0;
     }
 
    

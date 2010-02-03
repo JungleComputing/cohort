@@ -1,19 +1,12 @@
 package sor.rigid;
 
-import java.util.Properties;
-
-import ibis.cohort.Activity;
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
-import ibis.cohort.Context;
-import ibis.cohort.Event;
-import ibis.cohort.ActivityIdentifier;
-import ibis.cohort.MessageEvent;
 import ibis.cohort.MultiEventCollector;
-import ibis.cohort.SingleEventCollector;
 import ibis.cohort.context.UnitContext;
-import ibis.cohort.impl.multithreaded.MTCohort;
-import ibis.cohort.impl.sequential.Sequential;
+
+import java.util.Properties;
 
 public class RigidSOR {
 
@@ -25,7 +18,7 @@ public class RigidSOR {
      * in advance, and that the machines are homegeneous.
      */
 
-    private static int setContexts(Cohort cohort, int start) { 
+    private static int setContexts(Cohort cohort, int start) throws Exception { 
         
         Cohort [] sub = cohort.getSubCohorts();
         
