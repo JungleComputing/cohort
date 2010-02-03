@@ -1,0 +1,797 @@
+package ibis.cohort.impl.distributed.multi;
+
+import ibis.cohort.Activity;
+import ibis.cohort.ActivityIdentifier;
+import ibis.cohort.ActivityIdentifierFactory;
+import ibis.cohort.Cohort;
+import ibis.cohort.CohortIdentifier;
+import ibis.cohort.Context;
+import ibis.cohort.Event;
+import ibis.cohort.extra.CircularBuffer;
+import ibis.cohort.impl.distributed.ActivityRecord;
+import ibis.cohort.impl.distributed.ApplicationMessage;
+import ibis.cohort.impl.distributed.LocationCache;
+import ibis.cohort.impl.distributed.LookupReply;
+import ibis.cohort.impl.distributed.LookupRequest;
+import ibis.cohort.impl.distributed.Message;
+import ibis.cohort.impl.distributed.MiddleCohort;
+import ibis.cohort.impl.distributed.StealReply;
+import ibis.cohort.impl.distributed.StealRequest;
+import ibis.cohort.impl.distributed.BottomCohort;
+import ibis.cohort.impl.distributed.TopCohort;
+import ibis.cohort.impl.distributed.dist.DistributedCohort;
+import ibis.cohort.impl.distributed.single.SingleThreadedCohort;
+
+import java.io.PrintStream;
+import java.util.Properties;
+import java.util.Random;
+
+public class MultiThreadedCohort implements Cohort, TopCohort, BottomCohort {
+
+    private static final int REMOTE_STEAL_RANDOM = 0;
+    private static final int REMOTE_STEAL_ALL    = 1;
+
+    private static final int REMOTE_STEAL_POLICY = 
+        determineRemoteStealPolicy(REMOTE_STEAL_RANDOM);
+
+    private final TopCohort parent;
+
+    private BottomCohort [] workers;
+
+    private final CohortIdentifier identifier;
+
+    private final Random random = new Random();
+
+    private final int workerCount;
+
+    private boolean active = false;
+    
+    private Context [] context;
+    
+    private CircularBuffer incomingRemoteActivities = new CircularBuffer(16);
+
+    private LocationCache locationCache = new LocationCache();
+
+    private static class StealState { 
+
+        private StealRequest pending; 
+        private long steals;
+        private long succes;
+
+        public synchronized boolean atomicSet(StealRequest s) {
+
+            if (pending != null) {
+                return false;
+            }
+
+            pending = s;
+            steals++;
+            return true;
+        }
+
+        public synchronized void clear(boolean succes) {
+
+            pending = null;
+
+            if (succes) { 
+                this.succes++;
+            }
+        }
+
+        public synchronized boolean pending() {
+            return (pending != null);
+        }
+    }
+
+    private StealState [] localSteals;
+
+    // private long printLoadDeadLine = -1;
+
+    private int nextSubmit = 0;
+
+ 
+    private static int determineRemoteStealPolicy(int def) { 
+
+        String tmp = System.getProperty("ibis.cohort.remotesteal.policy");
+
+        if (tmp != null && tmp.length() > 0) {
+
+            if (tmp.equals("all")) { 
+                return REMOTE_STEAL_ALL;
+            }
+
+            if (tmp.equals("random")) { 
+                return REMOTE_STEAL_RANDOM;
+            }
+
+            System.err.println("Failed to parse property " +
+                    "ibis.cohort.remotesteal: " + tmp);
+        }
+
+        return def;
+    }
+
+    public MultiThreadedCohort(DistributedCohort parent, Properties p, 
+            CohortIdentifier identifier, int workerCount) {
+
+        this.parent = parent;
+        this.identifier = identifier;
+
+        if (workerCount == 0) {
+
+            String tmp = p.getProperty("ibis.cohort.workers");
+
+            if (tmp != null && tmp.length() > 0) {
+                try {
+                    workerCount = Integer.parseInt(tmp);
+                } catch (Exception e) {
+                    System.err.println("Failed to parse property " +
+                            "ibis.cohort.workers: " + e);
+                }
+            }
+
+            if (workerCount == 0) {
+                // Automatically determine the number of cores to use
+                workerCount = Runtime.getRuntime().availableProcessors();
+            }
+        }
+
+        this.workerCount = workerCount;
+
+        System.out.println("Starting MultiThreadedCohort using " + workerCount
+                + " workers");
+
+        workers     = new SingleThreadedCohort[workerCount];
+        localSteals = new StealState[workerCount];
+        context     = new Context[workerCount];
+        
+        for (int i = 0; i < workerCount; i++) {
+            workers[i] = new SingleThreadedCohort(this, p, parent.getRank(), 
+                    workerCount, i, parent.getCohortIdentifier());
+
+            localSteals[i] = new StealState();
+            context[i] = Context.ANY;
+        }
+    }
+
+   
+
+    public PrintStream getOutput() {
+        return System.out;
+    }
+
+   
+ 
+
+  /* 
+
+    public ActivityIdentifierFactory getIDGenerator(
+            CohortIdentifier identifier) {
+   
+    }
+*/
+   
+
+    // Going up!
+    void forwardEvent(Event e) {
+
+        CohortIdentifier tmp = locationCache.lookup(e.target);
+
+        if (tmp != null) { 
+            // One of the children should have this activity
+
+            for (int i=0;i<workerCount;i++) { 
+                if (tmp.equals(workers[i].identifier())) { 
+                    workers[i].deliverEvent(e);
+                    return;
+                }
+            }
+
+            System.err.println("EEP: inconsistent location cache in MT: " 
+                    + tmp + " is not a local cohort!");
+
+            locationCache.removeIfEqual(e.target, tmp);
+        }
+
+        parent.forwardEvent(e);
+    }
+
+    void undeliverableEvent(int workerID, Event e) {
+
+        if (workerCount == 1) { 
+            System.err.println("EEP: cannot forward undeliverable event! " + e);
+            return;
+        }
+
+        int next = (workerID + 1) % workerCount;
+
+        System.err.println("EEP: forwarding undeliverable event from " 
+                + workerID + " to " + next);
+
+        workers[next].deliverEvent(e);
+    }
+
+    // Going down!
+    boolean deliverEvent(Event e) {
+
+        CohortIdentifier tmp = locationCache.lookup(e.target);
+
+        if (tmp != null) { 
+            for (int i = 0; i < workers.length; i++) {
+                CohortIdentifier id = workers[i].identifier();
+
+                if (tmp.equals(id)) {
+
+                    System.out.println("ACT: " + e.target + " may be located " +
+                            " in local cohort " + id); 
+
+                    workers[i].deliverEvent(e);
+                    return true;
+                }
+            }
+
+            System.err.println("EEP: Inconsistent location cache! Local cohort " 
+                   + tmp + " not found, cannot deliver " +" event " + e.target);
+            
+            locationCache.removeIfEqual(e.target, tmp);
+            return false; 
+        } 
+
+        System.err.println("No local cohort found to deliver event " 
+                + e.target + " to.");
+     
+        return false;
+
+        // workers[((DistributedActivityIdentifier)
+        // e.target).getCohort().getWorkerID()].deliverEvent(e);
+    }
+
+    public void addRemoteActivity(CohortIdentifier t, ActivityRecord record) {
+
+        if (record == null) {
+            System.out.println("EEP: steal reply is null!!");
+            new Exception().printStackTrace();
+        }
+
+        // NOTE: for the moment we store all incoming jobs here. Any idle
+        // workers will poll us for work anyway.
+        synchronized (incomingRemoteActivities) {
+            incomingRemoteActivities.insertLast(record);
+        }
+    }
+
+    // This one is top-down: a parent cohort is requesting work from below
+    /*    idleTime = new long[workerCount];
+
+
+     * ActivityRecord stealRequest(CohortIdentifier source) {
+     * 
+     * synchronized (activitiesGoingUp) { if (activitiesGoingUp.size() > 0) {
+     * return (ActivityRecord) activitiesGoingUp.removeFirst(); } }
+     * 
+     * for (int i=0;i<workers.length;i++) { workers[i].stealRequest(source); }
+     * 
+     * return null; }
+     */
+
+    private int selectTargetWorker() {
+        // This return a random number between 0 .. workerCount-1
+        return random.nextInt(workerCount);
+    }
+
+    // This one is top-down: a parent cohort is requesting work from below
+    void incomingRemoteStealRequest(StealRequest request) {
+
+        switch (REMOTE_STEAL_POLICY) {
+
+        case REMOTE_STEAL_ALL:
+            for (int i=0;i<workers.length;i++) { 
+                workers[i].postStealRequest(request);
+            }
+            return;
+
+        case REMOTE_STEAL_RANDOM:
+        default:
+            // Notify a (random) worker that there is a steal request pending...
+            workers[selectTargetWorker()].postStealRequest(request);
+        return;
+        } 
+    }
+
+    /*
+    // Send result of steal back to requester.
+    void sendStealReply(StealRequest r, ActivityRecord a) {
+        parent.sendStealReply(new StealReply(r.src, a));
+    }
+
+    // Send result of steal back to requester.
+    void sendStealReply(StealRequest r) {
+        parent.sendStealReply(new StealReply(r.src, null));
+    }
+     */
+
+    /*
+    // Forward unsuccesful steal request to next worker.
+    public void returnStealRequest(int workerID, StealRequest request) {
+
+        if (request.incrementHops() == workerCount) {
+            // All workers have seen this request, no work was found!
+            sendStealReply(request);
+            return;
+        }
+
+        // forward steal request to next worker.
+        workers[(workerID + 1) % workerCount].postStealRequest(request);
+    }
+     */
+
+    void lookupReply(LookupRequest request, CohortIdentifier reply) {
+        // eep
+    }
+    
+    CohortIdentifier locateActivity(ActivityIdentifier id) { 
+        
+        synchronized (incomingRemoteActivities) {
+            
+            int size = incomingRemoteActivities.size();
+
+            if (size == 0) {
+                return null;
+            }
+
+            for (int i = 0; i < size; i++) {   
+
+                ActivityIdentifier tmp = 
+                    ((ActivityRecord) incomingRemoteActivities.get(i)).identifier();
+
+                if (id.equals(tmp)) {
+                    return identifier;
+                }
+            }
+        }   
+     
+        return null;
+        
+        
+    }
+    
+    ActivityRecord getStoredRemoteActivity(Context threadContext) {
+
+        synchronized (incomingRemoteActivities) {
+
+            int size = incomingRemoteActivities.size();
+
+            if (size == 0) {
+                return null;
+            }
+
+            for (int i = 0; i < size; i++) {   
+
+                ActivityRecord tmp = 
+                    (ActivityRecord) incomingRemoteActivities.get(i);
+
+                //        System.out.println("Returning stolen remote activity: " 
+                //                + tmp.identifier().localName() + " contexts " + c + " " 
+                //                + tmp.activity);
+
+                if (threadContext.contains(tmp.activity.getContext())) {
+                    incomingRemoteActivities.remove(i);
+                    return tmp;
+                }
+            }
+
+            // No matching activities found....
+
+            // FIXME: This approach may lead to starvation if an activity gets
+            // stuck on a machine that has no (remaining) workers that can
+            // process it....
+            return null;
+        }
+    }
+
+    /*
+    // This one is bottom-up: a sub-cohort is requesting work from above
+    ActivityRecord stealAttempt(int workerID, StealRequest sr) {
+
+        // We first check the local queue for work. Since we don't know where
+        // it's coming from, we need to check the context to make sure that we
+        // can process it.
+        ActivityRecord tmp = getStoredActivity(sr.context);
+
+        if (tmp != null) { 
+            return tmp;
+        }
+
+        // If not, we forward the steal request to our parent
+        parent.stealAttempt(sr);
+
+        // Next, we ask the one of the other local workers. > 0
+        if (workerCount > 1) {
+
+            int index = selectTargetWorker();
+
+            if (index == workerID) {
+                index = (index + 1) % workerCount;
+            }
+
+            System.err.println("Local steal posted at worker " + index);
+
+            workers[index].postStealRequest(sr);
+        }
+
+        return null;
+    }
+     */
+
+
+   
+   
+
+
+
+    public boolean idle(int workerID, Context threadContext) {
+
+        // A worker has become idle and will remain so until we give it an 
+        // event or activity. 
+
+        // We first check the queue containing the activities stolen from remote
+        // machines. We need to check the context to make sure that the idle 
+        // worker can process it.
+        ActivityRecord tmp = getStoredRemoteActivity(threadContext);
+
+        if (tmp != null) {
+            workers[workerID].deliverActivityRecord(tmp);
+            // Tell the worker it should have work now 
+            return true;
+        }
+
+        // If we don't have any work waiting, so we need to steal some.
+
+        // If we have more than 1 worker we can steal locally
+        if (workerCount > 1) { 
+
+            // First make sure that there are no (local) steal request pending.
+            if (localSteals[workerID].pending()) { 
+                // Tell the worker I don't have work (yet)
+                return false;
+            }
+
+            // No pending request, so notify all other local workers that we need 
+            // work. Register each request so we can (async) wait for the reply. 
+            StealRequest s = new StealRequest(workerID, threadContext);
+
+            int target = selectTargetWorker();
+
+            if (target == workerID) { 
+                target = (target+1) % workerCount;
+            }
+
+            if (localSteals[workerID].atomicSet(s)) { 
+                workers[target].postStealRequest(s);  
+            }
+        }
+
+        // Next, we should also fire a remote steal. 
+        parent.stealAttempt(threadContext);
+
+        // Tell the worker I don't have work (yet). 
+        return false;
+    }
+
+    public boolean sendStealReply(StealRequest s, ActivityRecord a) {
+
+        if (s.isLocal()) { 
+
+            if (a != null) { 
+                workers[s.localSource].deliverActivityRecord(a);
+                localSteals[s.localSource].clear(true);
+            } else { 
+                localSteals[s.localSource].clear(false);
+            }
+
+            // We are always interested in the answer of local steals.
+            return true;
+
+        } else {
+
+            // We check if the worker is still interested.  
+            // If not, we keep the job to ourselves
+            boolean stale = s.atomicSetStale();
+
+            if (stale) {
+                // The steal request was already answered by someone else
+                return false;
+            }
+
+            // TODO: also check timeout here!
+
+            parent.sendStealReply(new StealReply(s.remoteSource, a));
+
+            return true;
+        }
+    }
+
+    /* ================= TopCohort interface =================================*/
+    
+    public void contextChanged(CohortIdentifier cid, Context newContext) {
+        
+        for (int i=0;i<workerCount;i++) { 
+            
+            if (cid.equals(workers[i].identifier())) { 
+                context[i] = newContext;
+                return;
+            }
+        }
+        
+        throw new Exception("Cohort " + cid + " not found!");
+    }
+
+    public ActivityIdentifierFactory getActivityIdentifierFactory(
+            CohortIdentifier cid) {
+        return parent.getActivityIdentifierFactory(identifier);
+    }
+
+    public CohortIdentifier handleLookup(LookupRequest lr) {
+        
+        CohortIdentifier src = lr.source;
+        
+        // TODO: local cache!
+
+        for (int i=0;i<workerCount;i++) { 
+        
+            if (!src.equals(workers[i].identifier())) {
+                workers[i].deliverLookup(lr);
+            }
+        }
+
+        return parent.handleLookup(lr);
+    }
+
+    public void handleMessage(Message m) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public ActivityRecord handleStealRequest(StealRequest sr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void handleWrongContext(ActivityRecord ar) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    /* ================= End of TopCohort interface ==========================*/
+    
+    
+    /* ================= BottomCohort interface ==============================*/
+    
+    public boolean canProcessActivities() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void deliverApplicationMessage(ApplicationMessage m) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void deliverCancel(ActivityIdentifier aid) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void deliverLookup(LookupRequest lr) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void deliverSteal(StealRequest sr) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void deliverStealReply(StealReply sr) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public ActivityIdentifier deliverSubmit(Activity a) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    // Implemented in Cohort interface part
+    // 
+    // public Context getContext()
+
+    public void setContext(CohortIdentifier id, Context context) throws Exception {
+        // TODO Auto-generated method stub
+    }
+    
+    /* ================= End of BottomCohort interface =======================*/
+
+
+    /* ================= Cohort interface ====================================*/
+
+    public boolean isMaster() {
+        return parent.isMaster();
+    }
+    
+    public void done() {
+        for (BottomCohort u : workers) {
+            u.done();
+        }
+    }
+    
+    public CohortIdentifier identifier() {
+        return identifier;
+    }
+    
+    public synchronized ActivityIdentifier submit(Activity a) {
+
+        // System.out.println("MT submit");
+
+        // We do a simple round-robin distribution of the jobs here.
+        if (nextSubmit >= workers.length) {
+            nextSubmit = 0;
+        }
+
+        return workers[nextSubmit++].deliverSubmit(a);
+    }
+    
+    public void cancel(ActivityIdentifier activity) {
+        for (BottomCohort u : workers) {
+            u.deliverCancel(activity);
+        }
+    }
+    
+    //public void send(ActivityIdentifier source, ActivityIdentifier target, Object o);    
+
+    public void send(Event e) {         
+        // FIXME: not implmemented yet...
+        throw new IllegalStateException("Send called on MTCohort!");
+    }
+    
+    
+    public synchronized Context getContext() {
+        return context;
+    }
+    
+    public Cohort[] getSubCohorts() {
+        return (Cohort []) workers.clone();
+    }
+    
+    public boolean activate() { 
+
+        synchronized (this) {
+            if (active) { 
+                return false;
+            }
+
+            active = true;
+        }
+
+        for (int i = 0; i < workerCount; i++) {
+            new Thread(workers[i], "Cohort ComputationUnit " + i).start();
+        }
+
+        return true;
+    }
+    
+    
+    
+    public boolean deregister(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public ActivityIdentifier lookup(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean register(String name, ActivityIdentifier id, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void setContext(Context context) throws Exception {
+        throw new Exception("Cannot set context of MT Cohort!");
+    }
+
+    /* ================= End of Cohort interface =============================*/
+
+    
+    
+    
+    
+/*    
+    public boolean deregister(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public ActivityIdentifier lookup(String name, Context scope) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean register(String name, ActivityIdentifier id, Context scope) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public Context getContext() {
+        throw new IllegalStateException("getContext not allowed!");
+    }
+
+    public void setContext(Context context) {
+        throw new IllegalStateException("setContext not allowed!");
+    }
+
+    public void clearContext() {
+        throw new IllegalStateException("setContext not allowed!");           
+    }
+*/
+
+
+    /*
+    synchronized void printLoad() { 
+
+        long time = System.currentTimeMillis();
+
+        if (time > printLoadDeadLine) { 
+            System.out.println("Load at " + time + " : " + (workerCount-idle) 
+                    + " " + sleepTime + " " + sleepCount + " " 
+                    + sleepTime/sleepCount);
+            printLoadDeadLine = time + 500;
+
+            sleepTime = 0;
+            sleepCount = 0;
+        }
+    }
+
+    /*
+    synchronized void workerIdle(int workerID, long sleepTime) {
+        idle++;
+
+        this.sleepTime += sleepTime;
+        sleepCount++;
+
+        long time = System.currentTimeMillis();
+
+        if (time > printLoadDeadLine) { 
+            System.out.println("Load at " + time + " : " + (workerCount-idle) 
+                    + " " + sleepTime + " " + sleepCount + " " 
+                    + sleepTime/sleepCount);
+            printLoadDeadLine = time + 500;
+
+            sleepTime = 0;
+            sleepCount = 0;
+        }
+    }
+
+    synchronized void workerActive(int workerID) {
+        idle--;
+
+        long time = System.currentTimeMillis();
+
+        if (time > printLoadDeadLine) { 
+
+
+            System.out.println("Load at " + time + " : " + (workerCount-idle) 
+                    + " " + sleepTime + " " + sleepCount + " " 
+                    + (sleepCount > 0 ? sleepTime/sleepCount : 0));
+
+            printLoadDeadLine = time + 500;
+
+            sleepTime = 0;
+            sleepCount = 0;
+
+        }
+    }*/
+
+
+}
