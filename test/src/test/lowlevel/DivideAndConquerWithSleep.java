@@ -117,6 +117,8 @@ public class DivideAndConquerWithSleep extends Activity {
                 cohort.submit(a);
                 cohort.submit(new DivideAndConquerWithSleep(a.identifier(), branch, 
                         depth, load));
+                
+                cohort.activate();
 
                 long result = ((MessageEvent<Long>)a.waitForEvent()).message;
 

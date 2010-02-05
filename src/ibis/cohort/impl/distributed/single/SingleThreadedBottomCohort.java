@@ -184,7 +184,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     public void setContext(CohortIdentifier id, Context c) throws Exception { 
 
         if (!identifier.equals(id)) { 
-            throw new Exception("Received stay contextChange! " + c);
+            throw new Exception("Received stray contextChange! " + c);
         } 
        
         postContextChange(c);

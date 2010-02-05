@@ -802,15 +802,15 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
     }
     
     public synchronized ActivityIdentifier submit(Activity a) {
-
-        System.out.println("MT(" + identifier + ") forward submit to " 
-                + workers[nextSubmit].identifier());
    
         // We do a simple round-robin distribution of the jobs here.
         if (nextSubmit >= workers.length) {
             nextSubmit = 0;
         }
 
+        System.out.println("MT(" + identifier + ") forward submit to " 
+                + workers[nextSubmit].identifier());
+   
         return workers[nextSubmit++].deliverSubmit(a);
     }
     

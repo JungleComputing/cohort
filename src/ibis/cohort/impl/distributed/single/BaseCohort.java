@@ -12,11 +12,13 @@ import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.Log;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Properties;
 
-class BaseCohort implements Cohort {
+public class BaseCohort implements Cohort {
 
     private static final boolean DEBUG = false;
     
@@ -24,7 +26,7 @@ class BaseCohort implements Cohort {
 
     private final CohortIdentifier identifier;
 
-    private final PrintStream out;
+    private PrintStream out;
     private final Log logger;
     
     // Default context is ANY
@@ -74,6 +76,32 @@ class BaseCohort implements Cohort {
         this.logger = logger;
         this.out = out;
     }
+    
+    public BaseCohort(Properties p) {
+        this.parent = null;
+        this.identifier = new CohortIdentifier(0);
+        
+        this.generator = new ActivityIdentifierFactory(0, 0, Long.MAX_VALUE);
+        
+        String outfile = p.getProperty("ibis.cohort.outputfile");
+        
+        if (outfile != null) {
+            String filename = outfile + "." + identifier;
+            
+            try {
+                out = new PrintStream(new BufferedOutputStream(
+                        new FileOutputStream(filename)));
+            } catch (Exception e) {
+                System.out.println("Failed to open output file " + outfile);
+                out = System.out;
+            }
+            
+        } else { 
+            out = System.out;
+        }
+        
+        logger = new Log(identifier + " [SEQ] ", out, DEBUG);
+    }        
     
     public void cancel(ActivityIdentifier id) {
 
@@ -126,14 +154,16 @@ class BaseCohort implements Cohort {
             return generator.createActivityID();
         } catch (Exception e) {
             // Oops, we ran out of IDs. Get some more from our parent!
-            generator = parent.getActivityIdentifierFactory(identifier);
+            if (parent != null) { 
+                generator = parent.getActivityIdentifierFactory(identifier);
+            }
         }
 
         try {
             return generator.createActivityID();
         } catch (Exception e) {
             throw new RuntimeException(
-                    "ITERNAL ERROR: failed to create new ID block!", e);
+                    "INTERNAL ERROR: failed to create new ID block!", e);
         }
 
         // return new MTIdentifier(nextID++);
@@ -237,7 +267,7 @@ class BaseCohort implements Cohort {
     
     public ActivityIdentifier lookup(String name, Context scope) {
         
-        if (scope.isLocal()) { 
+        if (parent == null || scope.isLocal()) { 
             return lookup(name);
         }
         
@@ -246,7 +276,7 @@ class BaseCohort implements Cohort {
     
     public boolean register(String name, ActivityIdentifier id, Context scope) {
         
-        if (scope.isLocal()) { 
+        if (parent == null || scope.isLocal()) { 
             return register(name, id);
         }
         
@@ -255,7 +285,7 @@ class BaseCohort implements Cohort {
     
     public boolean deregister(String name, Context scope) {
 
-        if (scope.isLocal()) { 
+        if (parent == null || scope.isLocal()) { 
             return deregister(name);
         }
         
@@ -285,8 +315,13 @@ class BaseCohort implements Cohort {
 
             messagesExternal++;
 
-            parent.forwardEvent(e);
-
+            if (parent == null) { 
+                throw new RuntimeException("UNKNOWN TARGET: failed to find " +
+                                "destination activity " + e.target);
+            } else { 
+                parent.forwardEvent(e);
+            }
+            
         } else {
 
             messagesInternal++;
@@ -450,6 +485,9 @@ class BaseCohort implements Cohort {
     
     private void process(ActivityRecord tmp) { 
 
+        logger.info("Processing " + tmp.activity.identifier());
+        
+        
         long start, end;
         
         tmp.activity.setCohort(this);
@@ -577,6 +615,11 @@ class BaseCohort implements Cohort {
     }
 
     public boolean isMaster() {
+        
+        if (parent == null) { 
+            return true;
+        }
+        
         return parent.isMaster();
     }
 
@@ -615,10 +658,18 @@ class BaseCohort implements Cohort {
     }
     
     public boolean activate() { 
-        // ignored
-        return true;
+     
+        logger.info("Activate called: " + parent);
+        
+        if (parent != null) { 
+            return true;
+        }
+        
+        while (process()) { 
+        }
+        
+        return false;
     }
-
    
 
    

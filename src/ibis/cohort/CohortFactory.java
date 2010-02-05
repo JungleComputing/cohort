@@ -2,6 +2,7 @@ package ibis.cohort;
 
 import ibis.cohort.impl.distributed.dist.DistributedCohort;
 import ibis.cohort.impl.distributed.multi.MultiThreadedTopCohort;
+import ibis.cohort.impl.distributed.single.BaseCohort;
 
 import java.util.Properties;
 
@@ -23,6 +24,8 @@ public class CohortFactory {
                 // fall through                
           //  } else if (name.equals("seq") || name.equals("sequential")){ 
           //      return new Sequential();
+            } else if (name.equals("seq") || name.equals("sequential")) { 
+                return new BaseCohort(p);                
             } else if (name.equals("mt") || name.equals("multithreaded")) { 
                 return new MultiThreadedTopCohort(p, 0);                
             } else if (name.equals("dist") || name.equals("distributed")) { 
