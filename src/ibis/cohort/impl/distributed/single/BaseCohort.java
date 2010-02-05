@@ -485,9 +485,6 @@ public class BaseCohort implements Cohort {
     
     private void process(ActivityRecord tmp) { 
 
-        logger.info("Processing " + tmp.activity.identifier());
-        
-        
         long start, end;
         
         tmp.activity.setCohort(this);
@@ -659,14 +656,11 @@ public class BaseCohort implements Cohort {
     
     public boolean activate() { 
      
-        logger.info("Activate called: " + parent);
-        
         if (parent != null) { 
             return true;
         }
         
-        while (process()) { 
-        }
+        while (process());
         
         return false;
     }
