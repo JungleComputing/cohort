@@ -10,7 +10,7 @@ import ibis.cohort.context.ContextSet;
 import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortIdentifierFactory;
-import ibis.cohort.extra.Log;
+import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.impl.distributed.ActivityRecord;
 import ibis.cohort.impl.distributed.ActivityRecordQueue;
 import ibis.cohort.impl.distributed.ApplicationMessage;
@@ -65,7 +65,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     
     private final LookupThread lookup;
     
-    private final Log logger;
+    private final CohortLogger logger;
     
     private class LookupThread extends Thread { 
         
@@ -272,8 +272,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
         this.workerCount = count;
 
-        this.logger = new Log(identifier + " [MT-" + count + "] ", System.out, DEBUG);
-        
+        this.logger = CohortLogger.getLogger(MultiThreadedMiddleCohort.class, identifier);
         logger.info("Starting MultiThreadedCohort using " + count + " workers");
 
         workers     = new SingleThreadedBottomCohort[count];

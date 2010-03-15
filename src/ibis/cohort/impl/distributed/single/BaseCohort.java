@@ -9,7 +9,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.extra.CircularBuffer;
-import ibis.cohort.extra.Log;
+import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
 import java.io.BufferedOutputStream;
@@ -26,8 +26,8 @@ public class BaseCohort implements Cohort {
 
     private final CohortIdentifier identifier;
 
-    private PrintStream out;
-    private final Log logger;
+    // private PrintStream out;
+    private final CohortLogger logger;
     
     // Default context is ANY
     private Context myContext = Context.ANY;
@@ -69,38 +69,18 @@ public class BaseCohort implements Cohort {
     private ActivityRecord current;
     
     BaseCohort(SingleThreadedBottomCohort parent, Properties p, 
-            CohortIdentifier identifier, PrintStream out, Log logger) {
+            CohortIdentifier identifier, CohortLogger logger) {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getActivityIdentifierFactory(identifier);
         this.logger = logger;
-        this.out = out;
     }
     
     public BaseCohort(Properties p) {
         this.parent = null;
         this.identifier = new CohortIdentifier(0);
-        
         this.generator = new ActivityIdentifierFactory(0, 0, Long.MAX_VALUE);
-        
-        String outfile = p.getProperty("ibis.cohort.outputfile");
-        
-        if (outfile != null) {
-            String filename = outfile + "." + identifier;
-            
-            try {
-                out = new PrintStream(new BufferedOutputStream(
-                        new FileOutputStream(filename)));
-            } catch (Exception e) {
-                System.out.println("Failed to open output file " + outfile);
-                out = System.out;
-            }
-            
-        } else { 
-            out = System.out;
-        }
-        
-        logger = new Log(identifier + " [SEQ] ", out, DEBUG);
+        this.logger = CohortLogger.getLogger(BaseCohort.class, identifier);
     }        
     
     public void cancel(ActivityIdentifier id) {
@@ -646,10 +626,6 @@ public class BaseCohort implements Cohort {
         myContext = Context.ANY;
     }
     
-    public PrintStream getOutput() {       
-        return out;
-    }
-
     public Cohort[] getSubCohorts() {
         return null;
     }

@@ -10,7 +10,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.extra.CohortIdentifierFactory;
-import ibis.cohort.extra.Log;
+import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.impl.distributed.ActivityRecord;
 import ibis.cohort.impl.distributed.ActivityRecordQueue;
 import ibis.cohort.impl.distributed.ApplicationMessage;
@@ -48,7 +48,7 @@ public class DistributedCohort implements Cohort, TopCohort {
       
     private final DistributedCohortIdentifierFactory cidFactory;
 
-    private final Log logger;
+    private final CohortLogger logger;
     
     
 //  private final Transfer transfer;
@@ -205,7 +205,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         // TODO: THIS IS WRONG!!!
         subCohort = new MultiThreadedMiddleCohort(p, this, 0);     
         
-        logger = new Log(identifier + " [DIST] ", System.out, DEBUG);
+        logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
         
         pool.setLogger(logger);        
     }

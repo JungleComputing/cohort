@@ -1,7 +1,7 @@
 package ibis.cohort.impl.distributed.dist;
 
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.extra.Log;
+import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.impl.distributed.ApplicationMessage;
 import ibis.cohort.impl.distributed.LookupReply;
 import ibis.cohort.impl.distributed.LookupRequest;
@@ -57,7 +57,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     
     private final DistributedCohortIdentifierFactory cidFactory;
     
-    private Log logger;
+    private CohortLogger logger;
     
     private final Ibis ibis;
     private final IbisIdentifier local;
@@ -113,7 +113,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         cidFactory = new DistributedCohortIdentifierFactory(local, rank);
     }
 
-    protected void setLogger(Log logger) { 
+    protected void setLogger(CohortLogger logger) { 
         this.logger = logger;
         logger.info("Cohort master is " + master + " rank is " + rank);
     }

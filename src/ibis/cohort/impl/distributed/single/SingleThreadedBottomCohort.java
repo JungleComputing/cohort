@@ -7,7 +7,7 @@ import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.extra.CircularBuffer;
-import ibis.cohort.extra.Log;
+import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.impl.distributed.ActivityRecord;
 import ibis.cohort.impl.distributed.ApplicationMessage;
 import ibis.cohort.impl.distributed.BottomCohort;
@@ -38,7 +38,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     private final CohortIdentifier identifier;
     
     private PrintStream out; 
-    private Log logger;
+    private CohortLogger logger;
     
     private static class PendingRequests {
         
@@ -139,7 +139,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             out = System.out;
         }
         
-        logger = new Log(identifier + " [ST] ", out, DEBUG);
+        this.logger = CohortLogger.getLogger(SingleThreadedBottomCohort.class, identifier);
         
         
         String tmp = p.getProperty("ibis.cohort.sleep");
@@ -170,7 +170,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             }*/
         }
 
-        sequential = new BaseCohort(this, p, identifier, out, logger);
+        sequential = new BaseCohort(this, p, identifier, logger);
     }
   /*  
     private void warning(String message) { 
@@ -632,7 +632,6 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             while (!more && !havePendingRequests) {
             
                 logger.info("IDLE");                             
-                logger.flush();
                
                 if (stealAllowed()) { 
 
