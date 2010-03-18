@@ -197,7 +197,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         */
         
         // Init communication here...
-        pool = new Pool(this);
+        pool = new Pool(this, p);
 
         cidFactory = pool.getCIDFactory();        
         identifier = cidFactory.generateCohortIdentifier();

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Properties;
 
 public class Pool implements RegistryEventHandler, MessageUpcall {
     
@@ -72,12 +73,12 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private long received;
     private long send;
     
-    public Pool(final DistributedCohort owner) throws Exception { 
+    public Pool(final DistributedCohort owner, final Properties p) throws Exception { 
     
         this.owner = owner; 
         this.logger = logger;
         
-        ibis = IbisFactory.createIbis(ibisCapabilities, this, portType);
+        ibis = IbisFactory.createIbis(ibisCapabilities, p, true, this, portType);
 
         local = ibis.identifier();
 
