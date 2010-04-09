@@ -183,6 +183,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     public void setContext(CohortIdentifier id, Context c) throws Exception { 
 
+        System.out.println("Setting context of " + id + " to " + c);
+        
         if (!identifier.equals(id)) { 
             throw new Exception("Received stray contextChange! " + c);
         } 
@@ -219,6 +221,10 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }
     
     public void deliverStealRequest(StealRequest sr) { 
+        
+        logger.info("S REMOTE STEAL REQUEST from " + sr.source 
+                + " context " + sr.context);
+        
         postStealRequest(sr);
     }
     
@@ -340,6 +346,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private ActivityIdentifier submit(Activity a) {
 
+        System.out.println("S SUBMIT activity with context " + a.getContext());
+        
         ActivityIdentifier id = sequential.prepareSubmission(a);
         
         if (DEBUG) { 
@@ -388,6 +396,14 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         }
     }
 
+    private void processContextChange() { 
+        if (processing.newContext != null) { 
+            sequential.setContext(processing.newContext);
+            processing.newContext = null;
+        } 
+    }
+
+    
     private void processActivityRecords() { 
         if (processing.deliveredActivityRecords.size() > 0) {
 
@@ -497,6 +513,10 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 //        // so just return the job to the queue
                 //        sequential.addActivityRecord(a);
                 //    }              
+            } else { 
+                
+                System.out.println("DROPPING STALE STEAL REQUEST");
+                
             }
         }
     }
@@ -531,6 +551,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
         // TODO: think about the order here ?
         swapEventQueues();
+        
+        processContextChange();
         
         processActivityRecords();
         processSubmits();
@@ -624,11 +646,13 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
             long t3 = System.currentTimeMillis();
 
+            /*
             if (wrongContext.size() > 0) { 
                 ActivityRecord a = sequential.removeWrongContext();
                 parent.handleWrongContext(a);
             }
-
+*/
+            
             while (!more && !havePendingRequests) {
             
                 logger.info("IDLE");                             
@@ -917,11 +941,14 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         out.flush();        
     }
 
-   
-  
-
-   
+    public CohortIdentifier [] getLeafIDs() { 
+        return new CohortIdentifier [] { identifier };
+    }   
+     
     public void setContext(Context context) {
+        
+        System.out.println("Setting context of ST to " + context);
+        
         sequential.setContext(context);
     }
 

@@ -70,4 +70,16 @@ public class AndContext extends Context {
         
         return false;
     }
+    
+    public String toString() { 
+        StringBuilder b = new StringBuilder();
+        
+        for (UnitContext u : contexts) { 
+            b.append(u);
+            b.append(" and ");
+        }
+
+        return b.toString();
+    }
+    
 }

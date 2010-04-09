@@ -197,4 +197,8 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
         
     }
 
+    public CohortIdentifier[] getLeafIDs() {
+        return new CohortIdentifier [] { identifier };
+    }
+
 }

@@ -31,4 +31,8 @@ public class UnitContext extends Context {
     public boolean contains(Context other) {
         return equals(other);
     } 
+    
+    public String toString() { 
+        return "UnitContext(" + name + ")";
+    }
 }

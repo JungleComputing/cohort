@@ -25,6 +25,7 @@ import ibis.cohort.impl.distributed.UndeliverableEvent;
 import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 
@@ -558,7 +559,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
         if (DEBUG) { 
-            logger.info("STEAL REQUEST from child " + sr.source + " with context " 
+            logger.info("M STEAL REQUEST from child " + sr.source + " with context " 
                     + sr.context);
         }
         
@@ -567,7 +568,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (tmp != null) { 
         
             if (DEBUG) { 
-                logger.info("STEAL REPLY (LOCAL) " + tmp.identifier() 
+                logger.info("M STEAL REPLY (LOCAL) " + tmp.identifier() 
                         + " for child " + sr.source);
             }
             return tmp;
@@ -576,7 +577,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         tmp = parent.handleStealRequest(sr);
         
         if (tmp != null) {
-            logger.info("STEAL REPLY (PARENT) " + tmp.identifier() 
+            logger.info("M STEAL REPLY (PARENT) " + tmp.identifier() 
                     + " for child " + sr.source);
             return tmp;
         }   
@@ -588,7 +589,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             StealRequest copy = new StealRequest(sr.source, sr.context);
             
             if (DEBUG) { 
-                logger.info("FORWARD STEAL from child " + sr.source 
+                logger.info("M FORWARD STEAL from child " + sr.source 
                         + " to child " + workers[index].identifier());            
             }
                 
@@ -597,7 +598,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         }
         
         if (tmp != null) {
-            logger.info("STEAL REPLY (EMPTY) for child " + sr.source);
+            logger.info("M STEAL REPLY (EMPTY) for child " + sr.source);
         }   
         
         return null;
@@ -620,9 +621,27 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     
     /* ================= BottomCohort interface ==============================*/
     
+    public CohortIdentifier [] getLeafIDs() { 
+        
+        ArrayList<CohortIdentifier> tmp = new ArrayList<CohortIdentifier>();
+        
+        for (BottomCohort w : workers) { 
+            CohortIdentifier [] ids = w.getLeafIDs();
+            
+            for (CohortIdentifier id : ids) { 
+                tmp.add(id);
+            }
+        }
+    
+        return tmp.toArray(new CohortIdentifier[tmp.size()]);
+    }
+    
     public synchronized void setContext(CohortIdentifier id, Context context) 
         throws Exception {
     
+        
+        System.out.println("Setting context of " + id + " to " + context);
+        
         BottomCohort b = getWorker(id);
 
         if (b == null) {
@@ -716,15 +735,17 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     
     public synchronized ActivityIdentifier deliverSubmit(Activity a) {
 
+        System.out.println("M SUBMIT activity with context " + a.getContext());
+        
         // We do a simple round-robin distribution of the jobs here.
         if (nextSubmit >= workers.length) {
             nextSubmit = 0;
         }
 
-        if (DEBUG) { 
+       // if (DEBUG) { 
             logger.info("FORWARD SUBMIT to child " 
                 + workers[nextSubmit].identifier());
-        }
+       // }
         
         return workers[nextSubmit++].deliverSubmit(a);
     }
@@ -732,8 +753,15 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     public void deliverStealRequest(StealRequest sr) {
 
         ActivityRecord tmp = myActivities.steal(sr.context);
+
+        logger.info("M REMOTE STEAL REQUEST from child " + sr.source 
+                + " context " + sr.context);
         
         if (tmp != null) { 
+        
+            logger.info("M SUCCESFULL REMOTE STEAL REQUEST from child " + sr.source 
+                    + " context " + sr.context);
+            
             parent.handleStealReply(new StealReply(identifier, sr.source, tmp));
             return;
         }

@@ -29,6 +29,7 @@ import ibis.cohort.impl.distributed.UndeliverableEvent;
 import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 
@@ -945,6 +946,20 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         b.setContext(id, context);
     }
 
+        public CohortIdentifier [] getLeafIDs() { 
+        
+        ArrayList<CohortIdentifier> tmp = new ArrayList<CohortIdentifier>();
+        
+        for (BottomCohort w : workers) { 
+            CohortIdentifier [] ids = w.getLeafIDs();
+            
+            for (CohortIdentifier id : ids) { 
+                tmp.add(id);
+            }
+        }
+    
+        return tmp.toArray(new CohortIdentifier[tmp.size()]);
+    }
    
 
     /* ================= End of Cohort interface =============================*/

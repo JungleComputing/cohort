@@ -37,6 +37,9 @@ public interface Cohort {
     
     public Cohort [] getSubCohorts();
     
+    public CohortIdentifier [] getLeafIDs();
+    
+    
     public boolean activate();
     
     

@@ -8,6 +8,7 @@ import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.impl.distributed.ActivityRecord;
@@ -30,7 +31,7 @@ public class BaseCohort implements Cohort {
     private final CohortLogger logger;
     
     // Default context is ANY
-    private Context myContext = Context.ANY;
+    private Context myContext = new UnitContext("EMPTY"); // HACK Context.ANY;
     
     private HashMap<String, ActivityIdentifier> registry = 
         new HashMap<String, ActivityIdentifier>();
@@ -183,12 +184,19 @@ public class BaseCohort implements Cohort {
             fresh.insertLast(ar);
         } else {
           
-            if (DEBUG) { 
-                logger.info("submitted " + a.identifier() + " with WRONG CONTEXT");
-            }   
+            logger.info("submitted " + a.identifier() + " with WRONG CONTEXT " + c);
+            
             wrongContextSubmitted++;
             wrongContext.insertLast(ar);
         }
+        
+        System.out.println("SUBMIT BASE(" + identifier + "): activities " 
+                + fresh.size() + " " + wrongContext.size() + " " + runnable.size() + " " + lookup.size());
+             
+         synchronized (this) {
+             System.out.println("sync");
+        } 
+        
     }
 
     void addActivityRecord(ActivityRecord a) {
@@ -364,8 +372,12 @@ public class BaseCohort implements Cohort {
     
     ActivityRecord steal(Context context) {
 
-    //    System.out.println("STEAL BASE(" + identifier + "): activities " 
-    //            + fresh.size() + " " + wrongContext.size() + " ");
+        synchronized (this) {
+            System.out.println("sync");
+       } 
+        
+        System.out.println("STEAL BASE(" + identifier + "): activities " 
+           + fresh.size() + " " + wrongContext.size() + " " + runnable.size() + " " + lookup.size());
         
         steals++;
 
@@ -607,11 +619,21 @@ public class BaseCohort implements Cohort {
     public void setContext(Context c) {
         myContext = c;
         
+        System.out.println("Setting context of " + identifier + " (BASE) to " + c);
+        
+        System.out.println("I have " + fresh.size() +" fresh and " + runnable.size() + " runnable activities");
+        
+        
+        
+        
+        
         // TODO: check status of local jobs 
         logger.warning("CONTEXT CHANGED WITHOUT CHECKING JOBS FIX FIX FIX!", new Exception());
     }
     
     public void setContext(CohortIdentifier id, Context context) throws Exception {
+        
+        System.out.println("Setting context of BASE to " + context);
         
         if (id.equals(identifier)) { 
             setContext(context);
@@ -639,6 +661,10 @@ public class BaseCohort implements Cohort {
         while (process());
         
         return false;
+    }
+
+    public CohortIdentifier[] getLeafIDs() {
+        return new CohortIdentifier [] { identifier };
     }
    
 

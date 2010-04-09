@@ -18,6 +18,7 @@ import ibis.cohort.impl.distributed.BottomCohort;
 import ibis.cohort.impl.distributed.LocationCache;
 import ibis.cohort.impl.distributed.LookupReply;
 import ibis.cohort.impl.distributed.LookupRequest;
+import ibis.cohort.impl.distributed.MiddleCohort;
 import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
 import ibis.cohort.impl.distributed.TopCohort;
@@ -329,15 +330,26 @@ public class DistributedCohort implements Cohort, TopCohort {
     protected void deliverRemoteStealRequest(StealRequest sr) { 
         // This method is called from an finished upcall. Therefore it 
         // may block for a long period of time or communicate.
+        
+        if (DEBUG) { 
+            logger.info("D REMOTE STEAL REQUEST from child " + sr.source 
+                    + " context " + sr.context);
+        }
+        
         ActivityRecord ar = queue.steal(sr.context);
-
+        
         if (ar != null) { 
-                
+            logger.info("D SUCCESFULL REMOTE STEAL REQUEST from child " + sr.source 
+                    + " context " + sr.context);
+            
             if (!pool.forward(new StealReply(identifier, sr.source, ar))) { 
                 logger.warning("DROP StealReply to " + sr.source);
                 queue.add(ar);
                 return;
-            }
+            } 
+        } else { 
+            logger.info("D UNSUCCESFULL REMOTE STEAL REQUEST from child " + sr.source 
+                    + " context " + sr.context);
         }
             
         subCohort.deliverStealRequest(sr);
@@ -466,7 +478,16 @@ public class DistributedCohort implements Cohort, TopCohort {
     }
 
     public Cohort [] getSubCohorts() {
-        return new Cohort [] { (Cohort)subCohort };
+        
+        if (subCohort instanceof Cohort) {
+            return new Cohort [] { (Cohort)subCohort };
+        } else { 
+            return null;
+        }
+    } 
+    
+    public CohortIdentifier [] getLeafIDs() {
+        return subCohort.getLeafIDs();
     }
 
     public CohortIdentifier identifier() {
@@ -528,6 +549,9 @@ public class DistributedCohort implements Cohort, TopCohort {
     public synchronized void setContext(CohortIdentifier id, Context context) 
         throws Exception {
 
+        System.out.println("Setting context of " + id + " to " + context);
+        
+        
         if (id == null || id.equals(identifier)) { 
             throw new Exception("Cannot set Context of a DistributedCohort!");
         }
@@ -536,6 +560,9 @@ public class DistributedCohort implements Cohort, TopCohort {
     } 
 
     public ActivityIdentifier submit(Activity a) {
+        
+        System.out.println("D SUBMIT activity with context " + a.getContext());
+        
         return subCohort.deliverSubmit(a);
     }
 
@@ -585,7 +612,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         // First check if we can satisfy the request locally.
 
         if (DEBUG) { 
-            logger.info("STEAL REQUEST from child " + sr.source);
+            logger.info("D STEAL REQUEST from child " + sr.source);
         }
         
         ActivityRecord ar = queue.steal(sr.context);
@@ -593,7 +620,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         if (ar != null) { 
        
             if (DEBUG) { 
-                logger.info("STEAL REPLY (LOCAL) " + ar.identifier() 
+                logger.info("D STEAL REPLY (LOCAL) " + ar.identifier() 
                         + " for child " + sr.source);
             }
            
@@ -604,7 +631,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         if (pool.randomForward(sr)) { 
       
             if (DEBUG) { 
-                logger.info("RANDOM FORWARD steal request from child " 
+                logger.info("D RANDOM FORWARD steal request from child " 
                         + sr.source);
             }
             
@@ -637,7 +664,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         queueOutgoingMessage(sr);
          */
         
-        logger.fixme("STEAL REQUEST swizzled from " + sr.source);
+        logger.fixme("D STEAL REQUEST swizzled from " + sr.source);
                 
         return null;
     }

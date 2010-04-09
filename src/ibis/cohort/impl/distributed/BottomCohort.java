@@ -13,6 +13,8 @@ public interface BottomCohort {
      */
     
     /* synchronous methods - immediately produce a result or effect */ 
+   
+    CohortIdentifier [] getLeafIDs();
     void setContext(CohortIdentifier id, Context context) throws Exception;
     Context getContext();
     CohortIdentifier identifier();

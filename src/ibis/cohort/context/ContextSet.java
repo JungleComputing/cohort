@@ -187,4 +187,25 @@ public class ContextSet extends Context {
             andContexts.containsAll(o.andContexts) && 
             o.andContexts.containsAll(andContexts);
     }    
+    
+    public String toString() { 
+        
+        StringBuilder b = new StringBuilder();
+        
+        b.append("ContextSet(");
+        
+        for (UnitContext u : unitContexts) { 
+            b.append(u);
+            b.append(" or ");
+        }
+        
+        
+        for (AndContext a : andContexts) { 
+            b.append(a);
+            b.append(" or ");
+        }
+        
+        return b.toString();
+    }
+    
 }
