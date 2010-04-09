@@ -8,6 +8,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
+import ibis.cohort.extra.Debug;
 import ibis.cohort.impl.distributed.ActivityRecord;
 import ibis.cohort.impl.distributed.ApplicationMessage;
 import ibis.cohort.impl.distributed.BottomCohort;
@@ -26,7 +27,6 @@ import java.util.Properties;
 
 public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
-    private static final boolean DEBUG = true;
     private static final boolean PROFILE = true;
     private static final boolean THROTTLE_STEALS = true;
     private static final int STEAL_DELAY = 500;
@@ -150,8 +150,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             sleepTime = 1000;
         }
         
-        //out.println("SingleThreaded: sleepTime set to " + sleepTime 
-        //        + " ms.");
+        logger.warn("SingleThreaded: sleepTime set to " + sleepTime + " ms.");
         
         if (PROFILE) {/*
             profileTime = System.currentTimeMillis();
@@ -233,8 +232,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }
     
     public void deliverStealReply(StealReply sr) {
-        if (sr.work != null) { 
-            postActivityRecord(sr.work);
+        if (!sr.isEmpty()) { 
+            postActivityRecord(sr.getWork());
         }
     }
         
@@ -336,6 +335,19 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         havePendingRequests = true;
     }
     
+    private void postActivityRecord(ActivityRecord [] a) {
+        
+        if (a == null || a.length == 0) { 
+            return;
+        }
+        
+        for (int i=0;i<a.length;i++) { 
+            if (a[i] != null) { 
+                postActivityRecord(a[i]);
+            }
+        }
+    }
+        
     private void postActivityRecord(ActivityRecord a) {
         
         synchronized (incoming) { 
@@ -350,7 +362,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
         ActivityIdentifier id = sequential.prepareSubmission(a);
         
-        if (DEBUG) { 
+        if (Debug.DEBUG_SUBMIT) { 
             logger.info("submit activity " + id);
         }
         
@@ -379,7 +391,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     private void swapEventQueues() {
         
-        if (DEBUG && idle) { 
+        if (Debug.DEBUG_SUBMIT && idle) { 
             logger.info("Processing events while idle!\n" + incoming.print() 
                     + "\n" + processing.print());
         }
@@ -419,7 +431,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
         if (processing.pendingSubmit.size() > 0) {
          
-            if (DEBUG) { 
+            if (Debug.DEBUG_SUBMIT) { 
                 logger.info("processing " + processing.pendingSubmit.size() 
                         + " submits");
             }
@@ -503,10 +515,24 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             // Make sure the steal request is still valid!
             if (!s.getStale()) { 
                 // NOTE: a is allowed to be null
+                
+                /* FIXME!
+                
+                HACK HACK HACK 
+                
                 ActivityRecord a = sequential.steal(s.context);
                 StealReply sr = new StealReply(sequential.identifier(), 
                         s.source, a);
+               */
+              
+                // FIXME: the 1 should be configurable!
+                
+                ActivityRecord [] a = sequential.steal(s.context, 1);
+                StealReply sr = new StealReply(sequential.identifier(), 
+                        s.source, a);
+                
                 parent.handleStealReply(sr);
+               
                     
                 //    if (!parent.forwardStealReply(s, a)) { 
                 //        // The parent was no longer interested in the steal reply, 
@@ -533,7 +559,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 
                 if (a != null) { 
                 
-                    if (DEBUG) { 
+                    if (Debug.DEBUG_LOOKUP) { 
                         logger.info("Sending lookup reply for " + s.missing 
                                 + " to " + s.source);
                     }

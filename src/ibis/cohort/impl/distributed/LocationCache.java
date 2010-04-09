@@ -73,7 +73,7 @@ public class LocationCache {
             map.put(a, new Entry(c, count));
         } else if (tmp.count == count && !tmp.id.equals(c)) { 
             // SANITY CHECK
-            System.out.println("ERROR:  Inconsistency discovered in " 
+            System.err.println("ERROR:  Inconsistency discovered in " 
                         + "LocactionCache: " + tmp.id + "/" + tmp.count 
                         + " != " + c + "/" + count);
         }

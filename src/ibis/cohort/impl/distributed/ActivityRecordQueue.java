@@ -51,8 +51,26 @@ public class ActivityRecordQueue {
         
         return tmp;
     }
- 
+    
+    public void add(ActivityRecord [] a) { 
+    
+        if (a == null || a.length == 0) { 
+            return;
+        }
+    
+        for (int i=0;i<a.length;i++) { 
+            if (a[i] != null) { 
+                add(a[i]);
+            }
+        }
+    }
+    
     public synchronized void add(ActivityRecord a) { 
+        
+        if (a == null) { 
+            return;
+        }
+        
         map.put(a.identifier(), a);
    
         Context [] c = flatten(a.activity.getContext());

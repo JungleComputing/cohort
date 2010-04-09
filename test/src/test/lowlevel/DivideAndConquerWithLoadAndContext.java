@@ -131,6 +131,8 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
                 
                 cohort.setContext(new UnitContext("Odd"));
             }
+    
+            cohort.activate();
             
             if (cohort.isMaster()) { 
 

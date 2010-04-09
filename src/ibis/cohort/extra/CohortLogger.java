@@ -51,6 +51,11 @@ public class CohortLogger extends Logger {
     }
 
     public static CohortLogger getLogger(Class clazz, CohortIdentifier identifier) {
-        return (CohortLogger)Logger.getLogger(clazz.getName() + '.' + identifier, factory);
+        return getLogger(clazz.getName(), identifier);
     }
+
+    public static CohortLogger getLogger(String name, CohortIdentifier identifier) {
+        return (CohortLogger)Logger.getLogger(name + '.' + identifier, factory);
+    }
+
 }

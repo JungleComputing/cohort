@@ -2,6 +2,7 @@ package ibis.cohort.impl.distributed.dist;
 
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.extra.CohortLogger;
+import ibis.cohort.extra.Debug;
 import ibis.cohort.impl.distributed.ApplicationMessage;
 import ibis.cohort.impl.distributed.LookupReply;
 import ibis.cohort.impl.distributed.LookupRequest;
@@ -28,8 +29,6 @@ import java.util.Random;
 import java.util.Properties;
 
 public class Pool implements RegistryEventHandler, MessageUpcall {
-    
-    private static final boolean DEBUG = true;
     
     private DistributedCohort owner;
     
@@ -258,7 +257,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         
         CohortIdentifier target = m.target;
         
-        if (DEBUG) { 
+        if (Debug.DEBUG_COMMUNICATION) { 
             logger.info("POOL FORWARD Message from " + m.source + " to " + m.target + " " + m);
         }
         
@@ -342,7 +341,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             // need to finish the ReadMessage first to allow 'stealing' of the  
             // upcall thread.
        
-            if (DEBUG) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) { 
                 logger.info("POOL RECEIVE StealRequest from " + m.source);
             }
             
@@ -354,7 +353,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             // need to finish the ReadMessage first to allow 'stealing' of the  
             // upcall thread.
           
-            if (DEBUG) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_LOOKUP) { 
                 logger.info("POOL RECEIVE LookupRequest from " + m.source);
             }
           
@@ -363,7 +362,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             
         } else if (m instanceof StealReply) {
             
-            if (DEBUG) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) { 
                 logger.info("POOL RECEIVE StealReply from " + m.source);
             }
             
@@ -371,7 +370,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             
         } else if (m instanceof LookupReply) { 
           
-            if (DEBUG) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_LOOKUP) { 
                 logger.info("POOL RECEIVE LookupReply from " + m.source);
             }
             
@@ -379,7 +378,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         
         } else if (m instanceof ApplicationMessage) { 
           
-            if (DEBUG) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) { 
                 logger.info("POOL RECEIVE EventMessage from " + m.source);
             }
           
@@ -387,7 +386,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         
         } else if (m instanceof UndeliverableEvent) { 
             
-            if (DEBUG) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) { 
                 logger.info("POOL RECEIVE UndeliverableEvent from " + m.source);
             }
             

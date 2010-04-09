@@ -11,17 +11,15 @@ import ibis.cohort.MessageEvent;
 import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
+import ibis.cohort.extra.Debug;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Properties;
 
 public class BaseCohort implements Cohort {
-
-    private static final boolean DEBUG = false;
+    
+    private static final boolean PROFILE = true;
     
     private final SingleThreadedBottomCohort parent;
 
@@ -126,6 +124,10 @@ public class BaseCohort implements Cohort {
             return tmp;
         }
 
+        
+        //logger.warn("NO SUITABLE JOBS QUEUED! My context " + getContext() + " " 
+        //        +  wrongContext);
+        
         return null;
     }
 
@@ -155,7 +157,7 @@ public class BaseCohort implements Cohort {
         ActivityIdentifier id = createActivityID();
         a.initialize(id);
 
-        if (DEBUG) {
+        if (Debug.DEBUG_SUBMIT) {
             logger.info("created " + id + " at " 
                 + System.currentTimeMillis() + " from " 
                 + (current == null ? "ROOT" : current.identifier()));
@@ -190,18 +192,20 @@ public class BaseCohort implements Cohort {
             wrongContext.insertLast(ar);
         }
         
-        System.out.println("SUBMIT BASE(" + identifier + "): activities " 
+        if (Debug.DEBUG_SUBMIT) { 
+            logger.info("SUBMIT BASE(" + identifier + "): activities " 
                 + fresh.size() + " " + wrongContext.size() + " " + runnable.size() + " " + lookup.size());
-             
-         synchronized (this) {
-             System.out.println("sync");
-        } 
+        }
+        
+       //  synchronized (this) {
+       //      System.out.println("sync");
+       // } 
         
     }
 
     void addActivityRecord(ActivityRecord a) {
         
-        if (DEBUG) {
+        if (Debug.DEBUG_SUBMIT) {
             logger.info("received " + a.identifier() + " at " 
                 + System.currentTimeMillis());
         }
@@ -289,9 +293,11 @@ public class BaseCohort implements Cohort {
         
         long start, end;
         
-        if (DEBUG) {
+        if (PROFILE) { 
             start = System.currentTimeMillis();
-           
+        }
+        
+        if (Debug.DEBUG_EVENTS) {
             logger.info("SEND EVENT " + e.source + " to " 
                     + e.target + " at " + start);
         }
@@ -323,9 +329,9 @@ public class BaseCohort implements Cohort {
             }
         }
         
-        if (DEBUG) {       
+        if (PROFILE) { 
             end = System.currentTimeMillis();
-            messagesTime += (end-start); 
+            messagesTime += (end-start);        
         }
     }
 
@@ -334,7 +340,7 @@ public class BaseCohort implements Cohort {
         ActivityRecord ar = lookup.get(e.target);
 
         if (ar == null) {
-            if (DEBUG) { 
+            if (Debug.DEBUG_EVENTS) { 
                 logger.info("CANNOT DELIVER EVENT Failed to find activity " + e.target);
                 
                 /*
@@ -370,14 +376,38 @@ public class BaseCohort implements Cohort {
         return fresh.size();
     }
     
+    ActivityRecord [] steal(Context context, int count) {
+
+        ActivityRecord [] result = new ActivityRecord[count];
+        
+        for (int i=0;i<count;i++) { 
+            result[i] = steal(context);
+       
+            if (result[i] == null) { 
+                logger.warn("STEAL(" + count + ") only produced " + i + " results");
+            
+                if (i == 0) { 
+                    return null;
+                } else { 
+                    return result;
+                }
+            }
+        }
+        
+        return result;
+    }
+    
     ActivityRecord steal(Context context) {
 
-        synchronized (this) {
-            System.out.println("sync");
-       } 
-        
-        System.out.println("STEAL BASE(" + identifier + "): activities " 
-           + fresh.size() + " " + wrongContext.size() + " " + runnable.size() + " " + lookup.size());
+  //      synchronized (this) {
+   //         System.out.println("sync");
+   //    } 
+      
+        if (Debug.DEBUG_STEAL) { 
+            logger.info("STEAL BASE(" + identifier + "): activities " 
+                    + fresh.size() + " " + wrongContext.size() + " " 
+                    + runnable.size() + " " + lookup.size());
+        }
         
         steals++;
 
@@ -402,7 +432,7 @@ public class BaseCohort implements Cohort {
 
                         stealSuccess++;
 
-                        if (DEBUG) {
+                        if (Debug.DEBUG_STEAL) {
                             logger.info("STOLEN " + r.identifier());
                         }
 
@@ -440,7 +470,7 @@ public class BaseCohort implements Cohort {
 
                         stealSuccess++;
 
-                        if (DEBUG) {
+                        if (Debug.DEBUG_STEAL) {
                             logger.info("STOLEN " + r.identifier());
                         }
 
@@ -483,13 +513,13 @@ public class BaseCohort implements Cohort {
 
         current = tmp;
         
-        if (DEBUG) {
+        if (PROFILE) {
             start = System.currentTimeMillis();
         }
 
         tmp.run();
 
-        if (DEBUG) { 
+        if (PROFILE) { 
             end = System.currentTimeMillis();
 
             computationTime += end - start;
@@ -619,21 +649,21 @@ public class BaseCohort implements Cohort {
     public void setContext(Context c) {
         myContext = c;
         
-        System.out.println("Setting context of " + identifier + " (BASE) to " + c);
-        
-        System.out.println("I have " + fresh.size() +" fresh and " + runnable.size() + " runnable activities");
-        
-        
-        
-        
+        if (Debug.DEBUG_CONTEXT) { 
+            logger.info("Setting context of " + identifier + " (BASE) to " + c);
+            logger.info("I have " + fresh.size() +" fresh and " 
+                    + runnable.size() + " runnable activities");
+        }
         
         // TODO: check status of local jobs 
-        logger.warning("CONTEXT CHANGED WITHOUT CHECKING JOBS FIX FIX FIX!", new Exception());
+        logger.fixme("CONTEXT CHANGED WITHOUT CHECKING JOBS FIX FIX FIX!", new Exception());
     }
     
     public void setContext(CohortIdentifier id, Context context) throws Exception {
-        
-        System.out.println("Setting context of BASE to " + context);
+     
+        if (Debug.DEBUG_CONTEXT) { 
+            logger.info("Setting context of BASE to " + context);
+        }
         
         if (id.equals(identifier)) { 
             setContext(context);

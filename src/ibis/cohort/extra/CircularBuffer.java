@@ -208,5 +208,29 @@ public class CircularBuffer implements Serializable {
 
         first = next = size = 0;                
     }
+    
+    public String toString() { 
+        
+        return "CircularBuffer(" + size + ")";
+        
+        /*
+        
+        StringBuilder sb = new StringBuilder("CircuralBuffer(" + size + ") - [");
+        
+        for (int i=0;i<size-1;i++) { 
+            sb.append(get(i));
+            sb.append(", ");
+        }
+        
+        if (size > 0) { 
+            sb.append(get(size-1));
+        }
+      
+        sb.append("]");
+        
+        return sb.toString();
+   */
+    }
+    
 }
 

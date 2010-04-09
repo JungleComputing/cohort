@@ -13,6 +13,7 @@ import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.extra.CohortIdentifierFactory;
+import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Log;
 import ibis.cohort.extra.SimpleCohortIdentifierFactory;
 import ibis.cohort.impl.distributed.ActivityRecord;
@@ -27,7 +28,6 @@ import ibis.cohort.impl.distributed.UndeliverableEvent;
 
 public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort {
     
-    private static final boolean DEBUG = true;
     private static final boolean PROFILE = true;
     
     private final CohortIdentifier identifier = new CohortIdentifier(0);
@@ -37,7 +37,7 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
     private BaseCohort sequential;
     
     private PrintStream out; 
-    private Log logger;
+    private CohortLogger logger;
         
     public SingleThreadedTopCohort(Properties p) {
         
@@ -64,13 +64,9 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
             out = System.out;
         }
         
-        logger = new Log(identifier + " [ST] ", out, DEBUG);
-        
+        logger = CohortLogger.getLogger(SingleThreadedTopCohort.class, identifier);
         //sequential = new BaseCohort(this, p, identifier, out, logger);
     }
-    
-    
-    
     
     public boolean activate() {
         // TODO Auto-generated method stub

@@ -90,6 +90,6 @@ public abstract class Activity implements Serializable {
     public abstract void cancel() throws Exception;
     
     public String toString() { 
-        return identifier.toString();
+        return identifier + " " + context;
     }
 }
