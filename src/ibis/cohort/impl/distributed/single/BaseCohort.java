@@ -666,7 +666,4 @@ public class BaseCohort implements Cohort {
     public CohortIdentifier[] getLeafIDs() {
         return new CohortIdentifier [] { identifier };
     }
-   
-
-   
 }
