@@ -78,7 +78,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         }
     }
     
-    private long sleepTime; 
+    private long sleepTime;
+    private int stealSize; 
+
     private long lastStealTime; 
     
     private PendingRequests incoming = new PendingRequests();
@@ -141,7 +143,6 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
         this.logger = CohortLogger.getLogger(SingleThreadedBottomCohort.class, identifier);
         
-        
         String tmp = p.getProperty("ibis.cohort.sleep");
         
         if (tmp != null && tmp.length() > 0) { 
@@ -151,6 +152,16 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         }
         
         logger.warn("SingleThreaded: sleepTime set to " + sleepTime + " ms.");
+        
+        tmp = p.getProperty("ibis.cohort.stealsize");
+        
+        if (tmp != null && tmp.length() > 0) { 
+            stealSize = Integer.parseInt(tmp);
+        } else { 
+            stealSize = 1;
+        }
+        
+        logger.warn("SingleThreaded: stealSize set to " + stealSize);
         
         if (PROFILE) {/*
             profileTime = System.currentTimeMillis();
@@ -508,6 +519,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     private void processStealRequests() { 
         
+        System.out.println("Processing steal requests " + processing.stealRequests.size());
+        
         while (processing.stealRequests.size() > 0) {
 
             StealRequest s = processing.stealRequests.remove(0);
@@ -527,7 +540,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
               
                 // FIXME: the 1 should be configurable!
                 
-                ActivityRecord [] a = sequential.steal(s.context, 1);
+                ActivityRecord [] a = sequential.steal(s.context, stealSize);
                 StealReply sr = new StealReply(sequential.identifier(), 
                         s.source, a);
                 
@@ -577,6 +590,15 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
         // TODO: think about the order here ?
         swapEventQueues();
+        
+        System.out.println("Events waiting: " + 
+                (processing.newContext != null) + " " + 
+                processing.deliveredActivityRecords + " " + 
+                processing.deliveredApplicationMessages + " " + 
+                processing.lookupRequests + " " +
+                processing.pendingCancelations + " " +
+                processing.pendingSubmit + " " +
+                processing.stealRequests);
         
         processContextChange();
         
@@ -872,7 +894,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
              
         final long steals = sequential.getSteals();
         final long stealSuccessIn = sequential.getStealSuccess();
-
+        final long stolen = sequential.getStolen();
+        
         final double comp = (100.0 * computationTime) / totalTime;
         final double fact = ((double) activitiesInvoked) / activitiesSubmitted;
 
@@ -961,7 +984,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             out.println("   external   : " + messagesExternal);
             out.println(" Steals");
             out.println("   incoming   : " + steals);
-            out.println("   success in : " + stealSuccessIn);
+            out.println("   success    : " + stealSuccessIn);
+            out.println("   stolen     : " + stolen);
         }
         
         out.flush();        

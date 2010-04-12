@@ -2,7 +2,7 @@ package ibis.cohort.extra;
 
 public class Debug {
 
-    private static final boolean DEBUG_ALL  = true;    
+    private static final boolean DEBUG_ALL  = false;    
     
     public static final boolean DEBUG_STEAL = DEBUG_ALL || false;
     public static final boolean DEBUG_LOOKUP = DEBUG_ALL || false;

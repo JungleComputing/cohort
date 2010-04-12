@@ -60,6 +60,7 @@ public class BaseCohort implements Cohort {
 
     private long steals;
     private long stealSuccess;
+    private long stolenJobs;
     
     private long messagesInternal;
     private long messagesExternal;
@@ -378,10 +379,12 @@ public class BaseCohort implements Cohort {
     
     ActivityRecord [] steal(Context context, int count) {
 
+        steals++;
+        
         ActivityRecord [] result = new ActivityRecord[count];
         
         for (int i=0;i<count;i++) { 
-            result[i] = steal(context);
+            result[i] = doSteal(context);
        
             if (result[i] == null) { 
                 logger.warn("STEAL(" + count + ") only produced " + i + " results");
@@ -389,28 +392,47 @@ public class BaseCohort implements Cohort {
                 if (i == 0) { 
                     return null;
                 } else { 
+                    stolenJobs += i;
+                    stealSuccess++;                    
                     return result;
                 }
             }
         }
         
+        stolenJobs += count;
+        stealSuccess++;                    
         return result;
     }
     
     ActivityRecord steal(Context context) {
 
+        steals++;
+
+        ActivityRecord result = doSteal(context);
+        
+        if (result != null) { 
+            stealSuccess++;
+            stolenJobs++;
+        }
+        
+        return result;
+    }
+    
+    private ActivityRecord doSteal(Context context) {
+    
   //      synchronized (this) {
    //         System.out.println("sync");
    //    } 
-      
+
+        System.out.println("STEAL! " + System.currentTimeMillis());
+        new Exception().printStackTrace();
+        
         if (Debug.DEBUG_STEAL) { 
             logger.info("STEAL BASE(" + identifier + "): activities " 
                     + fresh.size() + " " + wrongContext.size() + " " 
                     + runnable.size() + " " + lookup.size());
         }
         
-        steals++;
-
         int size = wrongContext.size();
         
         if (size > 0) {
@@ -429,8 +451,6 @@ public class BaseCohort implements Cohort {
                         wrongContext.remove(i);
 
                         lookup.remove(r.identifier());
-
-                        stealSuccess++;
 
                         if (Debug.DEBUG_STEAL) {
                             logger.info("STOLEN " + r.identifier());
@@ -467,8 +487,6 @@ public class BaseCohort implements Cohort {
                         fresh.remove(i);
 
                         lookup.remove(r.identifier());
-
-                        stealSuccess++;
 
                         if (Debug.DEBUG_STEAL) {
                             logger.info("STOLEN " + r.identifier());
@@ -623,6 +641,10 @@ public class BaseCohort implements Cohort {
     
     long getStealSuccess() { 
         return stealSuccess;
+    }
+    
+    long getStolen() { 
+        return stolenJobs;
     }
     
     public void printStatus() {
