@@ -78,10 +78,13 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                     
                     if (!activitycontext.equals(machineContext)) { 
                         time = time + penalty;
-                        System.out.println("WEAK performace hit!");
-                    } else { 
-                        System.out.println("WEAK no performace hit");
-                    }
+                
+                        Integer tmp = (Integer) LocalData.getLocalData().get("mismatch");
+                        LocalData.getLocalData().put("mismatch", new Integer(tmp.intValue()+1));
+                        //System.out.println("WEAK performace hit!");
+                    }// else { 
+                        //System.out.println("WEAK no performace hit");
+                    //}
                 }
             } 
             
@@ -195,6 +198,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 
                 System.out.println("LocalData context set to " + local);
                 LocalData.getLocalData().put("context", local);
+                LocalData.getLocalData().put("mismatch", new Integer(0));
                 
             } else if (mode == CONTEXT_STRONG) { 
                 if (rank % 2 == 0) { 
@@ -212,7 +216,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
     
             cohort.activate();
             
-            if (rank == 0) { 
+            if (cohort.isMaster()) { 
            
                 long count = 0;
 
@@ -247,9 +251,14 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                         correct + " total time = " + (end-start) + " job time = " + 
                         nsPerJob + " nsec/job");
             }
+        
+            if (mode == CONTEXT_WEAK) { 
+                Integer tmp = (Integer) LocalData.getLocalData().get("mismatch");
+                System.out.println("Mismatched jobs = " + tmp);
+            }
             
             cohort.done();
-        
+            
         } catch (Exception e) {
             System.err.println("Oops: " + e);
             e.printStackTrace(System.err);
