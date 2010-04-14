@@ -21,24 +21,32 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
 
     private static final long serialVersionUID = 3379531054395374984L;
 
+    private static final int CONTEXT_NONE   = 0;
+    private static final int CONTEXT_WEAK   = 1;
+    private static final int CONTEXT_STRONG = 2;
+    
     private final ActivityIdentifier parent;
 
     private final int branch;
     private final int depth;
     private final int sleep;
     private final int penalty;
+    private final int mode;
     
     private int merged = 0;    
     private long count = 1;
 
     public DivideAndConquerWithContextAndPenalty(ActivityIdentifier parent, 
-            int branch, int depth, int sleep, int penalty, Context context) {
+            int branch, int depth, int sleep, int penalty, int mode, 
+            Context context) {
+      
         super(context);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
         this.sleep = sleep;
         this.penalty = penalty;
+        this.mode = mode;
     }
 
     @Override
@@ -46,14 +54,45 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
 
         if (depth == 0) {            
 
-            if (sleep > 0) { 
+            long time = sleep;
+        
+            // With WEAK context each machine can run each job, but there 
+            // is a performance penalty when the context doesn't match.
+            // With NONE or STRONG context we either don't care about 
+            // context, or cohort has ensured the context is correct. Either 
+            // way, just sleep for the specified amount of time.
+            
+            if (mode == CONTEXT_WEAK) { 
+                
+                Context machineContext = getCohort().getContext();
+                Context activitycontext = getContext();
+                    
+                if (machineContext == null || machineContext.equals(Context.ANY)) { 
+                    
+                    // Check if context stored in LocalData is same as activity 
+                    // context. If not, add penalty to time.
+                  
+                    machineContext = (Context) LocalData.getLocalData().get("context");
+                 
+                    
+                    
+                    if (!activitycontext.equals(machineContext)) { 
+                        time = time + penalty;
+                        System.out.println("WEAK performace hit!");
+                    } else { 
+                        System.out.println("WEAK no performace hit");
+                    }
+                }
+            } 
+            
+            if (time > 0) { 
                 try { 
-                    Thread.sleep(sleep);
+                    Thread.sleep(time);
                 } catch (Exception e) {
                     // ignore
                 }
             }
-
+            
             finish();
         } else {
             
@@ -63,7 +102,8 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             for (int i=0;i<branch;i++) { 
                 Context tmp = (i % 2) == 0 ? even : odd;
                 cohort.submit(new DivideAndConquerWithContextAndPenalty(
-                        identifier(), branch, depth-1, sleep, penalty, tmp));
+                        identifier(), branch, depth-1, sleep, penalty, mode, 
+                        tmp));
             }
             suspend();
         } 
@@ -100,40 +140,79 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
         + merged + " -> " + count;
     }
 
+    private static int parseMode(String context) { 
+        
+        if (context.equals("none")) { 
+           return CONTEXT_NONE;
+        } else if (context.equals("weak")) { 
+           return CONTEXT_WEAK;
+        } else if (context.equals("strong")) { 
+           return CONTEXT_STRONG;
+        } 
+        
+        System.err.println("Unknown context mode: " + context);
+        System.exit(1);
+        
+        // Stupid compiler 
+        return -1;
+    }
+    
     public static void main(String [] args) { 
         
         try {
             long start = System.currentTimeMillis();
 
             Cohort cohort = CohortFactory.createCohort();
-        
-            Context even = new UnitContext("Even");
-            Context odd = new UnitContext("Odd");
-           
+               
             int branch = Integer.parseInt(args[0]);
             int depth =  Integer.parseInt(args[1]);
             int sleep =  Integer.parseInt(args[2]);
             int penalty =  Integer.parseInt(args[3]);
             int workers = Integer.parseInt(args[4]);
             int rank = Integer.parseInt(args[5]);
+            int mode = 0;
+            
+            String context = args[6];
             
             CohortIdentifier [] leafs = cohort.getLeafIDs();
 
-            System.out.println("Setting context...");
+            Context cohortContext = null;
+   
+            mode = parseMode(context);
             
-            for (CohortIdentifier id : leafs) { 
-                if (rank % 2 == 0) {
-                    System.out.println("Setting context to " + even);
-                    cohort.setContext(id, even);
+            if (mode == CONTEXT_NONE) { 
+                cohortContext = Context.ANY;
+            } else if (mode == CONTEXT_WEAK) { 
+                cohortContext = Context.ANY;
+   
+                Context local = null;
+                
+                if (rank % 2 == 0) { 
+                    local = new UnitContext("Even");
                 } else { 
-                    System.out.println("Setting context to " + odd);
-                    cohort.setContext(id, odd);
+                    local = new UnitContext("Odd");
+                }
+                
+                System.out.println("LocalData context set to " + local);
+                LocalData.getLocalData().put("context", local);
+                
+            } else if (mode == CONTEXT_STRONG) { 
+                if (rank % 2 == 0) { 
+                    cohortContext = new UnitContext("Even");
+                } else { 
+                    cohortContext = new UnitContext("Odd");
                 }
             }
-
+            
+            System.out.println("Setting cohort context to " + cohortContext);
+            
+            for (CohortIdentifier id : leafs) { 
+                cohort.setContext(id, cohortContext);
+            }
+    
             cohort.activate();
             
-            if (cohort.isMaster()) { 
+            if (rank == 0) { 
            
                 long count = 0;
 
@@ -142,7 +221,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 }
 
                 double min = (sleep * Math.pow(branch, depth)) / (1000*workers); 
-                double max = ((sleep * penalty) * Math.pow(branch, depth)) / (1000*workers); 
+                double max = ((sleep + penalty) * Math.pow(branch, depth)) / (1000*workers); 
                 
                 System.out.println("Running D&C with branch factor " + branch + 
                         " and depth " + depth + " sleep " + sleep + 
@@ -153,7 +232,8 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
 
                 cohort.submit(a);
                 cohort.submit(new DivideAndConquerWithContextAndPenalty(
-                        a.identifier(), branch, depth, sleep, penalty, even));
+                        a.identifier(), branch, depth, sleep, penalty, mode, 
+                        new UnitContext("Even")));
 
                 long result = ((MessageEvent<Long>)a.waitForEvent()).message;
 
@@ -166,7 +246,6 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
                         correct + " total time = " + (end-start) + " job time = " + 
                         nsPerJob + " nsec/job");
-
             }
             
             cohort.done();

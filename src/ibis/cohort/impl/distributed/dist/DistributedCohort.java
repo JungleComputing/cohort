@@ -339,8 +339,8 @@ public class DistributedCohort implements Cohort, TopCohort {
         if (ar != null) { 
 
             if (Debug.DEBUG_STEAL) {
-                logger.info("D SUCCESFULL REMOTE STEAL REQUEST from child " + sr.source 
-                        + " context " + sr.context);
+                logger.info("D LOCAL REPLY for STEAL REQUEST from child " 
+                        + sr.source + " context " + sr.context);
             }
 
             if (!pool.forward(new StealReply(identifier, sr.source, ar))) { 
@@ -350,7 +350,7 @@ public class DistributedCohort implements Cohort, TopCohort {
             } 
         } else {
             if (Debug.DEBUG_STEAL) {
-                logger.info("D UNSUCCESFULL REMOTE STEAL REQUEST from child " 
+                logger.info("D No local reply for STEAL REQUEST from child " 
                         + sr.source + " context " + sr.context);
             }
         }

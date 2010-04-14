@@ -424,13 +424,10 @@ public class BaseCohort implements Cohort {
    //         System.out.println("sync");
    //    } 
 
-        System.out.println("STEAL! " + System.currentTimeMillis());
-        new Exception().printStackTrace();
-        
         if (Debug.DEBUG_STEAL) { 
-            logger.info("STEAL BASE(" + identifier + "): activities " 
-                    + fresh.size() + " " + wrongContext.size() + " " 
-                    + runnable.size() + " " + lookup.size());
+            logger.info("STEAL BASE(" + identifier + "): activities F: " 
+                    + fresh.size() + " W: " + wrongContext.size() + " R: " 
+                    + runnable.size() + " L: " + lookup.size());
         }
         
         int size = wrongContext.size();
@@ -443,11 +440,17 @@ public class BaseCohort implements Cohort {
                 ActivityRecord r = (ActivityRecord) wrongContext.get(i);
                 
                 if (!r.isStolen()) { 
+       
+                    boolean steal = context.isAny();
+                    
+                    if (!steal) { 
+                        Context tmp = r.activity.getContext();
 
-                    Context tmp = r.activity.getContext();
-
-                    if (tmp.contains(context)) { 
-
+                        // FIXME: still confused about correctness of this!
+                        steal = tmp.contains(context);
+                    }
+                    
+                    if (steal) { 
                         wrongContext.remove(i);
 
                         lookup.remove(r.identifier());
@@ -481,20 +484,23 @@ public class BaseCohort implements Cohort {
                 if (!r.isStolen()) { 
 
                     Context tmp = r.activity.getContext();
+                    
+                    if (!tmp.isLocal()) { 
 
-                    if (!tmp.isLocal() && tmp.contains(context)) { 
+                        if (context.isAny() || tmp.contains(context)) { 
+                  
+                            fresh.remove(i);
 
-                        fresh.remove(i);
+                            lookup.remove(r.identifier());
 
-                        lookup.remove(r.identifier());
+                            if (Debug.DEBUG_STEAL) {
+                                logger.info("STOLEN " + r.identifier());
+                            }
 
-                        if (Debug.DEBUG_STEAL) {
-                            logger.info("STOLEN " + r.identifier());
+                            r.setStolen(true);
+
+                            return r;
                         }
-
-                        r.setStolen(true);
-
-                        return r;
                     }
                 }
             } 
