@@ -519,7 +519,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     private void processStealRequests() { 
         
-        System.out.println("Processing steal requests " + processing.stealRequests.size());
+     //   System.out.println("Processing steal requests " + processing.stealRequests.size());
         
         while (processing.stealRequests.size() > 0) {
 
@@ -591,14 +591,14 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         // TODO: think about the order here ?
         swapEventQueues();
         
-        System.out.println("Events waiting: " + 
-                (processing.newContext != null) + " " + 
-                processing.deliveredActivityRecords + " " + 
-                processing.deliveredApplicationMessages + " " + 
-                processing.lookupRequests + " " +
-                processing.pendingCancelations + " " +
-                processing.pendingSubmit + " " +
-                processing.stealRequests);
+   //     System.out.println("Events waiting: " + 
+   //             (processing.newContext != null) + " " + 
+   //             processing.deliveredActivityRecords + " " + 
+   //             processing.deliveredApplicationMessages + " " + 
+   //             processing.lookupRequests + " " +
+   //             processing.pendingCancelations + " " +
+   //             processing.pendingSubmit + " " +
+   //             processing.stealRequests);
         
         processContextChange();
         
@@ -613,31 +613,34 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private boolean pause(long time) { 
         
-        long end = System.currentTimeMillis() + time;
-        
-        boolean wake = havePendingRequests || getDone(); 
+        if (time > 0) { 
 
-        while (!wake) { 
-            
-            try { 
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                // ignored
-            }
-            
-            wake = havePendingRequests 
+            long end = System.currentTimeMillis() + time;
+
+            boolean wake = havePendingRequests || getDone(); 
+
+            while (!wake) { 
+
+                try { 
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    // ignored
+                }
+
+                wake = havePendingRequests 
                 || (System.currentTimeMillis() > end) 
                 || getDone();  
-        }
+            }
 
-        /*
-        if (!wake) { 
-            info("Slept entire slot of " + time + " ms.");
-        } else { 
-            info("Slept partial slot. req: " + havePendingRequests + " done: " + getDone());
-        }*/
+            /*
+            if (!wake) { 
+                info("Slept entire slot of " + time + " ms.");
+            } else { 
+                info("Slept partial slot. req: " + havePendingRequests + " done: " + getDone());
+            }*/
+        }
         
-        return wake;
+        return (havePendingRequests || getDone());
     }
     
     private boolean stealAllowed() { 

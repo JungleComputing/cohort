@@ -251,14 +251,14 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                         correct + " total time = " + (end-start) + " job time = " + 
                         nsPerJob + " nsec/job");
             }
+                    
+            cohort.done();
         
             if (mode == CONTEXT_WEAK) { 
                 Integer tmp = (Integer) LocalData.getLocalData().get("mismatch");
                 System.out.println("Mismatched jobs = " + tmp);
             }
-            
-            cohort.done();
-            
+
         } catch (Exception e) {
             System.err.println("Oops: " + e);
             e.printStackTrace(System.err);
