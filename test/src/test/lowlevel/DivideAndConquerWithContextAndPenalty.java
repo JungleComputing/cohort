@@ -24,6 +24,12 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
     private static final int CONTEXT_NONE   = 0;
     private static final int CONTEXT_WEAK   = 1;
     private static final int CONTEXT_STRONG = 2;
+
+    private static final int TYPE_LEFT_RIGHT      = 0;
+    private static final int TYPE_LEAF_LEFT_RIGHT = 1;
+    private static final int TYPE_ZEBRA           = 2;
+    private static final int TYPE_RANDOM          = 3;
+    private static final int TYPE_LEAF_RANDOM     = 4;
     
     private final ActivityIdentifier parent;
 
@@ -32,12 +38,13 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
     private final int sleep;
     private final int penalty;
     private final int mode;
-    
+    private final int type;
+        
     private int merged = 0;    
     private long count = 1;
 
     public DivideAndConquerWithContextAndPenalty(ActivityIdentifier parent, 
-            int branch, int depth, int sleep, int penalty, int mode, 
+            int branch, int depth, int sleep, int penalty, int mode, int type,  
             Context context) {
       
         super(context);
@@ -47,6 +54,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
         this.sleep = sleep;
         this.penalty = penalty;
         this.mode = mode;
+        this.type = type;
     }
 
     @Override
@@ -71,10 +79,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                     
                     // Check if context stored in LocalData is same as activity 
                     // context. If not, add penalty to time.
-                  
                     machineContext = (Context) LocalData.getLocalData().get("context");
-                 
-                    
                     
                     if (!activitycontext.equals(machineContext)) { 
                         time = time + penalty;
@@ -98,16 +103,102 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             
             finish();
         } else {
-            
-            Context even = new UnitContext("Even");
-            Context odd = new UnitContext("Odd");
+
+            if (type == TYPE_LEFT_RIGHT) { 
+                Context even = new UnitContext("Even");
+                Context odd = new UnitContext("Odd");
                 
-            for (int i=0;i<branch;i++) { 
-                Context tmp = (i % 2) == 0 ? even : odd;
-                cohort.submit(new DivideAndConquerWithContextAndPenalty(
-                        identifier(), branch, depth-1, sleep, penalty, mode, 
-                        tmp));
+                for (int i=0;i<branch;i++) { 
+                    Context tmp = (i % 2) == 0 ? even : odd;
+                    cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                            identifier(), branch, depth-1, sleep, penalty, mode, 
+                            type, tmp));
+                }
+            } else if (type == TYPE_LEAF_LEFT_RIGHT) { 
+          
+                if (depth == 1) { 
+                    Context even = new UnitContext("Even");
+                    Context odd = new UnitContext("Odd");
+                
+                    for (int i=0;i<branch;i++) { 
+                        Context tmp = (i % 2) == 0 ? even : odd;
+                        cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                                identifier(), branch, depth-1, sleep, penalty, mode, 
+                                type, tmp));
+                    }
+                } else { 
+                    for (int i=0;i<branch;i++) { 
+                        cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                                identifier(), branch, depth-1, sleep, penalty, mode, 
+                                type, Context.ANY));
+                    }
+                }
+                
+            } else if (type == TYPE_ZEBRA) { 
+          
+                Context tmp = null; 
+                
+                if (depth % 2 == 0) { 
+                    tmp = new UnitContext("Even");
+                } else { 
+                    tmp = new UnitContext("Odd");
+                }
+                
+                for (int i=0;i<branch;i++) { 
+                    cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                            identifier(), branch, depth-1, sleep, penalty, mode, 
+                            type, tmp));
+                }
+                
+            } else if (type == TYPE_RANDOM) { 
+
+                Context even = new UnitContext("Even");
+                Context odd = new UnitContext("Odd");
+            
+                for (int i=0;i<branch;i++) { 
+            
+                    Context tmp = null;
+                    
+                    if (Math.random() > 0.5) { 
+                        tmp = even;
+                    } else { 
+                        tmp = odd;
+                    }
+                    
+                    cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                            identifier(), branch, depth-1, sleep, penalty, mode, 
+                            type, tmp));
+                }
+                
+            } else if (type == TYPE_LEAF_RANDOM) { 
+
+                if (depth == 1) { 
+                    Context even = new UnitContext("Even");
+                    Context odd = new UnitContext("Odd");
+                
+                    for (int i=0;i<branch;i++) { 
+                
+                        Context tmp = null;
+                        
+                        if (Math.random() > 0.5) { 
+                            tmp = even;
+                        } else { 
+                            tmp = odd;
+                        }
+                        
+                        cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                                identifier(), branch, depth-1, sleep, penalty, mode, 
+                                type, tmp));
+                    }
+                } else { 
+                    for (int i=0;i<branch;i++) { 
+                        cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                                identifier(), branch, depth-1, sleep, penalty, mode, 
+                                type, Context.ANY));
+                    }
+                }
             }
+            
             suspend();
         } 
     }
@@ -159,7 +250,28 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
         // Stupid compiler 
         return -1;
     }
-    
+
+    private static int parseType(String type) { 
+        
+        if (type.equals("left-right")) { 
+           return TYPE_LEFT_RIGHT;
+        } else if (type.equals("leaf-left-right")) { 
+           return TYPE_LEAF_LEFT_RIGHT;
+        } else if (type.equals("zebra")) { 
+           return TYPE_ZEBRA;
+        } else if (type.equals("random")) {
+            return TYPE_RANDOM;
+        } else if (type.equals("leaf-random")) {
+            return TYPE_LEAF_RANDOM;
+        }
+        
+        System.err.println("Unknown type: " + type);
+        System.exit(1);
+        
+        // Stupid compiler 
+        return -1;
+    }
+
     public static void main(String [] args) { 
         
         try {
@@ -173,15 +285,13 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             int penalty =  Integer.parseInt(args[3]);
             int workers = Integer.parseInt(args[4]);
             int rank = Integer.parseInt(args[5]);
-            int mode = 0;
-            
-            String context = args[6];
             
             CohortIdentifier [] leafs = cohort.getLeafIDs();
 
             Context cohortContext = null;
    
-            mode = parseMode(context);
+            int mode = parseMode(args[6]);            
+            int type = parseType(args[7]);         
             
             if (mode == CONTEXT_NONE) { 
                 cohortContext = Context.ANY;
@@ -237,7 +347,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 cohort.submit(a);
                 cohort.submit(new DivideAndConquerWithContextAndPenalty(
                         a.identifier(), branch, depth, sleep, penalty, mode, 
-                        new UnitContext("Even")));
+                        type, new UnitContext("Even")));
 
                 long result = ((MessageEvent<Long>)a.waitForEvent()).message;
 
