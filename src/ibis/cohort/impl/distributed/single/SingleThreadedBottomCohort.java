@@ -350,7 +350,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private final void signal() { 
         havePendingRequests = true;
-        thread.interrupt();
+        //thread.interrupt();
     }
     
     private void postStealRequest(StealRequest s) {
@@ -694,8 +694,15 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 
                 logger.warn("Cohort sleeping(" + pauseTime +") with state: " + tmp);
                 
-                interrupted(); // Clear flag
-                LockSupport.parkNanos(pauseTime * 1000);
+                //interrupted(); // Clear flag
+                //LockSupport.parkNanos(pauseTime * 1000);
+                
+                try { 
+                    Thread.sleep(pauseTime);
+                } catch (Exception e) {
+                    // ignored
+                }
+                
                 
                 wake = havePendingRequests || getDone()
                     || (System.currentTimeMillis() > deadline); 
