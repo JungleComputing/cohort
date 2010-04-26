@@ -31,6 +31,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     private static final boolean PROFILE = true;
     private static final boolean THROTTLE_STEALS = true;
     private static final int DEFAULT_STEAL_DELAY = 500;
+    private static final boolean DEFAULT_IGNORE_EMPTY_STEAL_REPLIES = true;
     
     private final TopCohort parent;
 
@@ -117,8 +118,10 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     private long profileSteals = 0;
      */
     
+    private final boolean ignoreEmptyStealReplies;
+    
     private volatile boolean havePendingRequests = false;
-
+    
     public SingleThreadedBottomCohort(TopCohort parent, Properties p, long rank, 
             int workers, CohortIdentifier identifier) {
 
@@ -178,6 +181,17 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         }
         
         logger.warn("SingleThreaded: steal size set to " + stealSize);
+        
+        tmp = p.getProperty("ibis.cohort.steal.ignorereplies");
+        
+        if (tmp != null && tmp.length() > 0) { 
+            ignoreEmptyStealReplies = Boolean.parseBoolean(tmp);
+        } else { 
+            ignoreEmptyStealReplies = DEFAULT_IGNORE_EMPTY_STEAL_REPLIES;
+        }
+        
+        logger.warn("SingleThreaded: ignore empty steal replies set to " 
+                + ignoreEmptyStealReplies);
         
         if (PROFILE) {/*
             profileTime = System.currentTimeMillis();
@@ -564,14 +578,16 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                         s.source, a);
                */
               
-                // FIXME: the 1 should be configurable!
-                
                 ActivityRecord [] a = sequential.steal(s.context, stealSize);
-                StealReply sr = new StealReply(sequential.identifier(), 
-                        s.source, a);
-                
-                parent.handleStealReply(sr);
                
+                if (!ignoreEmptyStealReplies) { 
+                    StealReply sr = new StealReply(sequential.identifier(), 
+                            s.source, a);
+                
+                    parent.handleStealReply(sr);
+                } else { 
+                    logger.warn("IGNORING empty steal reply");
+                }
                     
                 //    if (!parent.forwardStealReply(s, a)) { 
                 //        // The parent was no longer interested in the steal reply, 
