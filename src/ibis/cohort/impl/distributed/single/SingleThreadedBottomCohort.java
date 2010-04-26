@@ -24,12 +24,13 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.concurrent.locks.LockSupport;
 
 public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     private static final boolean PROFILE = true;
     private static final boolean THROTTLE_STEALS = true;
-    private static final int STEAL_DELAY = 500;
+    private static final int DEFAULT_STEAL_DELAY = 500;
     
     private final TopCohort parent;
 
@@ -39,6 +40,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private PrintStream out; 
     private CohortLogger logger;
+    
+    private final Thread thread;
     
     private static class PendingRequests {
         
@@ -78,10 +81,10 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         }
     }
     
-    private long sleepTime;
-    private int stealSize; 
-
-    private long lastStealTime; 
+    private final int stealSize; 
+    private final int stealDelay; 
+    
+    private long nextStealDeadline; 
     
     private PendingRequests incoming = new PendingRequests();
     private PendingRequests processing = new PendingRequests();
@@ -121,6 +124,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
         super("SingleThreadedCohort " + identifier);
         
+        this.thread = this;
         this.parent = parent;
         this.identifier = identifier;
                 
@@ -143,6 +147,17 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
         this.logger = CohortLogger.getLogger(SingleThreadedBottomCohort.class, identifier);
         
+        String tmp = p.getProperty("ibis.cohort.steal.delay");
+        
+        if (tmp != null && tmp.length() > 0) { 
+            stealDelay = Integer.parseInt(tmp);
+        } else { 
+            stealDelay = DEFAULT_STEAL_DELAY;
+        }
+        
+        logger.warn("SingleThreaded: steal delay set to " + stealDelay + " ms.");
+        
+        /*
         String tmp = p.getProperty("ibis.cohort.sleep");
         
         if (tmp != null && tmp.length() > 0) { 
@@ -152,8 +167,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         }
         
         logger.warn("SingleThreaded: sleepTime set to " + sleepTime + " ms.");
+        */
         
-        tmp = p.getProperty("ibis.cohort.stealsize");
+        tmp = p.getProperty("ibis.cohort.steal.size");
         
         if (tmp != null && tmp.length() > 0) { 
             stealSize = Integer.parseInt(tmp);
@@ -161,7 +177,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             stealSize = 1;
         }
         
-        logger.warn("SingleThreaded: stealSize set to " + stealSize);
+        logger.warn("SingleThreaded: steal size set to " + stealSize);
         
         if (PROFILE) {/*
             profileTime = System.currentTimeMillis();
@@ -318,32 +334,41 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         havePendingRequests = true;
     }*/
     
+    private final void signal() { 
+        thread.interrupt();
+        havePendingRequests = true;
+    }
+    
     private void postStealRequest(StealRequest s) {
         synchronized (incoming) { 
             incoming.stealRequests.add(s);
         }
-        havePendingRequests = true;
+        //havePendingRequests = true;
+        signal();
     }
     
     private void postContextChange(Context c) { 
         synchronized (incoming) { 
             incoming.newContext = c;
         }
-        havePendingRequests = true;
+        //havePendingRequests = true;
+        signal();
     }
     
     private void postLookupRequest(LookupRequest s) {
         synchronized (incoming) { 
             incoming.lookupRequests.add(s);
         }
-        havePendingRequests = true;
+        //havePendingRequests = true;
+        signal();
     }
     
     private void postApplicationMessage(ApplicationMessage m) {
         synchronized (incoming) { 
             incoming.deliveredApplicationMessages.add(m);
         }
-        havePendingRequests = true;
+        //havePendingRequests = true;
+        signal();
     }
     
     private void postActivityRecord(ActivityRecord [] a) {
@@ -364,7 +389,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         synchronized (incoming) { 
             incoming.deliveredActivityRecords.add(a);
         }
-        havePendingRequests = true;
+        // havePendingRequests = true;
+        signal();
     }
     
     private ActivityIdentifier submit(Activity a) {
@@ -381,8 +407,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             incoming.pendingSubmit.add(a);
         }
         
-        havePendingRequests = true;
-        
+        // havePendingRequests = true;
+        signal();
         return id;
     }
 
@@ -416,6 +442,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             // could potentially use this gap to insert a new event. This would 
             // lead to a race condition!
             havePendingRequests = false;
+            interrupted();
         }
     }
 
@@ -611,6 +638,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         processLookupRequests();
     }
     
+    /*
     private boolean pause(long time) { 
         
         if (time > 0) { 
@@ -628,8 +656,26 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 }
 
                 wake = havePendingRequests 
-                || (System.currentTimeMillis() > end) 
-                || getDone();  
+                    || (System.currentTimeMillis() > end) 
+                    || getDone();  
+            }
+        }
+        
+        return (havePendingRequests || getDone());
+    }
+    */
+
+    private boolean pauseUntil(long deadline) { 
+        
+        if (deadline > 0) { 
+
+            boolean wake = interrupted() || havePendingRequests || getDone(); 
+
+            while (!wake) { 
+                LockSupport.parkUntil(deadline);
+                
+                wake = interrupted() || havePendingRequests || getDone()
+                    || (System.currentTimeMillis() > deadline); 
             }
 
             /*
@@ -640,24 +686,24 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             }*/
         }
         
-        return (havePendingRequests || getDone());
+        return (interrupted() || havePendingRequests || getDone());
     }
     
-    private boolean stealAllowed() { 
+    private long stealAllowed() { 
   
        if (THROTTLE_STEALS) { 
            
            long now = System.currentTimeMillis();
            
-           if ((lastStealTime + STEAL_DELAY) <= now) { 
-               lastStealTime = now;
-               return true;
+           if (now >= nextStealDeadline) { 
+               nextStealDeadline = now + stealDelay;
+               return 0;
            }
            
-           return false;
+           return nextStealDeadline;
        }
        
-       return true;
+       return 0;
     }
     
     public void run() {
@@ -704,25 +750,28 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             }
 */
             
-            while (!more && !havePendingRequests) {
+            while (!more && !interrupted() && !havePendingRequests) {
             
                 logger.info("IDLE");                             
                
-                if (stealAllowed()) { 
+                long nextDeadline = stealAllowed();
+                
+                if (nextDeadline == 0) { 
 
                     logger.info("STEAL");
                     
                     StealRequest sr = new StealRequest(identifier, getContext());
                     ActivityRecord ar = parent.handleStealRequest(sr);
                 
-                    if (ar == null) { 
-                        more = pause(sleepTime);
-                    } else { 
+                    if (ar != null) { 
+                    //    more = pause(sleepTime);
+                    //} else { 
                         sequential.addActivityRecord(ar);
                         more = true;
                     }
                 } else { 
-                    more = pause(sleepTime);
+                    //more = pause(sleepTime);
+                    more = pauseUntil(nextDeadline);
                 }
                 
                 logger.info("ACTIVE");                             
