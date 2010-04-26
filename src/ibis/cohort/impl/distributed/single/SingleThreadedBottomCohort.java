@@ -686,9 +686,6 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
         if (deadline > 0) { 
 
-            // Clear flag
-            interrupted();
-            
             boolean wake = havePendingRequests || getDone(); 
 
             while (!wake) { 
@@ -697,6 +694,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 
                 logger.warn("Cohort sleeping(" + pauseTime +") with state: " + tmp);
                 
+                interrupted(); // Clear flag
                 LockSupport.parkNanos(pauseTime * 1000);
                 
                 wake = havePendingRequests || getDone()
