@@ -666,6 +666,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     private boolean pauseUntil(long deadline) { 
         
+        long pauseTime = deadline - System.currentTimeMillis();
+        
         if (deadline > 0) { 
 
             // Clear flag
@@ -674,18 +676,16 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             boolean wake = havePendingRequests || getDone(); 
 
             while (!wake) { 
-                LockSupport.parkNanos(1000);
+                LockSupport.parkNanos(pauseTime * 1000);
                 
                 wake = havePendingRequests || getDone()
                     || (System.currentTimeMillis() > deadline); 
+            
+                if (!wake) { 
+                    pauseTime = deadline - System.currentTimeMillis();
+                    wake = (pauseTime <= 0); 
+                }
             }
-
-            /*
-            if (!wake) { 
-                info("Slept entire slot of " + time + " ms.");
-            } else { 
-                info("Slept partial slot. req: " + havePendingRequests + " done: " + getDone());
-            }*/
         }
         
         return (havePendingRequests || getDone());
