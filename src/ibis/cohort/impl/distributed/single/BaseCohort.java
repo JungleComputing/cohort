@@ -387,7 +387,7 @@ public class BaseCohort implements Cohort {
             result[i] = doSteal(context);
        
             if (result[i] == null) { 
-                logger.warn("STEAL(" + count + ") only produced " + i + " results");
+               // logger.warn("STEAL(" + count + ") only produced " + i + " results");
             
                 if (i == 0) { 
                     return null;
