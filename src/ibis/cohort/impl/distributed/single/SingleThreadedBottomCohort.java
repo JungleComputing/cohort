@@ -335,8 +335,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }*/
     
     private final void signal() { 
-        thread.interrupt();
         havePendingRequests = true;
+        thread.interrupt();
     }
     
     private void postStealRequest(StealRequest s) {
@@ -442,7 +442,6 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             // could potentially use this gap to insert a new event. This would 
             // lead to a race condition!
             havePendingRequests = false;
-            interrupted();
         }
     }
 
@@ -669,12 +668,15 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
         if (deadline > 0) { 
 
-            boolean wake = interrupted() || havePendingRequests || getDone(); 
+            // Clear flag
+            interrupted();
+            
+            boolean wake = havePendingRequests || getDone(); 
 
             while (!wake) { 
-                LockSupport.parkUntil(deadline);
+                LockSupport.parkNanos(1000);
                 
-                wake = interrupted() || havePendingRequests || getDone()
+                wake = havePendingRequests || getDone()
                     || (System.currentTimeMillis() > deadline); 
             }
 
@@ -686,7 +688,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             }*/
         }
         
-        return (interrupted() || havePendingRequests || getDone());
+        return (havePendingRequests || getDone());
     }
     
     private long stealAllowed() { 
@@ -750,7 +752,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             }
 */
             
-            while (!more && !interrupted() && !havePendingRequests) {
+            while (!more && !havePendingRequests) {
             
                 logger.info("IDLE");                             
                
@@ -759,7 +761,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 if (nextDeadline == 0) { 
 
                     logger.info("STEAL");
-                    
+                
                     StealRequest sr = new StealRequest(identifier, getContext());
                     ActivityRecord ar = parent.handleStealRequest(sr);
                 
