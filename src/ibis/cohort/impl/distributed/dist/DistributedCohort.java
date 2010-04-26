@@ -206,7 +206,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
 
-        pool.setLogger(logger);        
+       // pool.setLogger(logger);        
     }
 
 

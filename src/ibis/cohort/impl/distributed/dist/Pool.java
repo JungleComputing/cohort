@@ -81,8 +81,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     public Pool(final DistributedCohort owner, final Properties p) throws Exception { 
     
         this.owner = owner; 
-        this.logger = logger;
-        
+        this.logger = CohortLogger.getLogger(Pool.class, null);
+            
         ibis = IbisFactory.createIbis(ibisCapabilities, p, true, this, portType);
 
         local = ibis.identifier();
