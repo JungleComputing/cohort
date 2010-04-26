@@ -25,8 +25,10 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Pool implements RegistryEventHandler, MessageUpcall {
     
@@ -71,6 +73,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     
     private long received;
     private long send;
+  
+    private boolean active = false;
+    
+    private LinkedList<Message> pending = new LinkedList<Message>();
     
     public Pool(final DistributedCohort owner, final Properties p) throws Exception { 
     
@@ -107,8 +113,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         isMaster = local.equals(master);
       
         rp = ibis.createReceivePort(portType, "cohort", this);
+        rp.enableMessageUpcalls();
         rp.enableConnections();
-        // rp.enableMessageUpcalls();
                 
         cidFactory = new DistributedCohortIdentifierFactory(local, rank);
     }
@@ -119,7 +125,40 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
     
     public void activate() { 
-        rp.enableMessageUpcalls();
+        logger.warn("Activating POOL on " + ibis.identifier());
+        
+        synchronized (this) { 
+            active = true;
+        }
+        
+        processPendingMessages();
+    }
+    
+    private void processPendingMessages() { 
+        
+        while (pending.size() > 0) { 
+            Message m = pending.removeFirst();
+      
+            if (m instanceof StealReply) { 
+            
+                logger.warn("POOL processing PENDING StealReply from " + m.source);
+                owner.deliverRemoteStealRequest((StealRequest)m);
+            
+            } else if (m instanceof ApplicationMessage) { 
+        
+                logger.warn("POOL processing PENDING ApplicationMessage from " + m.source);
+                owner.deliverRemoteEvent((ApplicationMessage)m);
+        
+            } else if (m instanceof UndeliverableEvent) { 
+                
+                logger.warn("POOL processing PENDING UndeliverableEvent from " + m.source);
+                owner.deliverUndeliverableEvent((UndeliverableEvent)m);
+        
+            } else { 
+                // Should never happen!
+                logger.warning("POOL DROP unknown pending message ! " + m);
+            }
+        }
     }
     
     /*
@@ -143,7 +182,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return false;
     }
     
-    private synchronized SendPort getSendPort(IbisIdentifier id) {
+    private SendPort getSendPort(IbisIdentifier id) {
 
         // TODO: not fault tolerant!!!
 
@@ -151,33 +190,42 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             logger.fatal("POOL Sending to myself!", new Exception());
         }
         
-        SendPort sp = sendports.get(id);
-
-        if (sp == null) { 
-          
-            logger.warn("Connecting to " + id + " from " + ibis.identifier());
-            
-            try {
-                sp = ibis.createSendPort(portType);
-                sp.connect(id, "cohort");
-            } catch (IOException e) {
-                
-                try { 
-                    sp.close();
-                } catch (Exception e2) {
-                    // ignored ?
-                }
-                
-                e.printStackTrace();
+        synchronized (this) {
+            if (!active) { 
+                logger.warn("POOL Attempted getSendPort while inactive!", new Exception());
                 return null;
             }
-
-            logger.warn("Succesfully connected to " + id + " from " + ibis.identifier());
-            
-            sendports.put(id, sp);
         }
+        
+        synchronized (sendports) {
+            SendPort sp = sendports.get(id);
 
-        return sp;
+            if (sp == null) { 
+          
+                logger.warn("Connecting to " + id + " from " + ibis.identifier());
+            
+                try {
+                    sp = ibis.createSendPort(portType);
+                    sp.connect(id, "cohort");
+                } catch (IOException e) {
+                
+                    try { 
+                        sp.close();
+                    } catch (Exception e2) {
+                        // ignored ?
+                    }
+                
+                    e.printStackTrace();
+                    return null;
+                }
+
+                logger.warn("Succesfully connected to " + id + " from " + ibis.identifier());
+            
+                sendports.put(id, sp);
+            }
+
+            return sp;
+        }
     }
 /*
     private void releaseSendPort(IbisIdentifier id, SendPort sp) {
@@ -197,16 +245,25 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         // ignored
     }
 
-    public synchronized void joined(IbisIdentifier id) {
+    public void joined(IbisIdentifier id) {
         
-        if (!id.equals(local)) {
-            others.add(id);
+        synchronized (others) { 
+            if (!id.equals(local)) {
+                others.add(id);
+                logger.warn("JOINED " + id);
+            }
         }
     }
-
-    public synchronized void left(IbisIdentifier id) {
-        others.remove(id);
-        sendports.remove(id);
+        
+    public void left(IbisIdentifier id) {
+        
+        synchronized (others) { 
+            others.remove(id);
+        }
+        
+        synchronized (sendports) {
+            sendports.remove(id);
+        }
     }
 
     public void poolClosed() {
@@ -244,7 +301,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     
     private IbisIdentifier selectRandomTarget() {
         
-        synchronized (this) {
+        synchronized (others) {
             
             int size = others.size();
             
@@ -340,12 +397,40 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return null;
     }
 
+    private void addPendingMessage(Message m) { 
+            
+        if (m instanceof StealReply) {
+            StealReply sr = (StealReply) m; 
+           
+            if (!sr.isEmpty()) { 
+                logger.warn("POOL(INACTIVE) SAVING StealReply with WORK from " + m.source);
+                pending.add(m);
+            } else {
+                logger.warn("POOL(INACTIVE) DROPPING Empty stealReply from " + m.source);
+            }
+        } else if (m instanceof ApplicationMessage) { 
+            logger.warn("POOL(INACTIVE) SAVING ApplicationMessage from " + m.source);
+            pending.add(m);
+        } else if (m instanceof UndeliverableEvent) { 
+            logger.warn("POOL(INACTIVE) SAVING UndeliverableEvent from " + m.source);
+            pending.add(m);        
+        } else { 
+            logger.warn("POOL(INACTIVE) DROPPING Message from " + m.source);
+        }
+    }
+    
     public void upcall(ReadMessage rm) throws IOException, ClassNotFoundException {
-        
+ 
         Message m = (Message) rm.readObject();
-        
+       
         synchronized (this) {
             received++;
+            
+            if (!active) { 
+                logger.warn("POOL Received message while inactive!", new Exception());
+                addPendingMessage(m);
+                return;
+            }
         }
         
         if (m instanceof StealRequest) { 
@@ -408,6 +493,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             // Should never happen!
             logger.warning("POOL DROP unknown message type! " + m);
         }
+       
     }
     
     public void broadcast(Message m) { 

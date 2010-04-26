@@ -453,11 +453,9 @@ public class DistributedCohort implements Cohort, TopCohort {
     /* =========== Cohort interface ========================================= */
 
     public boolean activate() {
-        boolean tmp = subCohort.activate();
 
         pool.activate();
-
-        return tmp;
+        return subCohort.activate();
     }
 
     public void cancel(ActivityIdentifier id) {
