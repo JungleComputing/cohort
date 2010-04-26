@@ -154,14 +154,26 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         SendPort sp = sendports.get(id);
 
         if (sp == null) { 
+          
+            logger.warn("Connecting to " + id + " from " + ibis.identifier());
+            
             try {
                 sp = ibis.createSendPort(portType);
                 sp.connect(id, "cohort");
             } catch (IOException e) {
+                
+                try { 
+                    sp.close();
+                } catch (Exception e2) {
+                    // ignored ?
+                }
+                
                 e.printStackTrace();
                 return null;
             }
 
+            logger.warn("Succesfully connected to " + id + " from " + ibis.identifier());
+            
             sendports.put(id, sp);
         }
 
