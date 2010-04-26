@@ -398,7 +398,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     private void addPendingMessage(Message m) { 
-            
+      
+        /*
         if (m instanceof StealReply) {
             StealReply sr = (StealReply) m; 
            
@@ -415,8 +416,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             logger.warn("POOL(INACTIVE) SAVING UndeliverableEvent from " + m.source);
             pending.add(m);        
         } else { 
-            logger.warn("POOL(INACTIVE) DROPPING Message from " + m.source);
-        }
+            logger.warn("POOL(INACTIVE) DROPPING Message from " + m.source );
+        }*/
+        
+        pending.add(m);
     }
     
     public void upcall(ReadMessage rm) throws IOException, ClassNotFoundException {
