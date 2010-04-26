@@ -513,8 +513,9 @@ public class BaseCohort implements Cohort {
         
         String tmp = "BASE contains " + lookup.size()
                 + " activities " + runnable.size() + " runnable  " 
-                + fresh.size() + " fresh";
+                + fresh.size() + " fresh " + wrongContext.size() + " wrong ";
         
+        /*
         for (ActivityIdentifier i : lookup.keySet()) { 
            
             ActivityRecord a = lookup.get(i);
@@ -525,7 +526,7 @@ public class BaseCohort implements Cohort {
                 tmp += " < " + i + " > ";
             }
         }
-        
+        */
         return tmp;
     }
     

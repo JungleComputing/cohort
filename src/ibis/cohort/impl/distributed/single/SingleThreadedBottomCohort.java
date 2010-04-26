@@ -692,6 +692,11 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             boolean wake = havePendingRequests || getDone(); 
 
             while (!wake) { 
+                
+                String tmp = sequential.printState();
+                
+                logger.warn("Cohort sleeping(" + pauseTime +") with state: " + tmp);
+                
                 LockSupport.parkNanos(pauseTime * 1000);
                 
                 wake = havePendingRequests || getDone()
