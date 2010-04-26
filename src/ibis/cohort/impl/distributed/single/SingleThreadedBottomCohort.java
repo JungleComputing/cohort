@@ -692,7 +692,16 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 
                 String tmp = sequential.printState();
                 
-                logger.warn("Cohort sleeping(" + pauseTime +") with state: " + tmp);
+                logger.warn("Cohort sleeping(" + pauseTime +") with state: " 
+                        + tmp + " and pending events: " + 
+                             (processing.newContext != null) + " " + 
+                             processing.deliveredActivityRecords + " " + 
+                             processing.deliveredApplicationMessages + " " + 
+                             processing.lookupRequests + " " +
+                             processing.pendingCancelations + " " +
+                             processing.pendingSubmit + " " +
+                             processing.stealRequests);
+                     
                 
                 //interrupted(); // Clear flag
                 //LockSupport.parkNanos(pauseTime * 1000);
