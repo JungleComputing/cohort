@@ -515,18 +515,20 @@ public class BaseCohort implements Cohort {
                 + " activities " + runnable.size() + " runnable  " 
                 + fresh.size() + " fresh " + wrongContext.size() + " wrong ";
         
-        /*
-        for (ActivityIdentifier i : lookup.keySet()) { 
-           
-            ActivityRecord a = lookup.get(i);
-            
-            if (a != null) { 
-                tmp += " [ " + i + " " + a + " ] ";
-            } else { 
-                tmp += " < " + i + " > ";
+        if (lookup.size() > 0) { 
+
+            for (ActivityIdentifier i : lookup.keySet()) { 
+
+                ActivityRecord a = lookup.get(i);
+
+                if (a != null) { 
+                    tmp += " [ " + i + " " + a + " ] ";
+                } else { 
+                    tmp += " < " + i + " > ";
+                }
             }
         }
-        */
+        
         return tmp;
     }
     
