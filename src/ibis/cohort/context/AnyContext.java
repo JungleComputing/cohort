@@ -20,4 +20,8 @@ public class AnyContext extends Context {
     public boolean contains(Context other) {
         return true;
     }
+   
+    public String toString() { 
+        return "ANYContext";
+    }
 }

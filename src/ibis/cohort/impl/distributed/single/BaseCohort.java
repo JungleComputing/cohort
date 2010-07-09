@@ -69,15 +69,23 @@ public class BaseCohort implements Cohort {
     private ActivityRecord current;
     
     BaseCohort(SingleThreadedBottomCohort parent, Properties p, 
-            CohortIdentifier identifier, CohortLogger logger) {
+            CohortIdentifier identifier, CohortLogger logger, Context context) {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getActivityIdentifierFactory(identifier);
         this.logger = logger;
+        this.myContext = context;
     }
     
-    public BaseCohort(Properties p) {
+    public BaseCohort(Properties p, Context context) {
         this.parent = null;
+        
+        if (context == null) { 
+            myContext = Context.ANY;
+        } else { 
+            myContext = context;
+        }
+        
         this.identifier = new CohortIdentifier(0);
         this.generator = new ActivityIdentifierFactory(0, 0, Long.MAX_VALUE);
         this.logger = CohortLogger.getLogger(BaseCohort.class, identifier);
@@ -379,6 +387,8 @@ public class BaseCohort implements Cohort {
     
     ActivityRecord [] steal(Context context, int count) {
 
+        logger.warn("In STEAL on BASE " + context + " " + count);
+        
         steals++;
         
         ActivityRecord [] result = new ActivityRecord[count];
@@ -387,7 +397,7 @@ public class BaseCohort implements Cohort {
             result[i] = doSteal(context);
        
             if (result[i] == null) { 
-               // logger.warn("STEAL(" + count + ") only produced " + i + " results");
+                logger.warn("STEAL(" + count + ") only produced " + i + " results");
             
                 if (i == 0) { 
                     return null;
@@ -398,6 +408,8 @@ public class BaseCohort implements Cohort {
                 }
             }
         }
+  
+        logger.warn("STEAL(" + count + ") only produced ALL results");
         
         stolenJobs += count;
         stealSuccess++;                    
@@ -514,7 +526,8 @@ public class BaseCohort implements Cohort {
         String tmp = "BASE contains " + lookup.size()
                 + " activities " + runnable.size() + " runnable  " 
                 + fresh.size() + " fresh " + wrongContext.size() + " wrong ";
-        
+      
+        /*
         if (lookup.size() > 0) { 
 
             for (ActivityIdentifier i : lookup.keySet()) { 
@@ -527,7 +540,7 @@ public class BaseCohort implements Cohort {
                     tmp += " < " + i + " > ";
                 }
             }
-        }
+        }*/
         
         return tmp;
     }

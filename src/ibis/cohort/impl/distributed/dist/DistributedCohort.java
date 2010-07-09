@@ -35,7 +35,9 @@ public class DistributedCohort implements Cohort, TopCohort {
     private static boolean REMOTE_STEAL_THROTTLE = false;
     private static long REMOTE_STEAL_TIMEOUT = 1000;
 
-    private final BottomCohort subCohort;
+    private boolean active;
+    
+    private BottomCohort subCohort;
 
     private final ActivityRecordQueue queue = new ActivityRecordQueue();
 
@@ -201,10 +203,12 @@ public class DistributedCohort implements Cohort, TopCohort {
         cidFactory = pool.getCIDFactory();        
         identifier = cidFactory.generateCohortIdentifier();
 
-        // TODO: THIS IS WRONG!!!
-        subCohort = new MultiThreadedMiddleCohort(p, this, 0);     
-
         logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
+
+        logger.warn("Starting DistributedCohort " + identifier + " / " + myContext);
+        
+        // TODO: THIS IS WRONG!!!
+      //  subCohort = new MultiThreadedMiddleCohort(p, this);     
 
        // pool.setLogger(logger);        
     }
@@ -454,6 +458,10 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public boolean activate() {
 
+        synchronized (this) {
+            active = true;
+        }
+        
         pool.activate();
         return subCohort.activate();
     }
@@ -716,6 +724,8 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public void handleStealReply(StealReply m) {
 
+        logger.warn("D handling steal reply for " + m.target);
+        
         if (pool.forward(m)) { 
             // Succesfully send the reply. Cache new location of the activities
           
@@ -767,5 +777,15 @@ public class DistributedCohort implements Cohort, TopCohort {
             CohortIdentifier cid) {
         return cidFactory;
     }
+    
+    public synchronized void register(BottomCohort cohort) throws Exception { 
+        
+        if (active || subCohort != null) { 
+            throw new Exception("Cannot register BottomCohort");
+        }
+        
+        subCohort = cohort;
+    }
+    
     /* =========== End of TopCohort interface =============================== */
 }

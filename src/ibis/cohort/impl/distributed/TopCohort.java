@@ -4,6 +4,7 @@ import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.extra.CohortIdentifierFactory;
+import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 public interface TopCohort {
     /* 
@@ -37,5 +38,9 @@ public interface TopCohort {
     void handleLookupReply(LookupReply m);
     void handleStealReply(StealReply m);
     void handleUndeliverableEvent(UndeliverableEvent m);
+
+    
+    /* callback method - used to register new cohorts */
+    void register(BottomCohort cohort) throws Exception;
 }
 

@@ -39,14 +39,18 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
     private PrintStream out; 
     private CohortLogger logger;
         
-    public SingleThreadedTopCohort(Properties p) {
+    public SingleThreadedTopCohort(Properties p, Context context) {
         
         super("SingleThreadedCohort CID: 0x0");
         
         System.out.println("Starting SingleThreadedCohort " + identifier);
       
-        myContext = Context.ANY;
-
+        if (context == null) { 
+            myContext = Context.ANY;
+        } else { 
+            myContext = context;
+        }
+        
         String outfile = p.getProperty("ibis.cohort.outputfile");
         
         if (outfile != null) {
@@ -195,6 +199,10 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
 
     public CohortIdentifier[] getLeafIDs() {
         return new CohortIdentifier [] { identifier };
+    }
+
+    public void register(BottomCohort cohort) throws Exception {
+        throw new Exception("No registration possible");
     }
 
 }

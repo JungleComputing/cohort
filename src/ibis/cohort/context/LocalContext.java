@@ -21,4 +21,7 @@ public class LocalContext extends Context {
         return equals(other);
     }
     
+    public String toString() { 
+        return "LOCALContext";
+    }
 }

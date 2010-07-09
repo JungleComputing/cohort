@@ -24,7 +24,6 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.concurrent.locks.LockSupport;
 
 public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
@@ -122,15 +121,16 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private volatile boolean havePendingRequests = false;
     
-    public SingleThreadedBottomCohort(TopCohort parent, Properties p, long rank, 
-            int workers, CohortIdentifier identifier) {
+    public SingleThreadedBottomCohort(TopCohort parent, Properties p, Context c) throws Exception {
 
-        super("SingleThreadedCohort " + identifier);
+        super();
         
         this.thread = this;
         this.parent = parent;
-        this.identifier = identifier;
-                
+        this.identifier = parent.getCohortIdentifierFactory(null).generateCohortIdentifier();
+            
+        super.setName("SingleThreadedBottomCohort " + identifier);
+        
         String outfile = p.getProperty("ibis.cohort.outputfile");
         
         if (outfile != null) {
@@ -149,6 +149,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         }
         
         this.logger = CohortLogger.getLogger(SingleThreadedBottomCohort.class, identifier);
+        
+        logger.warn("Starting SingleThreadedBottomCohort: " + identifier + " / " + c);
         
         String tmp = p.getProperty("ibis.cohort.steal.delay");
         
@@ -210,7 +212,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             }*/
         }
 
-        sequential = new BaseCohort(this, p, identifier, logger);
+        sequential = new BaseCohort(this, p, identifier, logger, c);
+   
+        parent.register(this);
     }
   /*  
     private void warning(String message) { 
@@ -324,6 +328,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }
     
     protected void forwardEvent(Event e) {
+        
+        // TODO: is this correct ? The target activity may be in one of the 
+        // local queues...
         ApplicationMessage m = new ApplicationMessage(sequential.identifier(), e);
         parent.handleApplicationMessage(m);
     }
@@ -580,12 +587,16 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
               
                 ActivityRecord [] a = sequential.steal(s.context, stealSize);
                
-                if (!ignoreEmptyStealReplies) { 
-                    StealReply sr = new StealReply(sequential.identifier(), 
-                            s.source, a);
+                if (a != null || !ignoreEmptyStealReplies) { 
                 
-                    parent.handleStealReply(sr);
+                    logger.warn("SENDING STEAL REPLY: " + s.source + " /" + s.context + " " + (a==null ? "0" : a.length));
+                    
+                    // We either have a result, or we always send a reply
+                    parent.handleStealReply(
+                            new StealReply(sequential.identifier(), 
+                            s.source, a));              
                 } else { 
+                    // No result, and we're not supposed to tell anyone  
                     logger.warn("IGNORING empty steal reply");
                 }
                     
@@ -692,7 +703,16 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 
                 String tmp = sequential.printState();
                 
-                logger.warn("Cohort sleeping(" + pauseTime +") with state: " 
+                logger.warn("Cohort sleeping(" + pauseTime +")");
+                
+                /* EEP: print this caused an occasional ConcurrentMod.Exception 
+                       because the ArrayLists in the datastructs may be changed 
+                       while this print is active...
+             
+                       We could synchronize it, but as this is just a debug 
+                       print this is pretty useless...  
+                        
+                with state: " 
                         + tmp 
                         + "\n and processing events: " + 
                              (processing.newContext != null) + " " + 
@@ -710,7 +730,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                              incoming.pendingCancelations + " " +
                              incoming.pendingSubmit + " " +
                              incoming.stealRequests); 
-             
+             */
                 
                 //interrupted(); // Clear flag
                 //LockSupport.parkNanos(pauseTime * 1000);

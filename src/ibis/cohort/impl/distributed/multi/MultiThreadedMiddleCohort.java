@@ -41,13 +41,14 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     private final TopCohort parent;
 
-    private final BottomCohort [] workers;
+    private ArrayList<BottomCohort> incomingWorkers;
 
+    private BottomCohort [] workers;
+    private int workerCount;
+    
     private final CohortIdentifier identifier;
 
     private final Random random = new Random();
-
-    private final int workerCount;
 
     private boolean active = false;
 
@@ -144,16 +145,14 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             return size;
         }
 
-        private synchronized void waitForTimeout() { 
+        private synchronized boolean waitForTimeout() { 
 
             try { 
                 wait(TIMEOUT);
             } catch (InterruptedException e) {
                 // ignored
             }                
-        }
-
-        private synchronized boolean getDone() { 
+            
             return done;
         }
 
@@ -163,8 +162,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
         public void run() { 
 
-            while (!getDone()) {
-                waitForTimeout();
+            boolean done = false;
+            
+            while (!done) {
                 int oldM = processOldMessages();                    
                 int newM = addNewMessages();
 
@@ -174,6 +174,8 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                                 + oldMessages.size());
                     }
                 }
+            
+                done = waitForTimeout();
             }
 
             if (Debug.DEBUG_LOOKUP) { 
@@ -241,41 +243,38 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         return def;
     }*/
 
-    public MultiThreadedMiddleCohort(Properties p, TopCohort parent, 
-            int workerCount) {
+    public MultiThreadedMiddleCohort(TopCohort parent, Properties p) throws Exception {
 
+        int count = 0;
+        
         this.parent = parent;
 
         cidFactory = parent.getCohortIdentifierFactory(null);
         identifier = cidFactory.generateCohortIdentifier();
 
-        int count = workerCount;
+    /*    
+        String tmp = p.getProperty("ibis.cohort.workers");
 
-        if (count == 0) {
-
-            String tmp = p.getProperty("ibis.cohort.workers");
-
-            if (tmp != null && tmp.length() > 0) {
-                try {
-                    count = Integer.parseInt(tmp);
-                } catch (Exception e) {
-                    System.err.println("Failed to parse property " +
-                            "ibis.cohort.workers: " + e);
-                }
-            }
-
-            if (count == 0) {
-                // Automatically determine the number of cores to use
-                count = Runtime.getRuntime().availableProcessors();
+        if (tmp != null && tmp.length() > 0) {
+            try {
+                count = Integer.parseInt(tmp);
+            } catch (Exception e) {
+                System.err.println("Failed to parse property " +
+                        "ibis.cohort.workers: " + e);
             }
         }
 
+        if (count == 0) {
+            // Automatically determine the number of cores to use
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
         this.workerCount = count;
-
+*/
+        
         this.logger = CohortLogger.getLogger(MultiThreadedMiddleCohort.class, identifier);
-        logger.info("Starting MultiThreadedCohort using " + count + " workers");
-
-        workers     = new SingleThreadedBottomCohort[count];
+        
+         incomingWorkers = new ArrayList<BottomCohort>();
         //     localSteals = new StealState[count];
         contexts    = new Context[count];
 
@@ -285,16 +284,18 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         lookup = new LookupThread();
         lookup.start();
 
-
-
+        /*
         for (int i = 0; i < count; i++) {
-            workers[i] = new SingleThreadedBottomCohort(this, p, count, i, 
+            workers[i] = new SingleThreadedBottomCohort(this, p, 
                     cidFactory.generateCohortIdentifier());
             //        localSteals[i] = new StealState();
             contexts[i] = Context.ANY;
         }
+         */
 
-        logger.info("All workers created!");
+        logger.warn("Starting MultiThreadedMiddleCohort " + identifier + " / " + myContext);
+
+        parent.register(this);
     }
 
     private BottomCohort getWorker(CohortIdentifier cid) { 
@@ -424,7 +425,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     }
 
     public synchronized ActivityIdentifierFactory 
-    getActivityIdentifierFactory(CohortIdentifier cid) {
+            getActivityIdentifierFactory(CohortIdentifier cid) {
         return parent.getActivityIdentifierFactory(cid);
     }
 
@@ -512,15 +513,22 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     public void handleStealReply(StealReply m) { 
 
+        logger.warn("MT handling STEAL REPLY " + m.isTargetSet() + " " + m.isEmpty());
+       
         if (m.isTargetSet()) { 
 
             BottomCohort b = getWorker(m.target);
 
             if (b != null) { 
+                
+                logger.warn("MT handling STEAL REPLY target is local! " + m.target);
+                
                 b.deliverStealReply(m);
                 return;
             }
 
+            logger.warn("MT handling STEAL REPLY target is remote! " + m.target);
+            
             parent.handleStealReply(m);
         } else {
             // Should never happen ?
@@ -614,6 +622,17 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         return parent.getCohortIdentifierFactory(cid);        
     }
 
+    public synchronized void register(BottomCohort cohort) throws Exception {
+
+        if (active) { 
+            throw new Exception("Cannot register new BottomCohort while " +
+                        "TopCohort is active!");
+        }
+        
+        incomingWorkers.add(cohort);
+    }
+
+    
     /* ================= End of TopCohort interface ==========================*/
 
 
@@ -711,6 +730,11 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             }
 
             active = true;
+            workerCount = incomingWorkers.size();
+            workers = incomingWorkers.toArray(new BottomCohort[workerCount]);
+            
+            // No workers may be added after this point
+            incomingWorkers = null;
         }
 
         for (int i = 0; i < workerCount; i++) {
@@ -723,10 +747,18 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     public void done() {
 
+        logger.warn("done");
+        
         lookup.done();
-
-        for (BottomCohort u : workers) {
-            u.done();
+        
+        if (active) { 
+            for (BottomCohort u : workers) {
+                u.done();
+            }
+        } else { 
+            for (BottomCohort u : incomingWorkers) {
+                u.done();
+            }
         }
     }
 
@@ -777,6 +809,12 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         BottomCohort b = null;
 
         if (cid != null) { 
+            
+            if (Debug.DEBUG_STEAL) { 
+                logger.info("M RECEIVED REMOTE STEAL REQUEST with TARGET " + 
+                        cid + " context " + sr.context);
+            }
+            
             b = getWorker(cid);
         } 
 
@@ -787,7 +825,15 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         // request, and try to find a job until some deadline runs out.
 
         if (b == null) { 
-            b = workers[selectTargetWorker()];
+            
+            int rnd = selectTargetWorker(); 
+    
+            b = workers[rnd];
+            
+            if (Debug.DEBUG_STEAL) { 
+                logger.info("M SELECT worker " + rnd + " " + b.identifier() +
+                        "for STEAL with context " + sr.context);
+            }
         }
 
         b.deliverStealRequest(sr);
@@ -943,6 +989,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         logger.fixme("DROP UndeliverableEvent", new Exception());
     }
 
+   
 
     /*
 

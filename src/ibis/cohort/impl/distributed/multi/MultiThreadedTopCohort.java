@@ -27,7 +27,6 @@ import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
 import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.UndeliverableEvent;
-import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -36,69 +35,78 @@ import java.util.Random;
 
 public class MultiThreadedTopCohort implements Cohort, TopCohort {
 
-//    private static final int REMOTE_STEAL_RANDOM = 0;
-//    private static final int REMOTE_STEAL_ALL    = 1;
+//  private static final int REMOTE_STEAL_RANDOM = 0;
+//  private static final int REMOTE_STEAL_ALL    = 1;
 
-//    private static final int REMOTE_STEAL_POLICY = 
-//        determineRemoteStealPolicy(REMOTE_STEAL_RANDOM);
-    
+//  private static final int REMOTE_STEAL_POLICY = 
+//  determineRemoteStealPolicy(REMOTE_STEAL_RANDOM);
+
+    private ArrayList<BottomCohort> incomingWorkers = 
+        new ArrayList<BottomCohort>();
+
     private BottomCohort [] workers;
+    private int workerCount;
 
     private final CohortIdentifier identifier;
 
     private final Random random = new Random();
 
-    private final int workerCount;
-
     private boolean active = false;
-    
+
     private Context [] contexts;
     private Context myContext;
     private boolean myContextChanged = false;
-    
+
     private CircularBuffer myActivities = new CircularBuffer(16);
 
     private LocationCache locationCache = new LocationCache();
-    
+
     private CohortIdentifierFactory cidFactory = 
         new SimpleCohortIdentifierFactory();
 
     private long startID = 0;
     private long blockSize = 1000000;
-    
+
     private int nextSubmit = 0;
-    
+
     private final LookupThread lookup;
 
     private CohortLogger logger;
-    
+
     private class LookupThread extends Thread { 
-        
+
         // NOTE: should use exp. backoff here!
+
+        private boolean done = false;
         
         private static final int TIMEOUT = 100; // 1 sec. timeout. 
 
         private CircularBuffer newMessages = new CircularBuffer(1);    
         private CircularBuffer oldMessages = new CircularBuffer(1);
-        
+
         LookupThread() { 
             super("LookupThread of " + identifier);
+        }
+
+        public synchronized void done() {
+            done = true;
+            notifyAll();
         }
         
         public synchronized void add(ApplicationMessage m) {
             newMessages.insertLast(m);
         }
-        
+
         private boolean attemptDelivery(ApplicationMessage m) {
-        
+
             ActivityIdentifier t = m.targetActivity();
-            
+
             CohortIdentifier cid = locationCache.lookup(t);
-            
+
             if (cid != null) { 
-                
+
                 BottomCohort b = getWorker(cid);
-                
+
                 if (b != null) { 
                     m.setTarget(cid);
                     b.deliverEventMessage(m);
@@ -108,72 +116,77 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
                     m.setTarget(null);
                 }
             } 
-     
+
             return false;
         }
-        
-        
+
+
         private int processOldMessages() { 
-            
+
             final int size = oldMessages.size();
-           
+
             for (int i=0;i<size;i++) { 
-            
+
                 ApplicationMessage m = 
                     (ApplicationMessage) oldMessages.removeFirst();
-                
+
                 if (!attemptDelivery(m)) { 
                     broadcastLookup(m.targetActivity());
                     oldMessages.insertLast(m);
                 }
             }
-            
+
             return size;
         }
-        
+
         private synchronized int addNewMessages() { 
-            
+
             final int size = newMessages.size();
-            
+
             while (newMessages.size() > 0) { 
                 ApplicationMessage m = 
                     (ApplicationMessage) newMessages.removeFirst();
-        
+
                 if (!attemptDelivery(m)) { 
                     oldMessages.insertLast(m);
                 }
             }
-            
+
             return size;
         }
-        
-        private synchronized void waitForTimeout() { 
-            
+
+        private synchronized boolean waitForTimeout() { 
+
             try { 
                 wait(TIMEOUT);
             } catch (InterruptedException e) {
                 // ignored
-            }                
+            }
+            
+            return done;
         }
-        
+
         public void run() { 
 
-            while (true) {
-                waitForTimeout();
+            boolean done = false;
+            
+            while (!done) {
                 int oldM = processOldMessages();                    
                 int newM = addNewMessages();
 
                 if ((oldM + newM) > 0) {
                     logger.debug("LOOKUP: " + oldM + " " + newM +
-                                 " " + oldMessages.size());
+                            " " + oldMessages.size());
                 }
+  
+                done = waitForTimeout();
             }
         }
-        
+
     }
-    
-    
-/*    
+
+
+    /*    
     private static class StealState { 
 
         private StealRequest pending; 
@@ -206,8 +219,8 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
     }
 
     private StealState [] localSteals;
-*/
-  
+     */
+
     /*
     private static int determineRemoteStealPolicy(int def) { 
 
@@ -230,12 +243,9 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         return def;
     }*/
 
-    public MultiThreadedTopCohort(Properties p, int workerCount) {
+    public MultiThreadedTopCohort(Properties p) {
 
-        int count = workerCount;
-        
-        if (count == 0) {
-
+        /*
             String tmp = p.getProperty("ibis.cohort.workers");
 
             if (tmp != null && tmp.length() > 0) {
@@ -243,7 +253,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
                     count = Integer.parseInt(tmp);
                 } catch (Exception e) {
                     logger.error("Failed to parse property " +
-                                 "ibis.cohort.workers", e);
+                            "ibis.cohort.workers", e);
                 }
             }
 
@@ -252,38 +262,40 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
                 count = Runtime.getRuntime().availableProcessors();
             }
         }
+         */
 
         this.identifier = cidFactory.generateCohortIdentifier();
-        this.workerCount = count;
 
         this.logger = CohortLogger.getLogger(MultiThreadedTopCohort.class,
-                                             identifier);
-        logger.info("Starting MultiThreadedCohort using " + count + " workers");
+                identifier);
+        
+            // workers     = new SingleThreadedBottomCohort[count];
+       //     localSteals = new StealState[count];
+       // contexts    = new Context[count];
 
-        workers     = new SingleThreadedBottomCohort[count];
-   //     localSteals = new StealState[count];
-        contexts    = new Context[count];
-      
         myContext = Context.ANY;
         myContextChanged = false;
 
+        logger.warn("Starting MultiThreadedTopCohort " + identifier + " / " + myContext);
+
+   
         lookup = new LookupThread();
         lookup.start();
-        
-        
-        
+
+        /*
         for (int i = 0; i < count; i++) {
-            workers[i] = new SingleThreadedBottomCohort(this, p, count, i, 
+            workers[i] = new SingleThreadedBottomCohort(this, p, 
                     cidFactory.generateCohortIdentifier());
-    //        localSteals[i] = new StealState();
+            //        localSteals[i] = new StealState();
             contexts[i] = Context.ANY;
         }
-        
-        logger.info("All workers created!");
+         */
+
+        logger.info("MultiThreadedTopCohort created -- no workers registered");
     }
 
     private BottomCohort getWorker(CohortIdentifier cid) { 
-        
+
         for (BottomCohort b : workers) { 
             if (cid.equals(b.identifier())) { 
                 return b;
@@ -292,36 +304,35 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
 
         return null;
     }
-        
+
     private void broadcastLookup(ActivityIdentifier id) { 
-        
+
         LookupRequest r = new LookupRequest(identifier, id);
-        
+
         for (int i=0;i<workerCount;i++) { 
             workers[i].deliverLookupRequest(r);
         }
     }
 
-    
+
     private void enqueueMessage(ApplicationMessage m) { 
-    
+
         // This is the place where all messages go that we cannot handle
         // directly.
-        
         broadcastLookup(m.targetActivity());
         lookup.add(m);
     }
-    
+
     private ActivityRecord getStoredActivity(Context c) {
-        
+
         // TODO: improve performance ? 
-        
+
         synchronized (myActivities) { 
-            
+
             if (Debug.DEBUG_STEAL) { 
                 logger.debug("STEAL MT: activities " + myActivities.size());
             }
-            
+
             if (myActivities.size() > 0) { 
                 if (c.isAny()) { 
                     return (ActivityRecord) myActivities.removeFirst();
@@ -329,7 +340,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
                     for (int i=0;i<myActivities.size();i++) { 
                         ActivityRecord r = (ActivityRecord) myActivities.get(i); 
                         Context tmp = r.activity.getContext();
-                        
+
                         if (c.contains(tmp)) { 
                             myActivities.remove(i);
                             return r;
@@ -337,12 +348,12 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
                     }
                 }
             }
-            
+
         }
-        
+
         return null;
     }
-    
+
     public PrintStream getOutput() {
         return System.out;
     }
@@ -351,16 +362,16 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         // This return a random number between 0 .. workerCount-1
         return random.nextInt(workerCount);
     }
-   
- 
 
-  /* 
+
+
+    /* 
 
     public ActivityIdentifierFactory getIDGenerator(
             CohortIdentifier identifier) {
-   
+
     }
-*/
+     */
 
     /*
     void undeliverableEvent(int workerID, Event e) {
@@ -377,8 +388,8 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
 
         workers[next].deliverEvent(e);
     }
-*/
-  
+     */
+
 
     // This one is top-down: a parent cohort is requesting work from below
     /*
@@ -399,18 +410,18 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         return;
         } 
     }
-*/
-   
+     */
+
     /*
-    
+
     void lookupReply(LookupRequest request, CohortIdentifier reply) {
         // eep
     }
-    
+
     CohortIdentifier locateActivity(ActivityIdentifier id) { 
-        
+
         synchronized (incomingRemoteActivities) {
-            
+
             int size = incomingRemoteActivities.size();
 
             if (size == 0) {
@@ -427,16 +438,16 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
                 }
             }
         }   
-     
+
         return null;
-        
-        
+
+
     }
-    
-    */
-    
+
+     */
+
     /*
-    
+
     ActivityRecord getStoredRemoteActivity(Context threadContext) {
 
         synchronized (incomingRemoteActivities) {
@@ -471,8 +482,8 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         }
     }
 
-    */
-    
+     */
+
     /*
     // This one is bottom-up: a sub-cohort is requesting work from above
     ActivityRecord stealAttempt(int workerID, StealRequest sr) {
@@ -508,9 +519,9 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
      */
 
 
-   
-   
-/*
+
+
+    /*
 
 
     public boolean idle(int workerID, Context threadContext) {
@@ -561,9 +572,9 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         // Tell the worker I don't have work (yet). 
         return false;
     }
-*/
+     */
     /*
-    
+
     public boolean sendStealReply(StealRequest s, ActivityRecord a) {
 
         if (s.isLocal()) { 
@@ -597,30 +608,30 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         }
     }
 
-    */
-    
-    
-    
-    
+     */
+
+
+
+
     /* ================= TopCohort interface =================================*/
-    
+
     public synchronized void contextChanged(CohortIdentifier cid,
             Context newContext) {
-        
+
         for (int i=0;i<workerCount;i++) { 
-            
+
             if (cid.equals(workers[i].identifier())) {
                 contexts[i] = newContext;
                 myContextChanged = true;
                 return;
             }
         }
-        
+
         logger.warning("INTERNAL ERROR: Cohort " + cid + " not found!");
     }
-    
+
     public synchronized ActivityIdentifierFactory 
-        getActivityIdentifierFactory(CohortIdentifier cid) {
+    getActivityIdentifierFactory(CohortIdentifier cid) {
 
         ActivityIdentifierFactory tmp = new ActivityIdentifierFactory(
                 cid.id,  startID, startID+blockSize);
@@ -630,36 +641,36 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
     }
 
     public LookupReply handleLookup(LookupRequest lr) {
-        
+
         // Check if the activity location is cached         
         LocationCache.Entry e = locationCache.lookupEntry(lr.missing);
 
         if (e != null) { 
             return new LookupReply(identifier, lr.source, lr.missing, e.id, e.count);
         }
-        
+
         for (int i=0;i<workerCount;i++) { 
             workers[i].deliverLookupRequest(lr);
         }
-        
+
         return null;        
     }
-        
+
     public void handleApplicationMessage(ApplicationMessage m) {
-        
+
         if (Debug.DEBUG_EVENTS) { 
             logger.debug("ApplicationMessage for " + m.event.target + " at " + m.target);
         }
-        
+
         if (m.isTargetSet()) { 
-            
+
             BottomCohort b = getWorker(m.target);
-            
+
             if (b != null) { 
                 if (Debug.DEBUG_EVENTS) { 
                     logger.debug("DELIVER ApplicationMessage to " + b.identifier()); 
                 }
-                
+
                 b.deliverEventMessage(m);
                 return;
             } else { 
@@ -667,54 +678,56 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
                 m.setTarget(null);
             }
         } 
-       
+
         if (Debug.DEBUG_EVENTS) { 
             logger.debug("QUEUE ApplicationMessage for " + m.event.target); 
         }
         enqueueMessage(m);
     }
-    
+
     public void handleLookupReply(LookupReply m) { 
         // Cache locally!
         locationCache.put(m.missing, m.location, m.count);                   
-        
+
         if (m.isTargetSet()) { 
 
             CohortIdentifier id = m.target;
-            
+
             if (id.equals(identifier)) { 
                 return;
             }
-            
+
             BottomCohort b = getWorker(m.target);
-            
+
             if (b != null) {
                 b.deliverLookupReply(m);
                 return;
             }
         } 
-        
+
         logger.warning("Dropping lookup reply! " + m);        
     }
 
     public void handleStealReply(StealReply m) { 
 
+        logger.warn("MT handling STEAL REPLY " + m.isTargetSet() + " " + m.isEmpty());
+        
         if (m.isTargetSet()) { 
-            
+
             BottomCohort b = getWorker(m.target);
-            
+
             if (b != null) { 
                 b.deliverStealReply(m);
                 return;
             }
         }
-         
+
         if (!m.isEmpty()) {
-            
+
             if (Debug.DEBUG_STEAL) { 
                 logger.info("Saving work before dropping StealReply");
             }
-            
+
             synchronized (myActivities) { 
                 myActivities.insertLast(m.getWork());
             } 
@@ -729,34 +742,34 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         // FIXME FIX!
         logger.fixme("I just dropped an undeliverable event! " + m.event);
     }
-    
+
     private int selectTargetWorker(CohortIdentifier exclude) { 
-        
+
         if (workerCount == 1) { 
             return -1;
         }
-        
+
         int rnd = selectTargetWorker();
-        
+
         CohortIdentifier cid = workers[rnd].identifier();
-        
+
         if (cid.equals(exclude)) { 
             return ((rnd+1)%workerCount);
         }
-        
+
         return rnd;        
     }
-   
+
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
         if (Debug.DEBUG_STEAL) {
             logger.debug("STEAL_ARRIVED " + sr.context);
         }
-        
+
         ActivityRecord tmp = getStoredActivity(sr.context);
-        
+
         if (tmp != null) { 
-        
+
             if (Debug.DEBUG_STEAL) { 
                 logger.debug("STEAL_RETURN_LOCAL");
             }
@@ -766,49 +779,60 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         int index = selectTargetWorker(sr.source);
 
         if (index >= 0) { 
-           
+
             if (Debug.DEBUG_STEAL) { 
                 logger.debug("STEAL_FORWARD to " + workers[index].identifier());
             }
-            
+
             sr.setTarget(workers[index].identifier());
             workers[index].deliverStealRequest(sr);
         }
-      
+
         return null;
     }
-    
+
     public void handleWrongContext(ActivityRecord ar) {
         synchronized (myActivities) { 
             myActivities.insertLast(ar);
         } 
     }
-    
+
     public CohortIdentifierFactory getCohortIdentifierFactory(
             CohortIdentifier cid) { 
         return cidFactory;
     }
-    
+
     /* ================= End of TopCohort interface ==========================*/
-    
+
     /* ================= Cohort interface ====================================*/
 
     public boolean isMaster() {
         return true;
     }
-    
+
     public void done() {
-        for (BottomCohort u : workers) {
-            u.done();
+        
+        logger.warn("done");
+        
+        lookup.done();
+        
+        if (active) { 
+            for (BottomCohort u : workers) {
+                u.done();
+            }
+        } else { 
+            for (BottomCohort u : incomingWorkers) {
+                u.done();
+            }
         }
     }
-    
+
     public CohortIdentifier identifier() {
         return identifier;
     }
-    
+
     public synchronized ActivityIdentifier submit(Activity a) {
-   
+
         // We do a simple round-robin distribution of the jobs here.
         if (nextSubmit >= workers.length) {
             nextSubmit = 0;
@@ -817,46 +841,46 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         if (Debug.DEBUG_SUBMIT) { 
             logger.debug("forward submit to " + workers[nextSubmit].identifier());
         }
-        
+
         return workers[nextSubmit++].deliverSubmit(a);
     }
-    
+
     public void cancel(ActivityIdentifier activity) {
         send(new CancelEvent(activity));
     }
-    
+
     public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) {
         send(new MessageEvent(source, target, o));
     }
-    
+
     public void send(Event e) {         
 
         ApplicationMessage m = new ApplicationMessage(identifier, e);
-        
+
         // See if we can figure out who is running the activity         
         CohortIdentifier cid = locationCache.lookup(e.target);
-        
+
         if (cid != null) {            
             m.setTarget(cid);
-            
+
             BottomCohort b = getWorker(cid);
-            
+
             if (b == null) { 
                 logger.error(cid + " not found!");
                 return;
             }
-            
+
             b.deliverEventMessage(m);            
             return;
         } 
-        
+
         // If we don't know the location of the activity we let a seperate 
         // thread handle it.  
         enqueueMessage(m);
     }
-        
+
     public synchronized Context getContext() {
-        
+
         if (!myContextChanged) { 
             return myContext;
         } else { 
@@ -892,7 +916,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             }
 
             myContextChanged = false;
-            
+
             if (tmp == null) { 
                 return Context.ANY;
             } else { 
@@ -900,11 +924,11 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             }
         } 
     }
-    
+
     public Cohort[] getSubCohorts() {
         return (Cohort []) workers.clone();
     }
-    
+
     public boolean activate() { 
 
         synchronized (this) {
@@ -913,10 +937,24 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             }
 
             active = true;
+
+            workerCount = incomingWorkers.size();
+            workers = incomingWorkers.toArray(new BottomCohort[workerCount]);
+
+            contexts = new Context[workerCount];
+            
+            for (int i=0;i<workerCount;i++) { 
+                contexts[i] = workers[i].getContext();
+            }
+            
+            myContextChanged = true;
+            
+            // No workers may be added after this point
+            incomingWorkers = null;
         }
 
         for (int i = 0; i < workerCount; i++) {
-            
+
             if (Debug.DEBUG_ACTIVATE) { 
                 logger.info("Activating worker " + i);
             }
@@ -925,8 +963,8 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
 
         return true;
     }
-    
-    
+
+
     public boolean deregister(String name, Context scope) {
         // TODO Auto-generated method stub
         return false;
@@ -947,32 +985,41 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
     }
 
     public synchronized void setContext(CohortIdentifier id, Context context) 
-        throws Exception {
-        
+    throws Exception {
+
         BottomCohort b = getWorker(id);
-        
+
         if (b == null) {
             throw new Exception("Cohort " + id + " not found!");
         } 
-        
+
         b.setContext(id, context);
     }
 
-        public CohortIdentifier [] getLeafIDs() { 
-        
+    public CohortIdentifier [] getLeafIDs() { 
+
         ArrayList<CohortIdentifier> tmp = new ArrayList<CohortIdentifier>();
-        
+
         for (BottomCohort w : workers) { 
             CohortIdentifier [] ids = w.getLeafIDs();
-            
+
             for (CohortIdentifier id : ids) { 
                 tmp.add(id);
             }
         }
-    
+
         return tmp.toArray(new CohortIdentifier[tmp.size()]);
     }
-   
+
+    public synchronized void register(BottomCohort cohort) throws Exception {
+
+        if (active) { 
+            throw new Exception("Registration not allowed on active TopCohort");
+        }
+
+        incomingWorkers.add(cohort);
+    }
+
 
     /* ================= End of Cohort interface =============================*/
 }

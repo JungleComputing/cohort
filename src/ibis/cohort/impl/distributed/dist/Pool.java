@@ -366,7 +366,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         IbisIdentifier rnd = selectRandomTarget();
         
         if (rnd == null) { 
-            logger.warning("POOL failed to randomly select target"); 
+            logger.warning("POOL failed to randomly select target: " +
+                        "no other cohorts found"); 
             return false;
         }
   
