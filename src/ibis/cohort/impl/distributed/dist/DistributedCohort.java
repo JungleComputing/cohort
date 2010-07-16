@@ -26,6 +26,7 @@ import ibis.cohort.impl.distributed.UndeliverableEvent;
 import ibis.cohort.impl.distributed.multi.MultiThreadedMiddleCohort;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class DistributedCohort implements Cohort, TopCohort {
@@ -401,10 +402,13 @@ public class DistributedCohort implements Cohort, TopCohort {
         // This method is called from an unfinished upcall. It may NOT 
         // block for a long period of time or communicate!
 
+        System.err.println("DIST STEAL reply: " + Arrays.toString(sr.getWork()));
+        
         if (identifier.equals(sr.target)) { 
             if (!sr.isEmpty()) { 
                 queue.add(sr.getWork());
             }
+            return;
         }
 
         subCohort.deliverStealReply(sr);

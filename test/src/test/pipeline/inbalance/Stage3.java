@@ -6,15 +6,15 @@ import ibis.cohort.context.UnitContext;
 
 public class Stage3 extends SimpleActivity {
 
-    private final ActivityIdentifier target;
+    private static final long serialVersionUID = 8278819333486874900L;
+  
     private final long sleep;
     private final Data data;
     
     public Stage3(ActivityIdentifier target, long sleep, Data data) { 
         
-        super(new UnitContext("B"));
+        super(target, new UnitContext("B"));
   
-        this.target = target;
         this.sleep = sleep;
         this.data = data;
     }
@@ -30,6 +30,6 @@ public class Stage3 extends SimpleActivity {
             }
         }
         
-        cohort.send(identifier(), target, new Data(data.index, 3, data.data));
+        cohort.send(identifier(), parent, new Data(data.index, 3, data.data));
     }
 }

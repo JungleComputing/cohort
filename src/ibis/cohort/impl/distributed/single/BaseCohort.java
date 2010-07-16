@@ -220,18 +220,27 @@ public class BaseCohort implements Cohort {
         }
         
         activitiesAdded++;
+ 
         
         lookup.put(a.identifier(), a);
 
         Context c = a.activity.getContext();
+
+System.out.println("BASE: got work " + c);      
         
-        if (c.isAny() || c.isLocal() || myContext.contains(c)) { 
+        if (c.isAny() || c.isLocal() || c.satisfiedBy(myContext)) { 
             if (a.isFresh()) {
                 fresh.insertLast(a);
             } else {
                 runnable.insertLast(a);
             }
+
+System.out.println("BASE: Work inserted OK");      
+            
         } else {
+
+System.out.println("BASE: Work inserted WRONG context");      
+            
             wrongContextAdded++;
             wrongContext.insertLast(a);
         }
@@ -458,8 +467,10 @@ public class BaseCohort implements Cohort {
                     if (!steal) { 
                         Context tmp = r.activity.getContext();
 
+                        
                         // FIXME: still confused about correctness of this!
                         steal = tmp.contains(context);
+                        //System.err.println("COMPARE " + tmp + " with " + context + " -> " + steal);
                     }
                     
                     if (steal) { 

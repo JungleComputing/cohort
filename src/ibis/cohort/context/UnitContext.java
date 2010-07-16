@@ -35,4 +35,24 @@ public class UnitContext extends Context {
     public String toString() { 
         return "UnitContext(" + name + ")";
     }
+
+    @Override
+    public boolean satisfiedBy(Context other) {
+     
+        // TODO: not sure if this is complete!
+        
+        if (other.isAnd()) { 
+            return false;
+        }
+       
+        if (other.isUnit()) { 
+            return equals(other);
+        }
+        
+        if (other.isSet()) { 
+            return ((ContextSet)other).contains(this);
+        }
+        
+        return false;
+    }
 }

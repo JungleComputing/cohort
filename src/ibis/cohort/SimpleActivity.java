@@ -2,13 +2,17 @@ package ibis.cohort;
 
 public abstract class SimpleActivity extends Activity {
     
-    protected SimpleActivity(Context context) {
+    protected ActivityIdentifier parent;
+    
+    protected SimpleActivity(ActivityIdentifier parent, Context context) {
         super(context);
+        this.parent = parent;
     }
 
     @Override
     public void initialize() throws Exception {
         simpleActivity();
+        finish();
     }
     
     @Override
@@ -27,4 +31,12 @@ public abstract class SimpleActivity extends Activity {
     }
     
     public abstract void simpleActivity() throws Exception;   
+
+    public ActivityIdentifier getParent() { 
+        return parent;
+    }
+    
+    public void setParent(ActivityIdentifier parent) { 
+        this.parent = parent;
+    }
 }

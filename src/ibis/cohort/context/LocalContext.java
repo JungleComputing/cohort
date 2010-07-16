@@ -24,4 +24,9 @@ public class LocalContext extends Context {
     public String toString() { 
         return "LOCALContext";
     }
+
+    @Override
+    public boolean satisfiedBy(Context other) {
+        return other.isLocal();
+    }
 }

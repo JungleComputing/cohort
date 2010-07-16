@@ -24,4 +24,9 @@ public class AnyContext extends Context {
     public String toString() { 
         return "ANYContext";
     }
+
+    @Override
+    public boolean satisfiedBy(Context other) {
+        return true;
+    }
 }

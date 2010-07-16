@@ -207,5 +207,12 @@ public class ContextSet extends Context {
         
         return b.toString();
     }
+
+    @Override
+    public boolean satisfiedBy(Context other) {
+        
+        // TODO: incomplete ?
+        return contains(other);
+    }
     
 }

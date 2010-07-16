@@ -23,6 +23,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
@@ -277,6 +278,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }
     
     public void deliverStealReply(StealReply sr) {
+  
+        System.err.println("ST STEAL reply: " + Arrays.toString(sr.getWork()));
+        
         if (!sr.isEmpty()) { 
             postActivityRecord(sr.getWork());
         }

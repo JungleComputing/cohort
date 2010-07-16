@@ -4,7 +4,6 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
-import ibis.cohort.SimpleActivity;
 import ibis.cohort.context.UnitContext;
 
 public class Stage5 extends Activity {
@@ -59,6 +58,7 @@ public class Stage5 extends Activity {
         return new Data(result3.index, 5, result3.data);
     }
     
+    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 

@@ -27,6 +27,7 @@ import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 
@@ -893,11 +894,15 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             logger.info("M receive STEAL reply from " + sr.source);
         }
         
+        System.err.println("MT STEAL reply: " + Arrays.toString(sr.getWork()));
+        
         CohortIdentifier cid = sr.target;
 
         if (cid == null) { 
 
             if (!sr.isEmpty()) { 
+                System.err.println("MT STEAL reply SAVED LOCALLY (1): " + Arrays.toString(sr.getWork()));
+                
                 myActivities.add(sr.getWork());
                 logger.warning("DROP StealReply without target after saving work!");
             } else { 
@@ -908,7 +913,10 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         }
 
         if (identifier.equals(cid)) { 
-            if (sr.isEmpty()) { 
+           
+            System.err.println("MT STEAL reply SAVED LOCALLY (2): " + Arrays.toString(sr.getWork()));
+            
+            if (!sr.isEmpty()) { 
                 myActivities.add(sr.getWork());
             }
             return;
@@ -919,6 +927,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (cid == null) { 
 
             if (!sr.isEmpty()) { 
+                
+                System.err.println("MT STEAL reply SAVED LOCALLY (3): " + Arrays.toString(sr.getWork()));
+                
                 myActivities.add(sr.getWork());
                 logger.warning("DROP StealReply for unknown target after saving work!");
             } else { 

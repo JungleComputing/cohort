@@ -1,7 +1,5 @@
 package test.pipeline.inbalance;
 
-import java.util.Properties;
-
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
 import ibis.cohort.MultiEventCollector;

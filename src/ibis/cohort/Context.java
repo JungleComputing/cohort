@@ -31,6 +31,7 @@ public abstract class Context implements Serializable {
         
     public abstract boolean equals(Object other);
     public abstract boolean contains(Context other);
+    public abstract boolean satisfiedBy(Context other);
     
     public boolean isLocal() { 
         return false;
@@ -56,4 +57,6 @@ public abstract class Context implements Serializable {
         return false;
     }
 
+    
+    
 }

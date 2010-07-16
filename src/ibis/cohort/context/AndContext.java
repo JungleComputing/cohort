@@ -81,5 +81,20 @@ public class AndContext extends Context {
 
         return b.toString();
     }
+
+    @Override
+    public boolean satisfiedBy(Context other) {
+ 
+        // TODO: incomplete ?
+        if (other.isUnit()) { 
+            return false;
+        }
+        
+        if (other.isAnd()) { 
+            return equals(other);
+        }
+     
+        return false;
+    }
     
 }

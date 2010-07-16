@@ -8,7 +8,6 @@ public class Pipeline extends SimpleActivity {
 
     private static final long serialVersionUID = -3987089095770723454L;
    
-    private final ActivityIdentifier parent;
     private final int index;
     private final int current;
     private final int last;
@@ -17,10 +16,9 @@ public class Pipeline extends SimpleActivity {
     
     public Pipeline(ActivityIdentifier parent, int index, int current, int last, long sleep, Object data) { 
         
-        super(new UnitContext("c" + current));
+        super(parent, new UnitContext("c" + current));
         
         this.index = index;
-        this.parent = parent;
         this.current = current;
         this.last = last;
         this.sleep = sleep;

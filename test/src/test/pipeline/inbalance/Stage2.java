@@ -8,14 +8,12 @@ public class Stage2 extends SimpleActivity {
 
     private static final long serialVersionUID = -3987089095770723454L;
     
-    private final ActivityIdentifier parent;
     private final long sleep;
     private final Data data;
     
     public Stage2(ActivityIdentifier parent, long sleep, Data data) { 
         
-        super(new UnitContext("A"));
-        this.parent = parent;
+        super(parent, new UnitContext("A"));
         this.sleep = sleep;
         this.data = data;
     }

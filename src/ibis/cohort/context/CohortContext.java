@@ -24,4 +24,9 @@ public class CohortContext extends Context {
     public String toString() { 
         return "COHORTContext";
     }
+
+    @Override
+    public boolean satisfiedBy(Context other) {
+        return other.isCohort();
+    }
 }

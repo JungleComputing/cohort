@@ -8,15 +8,13 @@ public class Stage4 extends SimpleActivity {
     
     private static final long serialVersionUID = 8685301161185498131L;
 
-    private final ActivityIdentifier target;
     private final long sleep;
     private final Data data;
     
     public Stage4(ActivityIdentifier target, long sleep, Data data) { 
         
-        super(new UnitContext("C"));
+        super(target, new UnitContext("C"));
   
-        this.target = target;
         this.sleep = sleep;
         this.data = data;
     }
@@ -32,7 +30,7 @@ public class Stage4 extends SimpleActivity {
             }
         }
         
-        cohort.send(identifier(), target, new Data(data.index, 4, data.data));
+        cohort.send(identifier(), parent, new Data(data.index, 4, data.data));
     }
 }
 
