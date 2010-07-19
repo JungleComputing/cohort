@@ -627,6 +627,8 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
+        System.out.println("DIST STEAL");
+
         // A steal request coming in from the subcohort below. 
 
         // First check if we can satisfy the request locally.

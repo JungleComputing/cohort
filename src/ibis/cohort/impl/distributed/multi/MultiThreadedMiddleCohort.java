@@ -12,6 +12,9 @@ import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
+import ibis.cohort.extra.SmartWorkQueue;
+import ibis.cohort.extra.SynchronizedWorkQueue;
+import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.impl.distributed.ActivityRecord;
 import ibis.cohort.impl.distributed.ActivityRecordQueue;
 import ibis.cohort.impl.distributed.ApplicationMessage;
@@ -57,8 +60,11 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     private Context myContext;
     private boolean myContextChanged = false;
 
-    private ActivityRecordQueue myActivities = new ActivityRecordQueue();
+   // private ActivityRecordQueue myActivities = new ActivityRecordQueue();
 
+    private WorkQueue myActivities = 
+        new SynchronizedWorkQueue(new SmartWorkQueue());
+    
     private LocationCache locationCache = new LocationCache();
 
     private final CohortIdentifierFactory cidFactory;
@@ -535,7 +541,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             // Should never happen ?
             if (!m.isEmpty()) { 
                 logger.warning("Saving work before dropping StealReply");
-                myActivities.add(m.getWork());
+                myActivities.enqueue(m.getWork());
             } else { 
                 logger.warning("Dropping empty StealReply");            
             }
@@ -566,6 +572,8 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
+        System.out.println("MT STEAL");
+        
         if (Debug.DEBUG_STEAL) { 
             logger.info("M STEAL REQUEST from child " + sr.source + " with context " 
                     + sr.context);
@@ -615,7 +623,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     }
 
     public void handleWrongContext(ActivityRecord ar) {
-        myActivities.add(ar);
+        myActivities.enqueue(ar);
     }
 
     public CohortIdentifierFactory getCohortIdentifierFactory(
@@ -789,14 +797,16 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     public void deliverStealRequest(StealRequest sr) {
 
-        ActivityRecord tmp = myActivities.steal(sr.context);
-
+        // FIXME: hardcodes steal size!
+    
         if (Debug.DEBUG_STEAL) { 
             logger.info("M REMOTE STEAL REQUEST from child " + sr.source 
                     + " context " + sr.context);
         }
 
-        if (tmp != null) { 
+        ActivityRecord [] tmp = myActivities.steal(sr.context, 10);
+    
+        if (tmp != null && tmp.length > 0) { 
 
             if (Debug.DEBUG_STEAL) { 
                 logger.info("M SUCCESFULL REMOTE STEAL REQUEST from child " + sr.source 
@@ -903,7 +913,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             if (!sr.isEmpty()) { 
                 System.err.println("MT STEAL reply SAVED LOCALLY (1): " + Arrays.toString(sr.getWork()));
                 
-                myActivities.add(sr.getWork());
+                myActivities.enqueue(sr.getWork());
                 logger.warning("DROP StealReply without target after saving work!");
             } else { 
                 logger.warning("DROP empty StealReply without target!");
@@ -917,7 +927,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             System.err.println("MT STEAL reply SAVED LOCALLY (2): " + Arrays.toString(sr.getWork()));
             
             if (!sr.isEmpty()) { 
-                myActivities.add(sr.getWork());
+                myActivities.enqueue(sr.getWork());
             }
             return;
         }
@@ -930,7 +940,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                 
                 System.err.println("MT STEAL reply SAVED LOCALLY (3): " + Arrays.toString(sr.getWork()));
                 
-                myActivities.add(sr.getWork());
+                myActivities.enqueue(sr.getWork());
                 logger.warning("DROP StealReply for unknown target after saving work!");
             } else { 
                 logger.warning("DROP empty StealReply for unknown target!");

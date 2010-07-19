@@ -9,6 +9,7 @@ import ibis.cohort.Event;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
+import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.impl.distributed.ActivityRecord;
 import ibis.cohort.impl.distributed.ApplicationMessage;
 import ibis.cohort.impl.distributed.BottomCohort;
@@ -24,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
 
 public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
@@ -61,11 +63,20 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         final ArrayList<ActivityIdentifier> pendingCancelations = 
             new ArrayList<ActivityIdentifier>();
 
+        /*
         final ArrayList<StealRequest> stealRequests = 
             new ArrayList<StealRequest>();
         
         final ArrayList<LookupRequest> lookupRequests = 
             new ArrayList<LookupRequest>();
+        */
+        
+        final HashMap<CohortIdentifier, StealRequest> stealRequests = 
+            new HashMap<CohortIdentifier, StealRequest>();
+        
+        final HashMap<CohortIdentifier, LookupRequest> lookupRequests = 
+            new HashMap<CohortIdentifier, LookupRequest>();
+        
         
         Context newContext;
         
@@ -365,8 +376,18 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }
     
     private void postStealRequest(StealRequest s) {
-        synchronized (incoming) { 
-            incoming.stealRequests.add(s);
+        synchronized (incoming) {
+            
+            if (Debug.DEBUG_STEAL) { 
+                StealRequest tmp = incoming.stealRequests.get(s.source);
+            
+                if (tmp != null) { 
+                    logger.warn("Steal request overtaken: " + s.source);
+                    System.out.println("Steal request overtaken: " + s.source);
+                }
+            }
+       
+            incoming.stealRequests.put(s.source, s);
         }
         //havePendingRequests = true;
         signal();
@@ -382,7 +403,15 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private void postLookupRequest(LookupRequest s) {
         synchronized (incoming) { 
-            incoming.lookupRequests.add(s);
+
+            LookupRequest tmp = incoming.lookupRequests.get(s.source);
+            
+            if (tmp != null) { 
+                logger.warn("FIXME: overriding lookup request! " + s.source 
+                        + " " + s.missing);
+            }
+            
+            incoming.lookupRequests.put(s.source, s);
         }
         //havePendingRequests = true;
         signal();
@@ -570,12 +599,14 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     private void processStealRequests() { 
         
-     //   System.out.println("Processing steal requests " + processing.stealRequests.size());
+        System.out.println("Processing steal requests " + processing.stealRequests.size());
         
-        while (processing.stealRequests.size() > 0) {
-
-            StealRequest s = processing.stealRequests.remove(0);
-
+        if (processing.stealRequests.size() == 0) { 
+            return;
+        }
+        
+        for (StealRequest s : processing.stealRequests.values()) { 
+        
             // Make sure the steal request is still valid!
             if (!s.getStale()) { 
                 // NOTE: a is allowed to be null
@@ -615,14 +646,18 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 
             }
         }
+        
+        processing.stealRequests.clear();
     }
 
     private void processLookupRequests() { 
+    
+        if (processing.lookupRequests.size() == 0) { 
+            return;
+        }
         
-        while (processing.lookupRequests.size() > 0) {
-
-            LookupRequest s = processing.lookupRequests.remove(0);
-
+        for (LookupRequest s : processing.lookupRequests.values()) { 
+        
             // Make sure the steal request is still valid!
             if (!s.getStale()) { 
                 ActivityRecord a = sequential.lookup(s.missing);
@@ -775,6 +810,12 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
        
        return 0;
     }
+
+    private CircularBuffer wrongContext = new CircularBuffer(1);
+    
+    protected void push(ActivityRecord a) { 
+        wrongContext.insertLast(a);
+    }
     
     public void run() {
 
@@ -782,7 +823,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         // process a single command (i.e., a submit or an event) and then
         // process all changes that occurred in the activities.
 
-        CircularBuffer wrongContext = sequential.getWrongContextQueue();
+        //WorkQueue wrongContext = sequential.getWrongContextQueue();
         
         long start = System.currentTimeMillis();
 
@@ -798,7 +839,12 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             if (havePendingRequests) { 
                 processEvents();
             }
-                
+
+            while (wrongContext.size() > 0) { 
+                parent.handleWrongContext(
+                        (ActivityRecord) wrongContext.removeLast());
+            }
+            
             long t2 = System.currentTimeMillis();
             
             // NOTE: one problem here is that we cannot tell if we did any work 
@@ -810,15 +856,18 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             while (more && !havePendingRequests) {
                 more = sequential.process();
             }
-
-            long t3 = System.currentTimeMillis();
-
+            
             /*
             if (wrongContext.size() > 0) { 
+              
+                
+                
                 ActivityRecord a = sequential.removeWrongContext();
                 parent.handleWrongContext(a);
             }
-*/
+            */
+            
+            long t3 = System.currentTimeMillis();
             
             while (!more && !havePendingRequests) {
             
@@ -829,7 +878,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 if (nextDeadline == 0) { 
 
                     logger.info("STEAL");
-                
+                    
+                    System.out.println("ST STEAL");
+               
                     StealRequest sr = new StealRequest(identifier, getContext());
                     ActivityRecord ar = parent.handleStealRequest(sr);
                 

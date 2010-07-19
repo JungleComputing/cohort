@@ -20,20 +20,27 @@ public class AndContext extends Context {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(Object obj) {
+
+        // NOTE: Very expensive operation!
         
-        if (!(other instanceof AndContext)) {
+        if (this == obj)
+            return true;
+        
+        if (obj == null)
             return false;
-        }
         
-        AndContext o = (AndContext) other;
+        if (getClass() != obj.getClass())
+            return false;
+        
+        final AndContext other = (AndContext) obj;
             
-        if (contexts.size() != o.contexts.size()) { 
+        if (contexts.size() != other.contexts.size()) { 
             return false;
         }
 
         for (UnitContext tmp : contexts) {             
-            if (!o.contains(tmp)) { 
+            if (!other.contains(tmp)) { 
                 return false;
             }                 
         }
@@ -96,5 +103,12 @@ public class AndContext extends Context {
      
         return false;
     }
-    
+
+    @Override
+    public int hashCode() {
+        final int PRIME = 31;
+        int result = 1;
+        result = PRIME * result + ((contexts == null) ? 0 : contexts.hashCode());
+        return result;
+    }
 }

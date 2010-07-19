@@ -19,10 +19,12 @@ public class ActivityRecordQueue {
     public ActivityRecordQueue() { 
     }
     
+    /*
     public synchronized boolean contains(ActivityIdentifier id) { 
         return map.containsKey(id);
     }
- 
+     */
+    
     private Context [] flatten(Context c) { 
         
         if (c == null) { 
@@ -35,7 +37,7 @@ public class ActivityRecordQueue {
      }
     
     
-    public synchronized ActivityRecord remove(ActivityIdentifier id) { 
+    private ActivityRecord remove(ActivityIdentifier id) { 
         
         ActivityRecord tmp = map.remove(id);
         

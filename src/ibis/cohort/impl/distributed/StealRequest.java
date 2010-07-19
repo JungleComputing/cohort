@@ -1,6 +1,5 @@
 package ibis.cohort.impl.distributed;
 
-import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 

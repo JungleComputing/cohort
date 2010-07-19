@@ -12,48 +12,53 @@ import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
+import ibis.cohort.extra.SimpleWorkQueue;
+import ibis.cohort.extra.SmartWorkQueue;
+import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
 import java.util.HashMap;
 import java.util.Properties;
 
 public class BaseCohort implements Cohort {
-    
+
     private static final boolean PROFILE = true;
-    
+
     private final SingleThreadedBottomCohort parent;
 
     private final CohortIdentifier identifier;
 
     // private PrintStream out;
     private final CohortLogger logger;
-    
+
     // Default context is ANY
     private Context myContext = new UnitContext("EMPTY"); // HACK Context.ANY;
-    
+
     private HashMap<String, ActivityIdentifier> registry = 
         new HashMap<String, ActivityIdentifier>();
-    
+
     private HashMap<ActivityIdentifier, ActivityRecord> lookup = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
-
-    // TODO: replace by more efficient datastructure
-    private CircularBuffer wrongContext = new CircularBuffer(1);
     
-    private CircularBuffer fresh = new CircularBuffer(1);
+    //  private CircularBuffer wrongContext = new CircularBuffer(1);
+//    private WorkQueue wrongContext = new SmartWorkQueue();
 
+    // private CircularBuffer fresh = new CircularBuffer(1);
+    private WorkQueue fresh = new SmartWorkQueue();
+
+    private CircularBuffer local = new CircularBuffer(1);
     private CircularBuffer runnable = new CircularBuffer(1);
 
     private ActivityIdentifierFactory generator;
-    
+
     private long computationTime;
-    
+
     private long activitiesSubmitted;
     private long activitiesAdded;
-    
+
     private long wrongContextSubmitted;
     private long wrongContextAdded;
-    
+
     private long wrongContextDicovered;
 
     private long activitiesInvoked;
@@ -61,13 +66,13 @@ public class BaseCohort implements Cohort {
     private long steals;
     private long stealSuccess;
     private long stolenJobs;
-    
+
     private long messagesInternal;
     private long messagesExternal;
     private long messagesTime;
 
     private ActivityRecord current;
-    
+
     BaseCohort(SingleThreadedBottomCohort parent, Properties p, 
             CohortIdentifier identifier, CohortLogger logger, Context context) {
         this.parent = parent;
@@ -76,21 +81,21 @@ public class BaseCohort implements Cohort {
         this.logger = logger;
         this.myContext = context;
     }
-    
+
     public BaseCohort(Properties p, Context context) {
         this.parent = null;
-        
+
         if (context == null) { 
             myContext = Context.ANY;
         } else { 
             myContext = context;
         }
-        
+
         this.identifier = new CohortIdentifier(0);
         this.generator = new ActivityIdentifierFactory(0, 0, Long.MAX_VALUE);
         this.logger = CohortLogger.getLogger(BaseCohort.class, identifier);
     }        
-    
+
     public void cancel(ActivityIdentifier id) {
 
         ActivityRecord ar = lookup.remove(id);
@@ -98,7 +103,7 @@ public class BaseCohort implements Cohort {
         if (ar == null) {
             return;
         }
-       
+
         if (ar.needsToRun()) {
             runnable.remove(ar);
         }
@@ -111,10 +116,10 @@ public class BaseCohort implements Cohort {
         }
     }
 
-    protected CircularBuffer getWrongContextQueue() { 
-        return wrongContext;
-    }
-    
+  //  protected WorkQueue getWrongContextQueue() { 
+  //      return wrongContext;
+  //  }
+
     private ActivityRecord dequeue() {
 
         int size = runnable.size();
@@ -123,20 +128,27 @@ public class BaseCohort implements Cohort {
             return (ActivityRecord) runnable.removeFirst();
         }
 
-        if (!fresh.empty()) {
-            
-            ActivityRecord tmp = (ActivityRecord) fresh.removeLast();
-            
-           // DistributedActivityIdentifier id = 
-           //     (DistributedActivityIdentifier) tmp.activity.identifier();
-           // id.setLastKnownCohort((DistributedCohortIdentifier) identifier);
-            return tmp;
-        }
-
+        size = local.size();
         
+        if (size > 0) { 
+            return (ActivityRecord) local.removeLast();
+        }
+        
+        size = fresh.size();
+        
+        if (size > 0) { 
+            return fresh.dequeue();
+        }
+        
+/*                
+        if (!fresh.empty()) {
+            return (ActivityRecord) fresh.removeLast();
+        }
+*/
+
         //logger.warn("NO SUITABLE JOBS QUEUED! My context " + getContext() + " " 
         //        +  wrongContext);
-        
+
         return null;
     }
 
@@ -162,94 +174,123 @@ public class BaseCohort implements Cohort {
     }
 
     public ActivityIdentifier prepareSubmission(Activity a) {
-        
+
         ActivityIdentifier id = createActivityID();
         a.initialize(id);
 
         if (Debug.DEBUG_SUBMIT) {
             logger.info("created " + id + " at " 
-                + System.currentTimeMillis() + " from " 
-                + (current == null ? "ROOT" : current.identifier()));
+                    + System.currentTimeMillis() + " from " 
+                    + (current == null ? "ROOT" : current.identifier()));
         }
         return id;
     }
 
     public void finishSubmission(Activity a) {
 
-        activitiesSubmitted++;
-       
-      //  if (activitiesSubmitted % 10000 == 0) { 
-      //      System.out.println("BASE(" + identifier + ") submit " + a.identifier() + " " + activitiesSubmitted);
-      //  }
+        System.out.println("BASE: LOCAL got work " + a.getContext());      
         
+        activitiesSubmitted++;
+
+        //  if (activitiesSubmitted % 10000 == 0) { 
+        //      System.out.println("BASE(" + identifier + ") submit " + a.identifier() + " " + activitiesSubmitted);
+        //  }
+
         ActivityRecord ar = new ActivityRecord(a);
 
         lookup.put(a.identifier(), ar);
 
         Context c = a.getContext();
-        
-        if (c.isAny() || c.isLocal() || myContext.contains(c)) { 
-        
-           // System.out.println("BASE(" + identifier + ") submit " + a.identifier() + " COMPLETED");
+
+        if (c.isLocal()) { 
+            System.out.println("BASE: LOCAL Work inserted in LOCAL " + c);      
+
+            local.insertLast(ar);
+        } else if (c.isAny() || c.satisfiedBy(myContext)) { 
+
+            // System.out.println("BASE(" + identifier + ") submit " + a.identifier() + " COMPLETED");
+
+            fresh.enqueue(ar);
             
-            fresh.insertLast(ar);
+            // fresh.insertLast(ar);
+
+            System.out.println("BASE: LOCAL Work inserted in FRESH " + c);      
+
         } else {
-          
-            logger.info("submitted " + a.identifier() + " with WRONG CONTEXT " + c);
+
+            System.out.println("BASE: LOCAL Work inserted in WRONG " + c);      
             
-            wrongContextSubmitted++;
-            wrongContext.insertLast(ar);
+            logger.info("submitted " + a.identifier() + " with WRONG CONTEXT " + c);
+
+            parent.push(ar);
+            
+            // wrongContextSubmitted++;
+            // wrongContext.enqueue(ar);
+
+            //wrongContext.insertLast(ar);
         }
-        
+
         if (Debug.DEBUG_SUBMIT) { 
             logger.info("SUBMIT BASE(" + identifier + "): activities " 
-                + fresh.size() + " " + wrongContext.size() + " " + runnable.size() + " " + lookup.size());
+                    + fresh.size() + " " /*+ wrongContext.size()*/ + " " + runnable.size() + " " + lookup.size());
         }
-        
-       //  synchronized (this) {
-       //      System.out.println("sync");
-       // } 
-        
+
+        //  synchronized (this) {
+        //      System.out.println("sync");
+        // } 
+
     }
 
     void addActivityRecord(ActivityRecord a) {
-        
+
         if (Debug.DEBUG_SUBMIT) {
             logger.info("received " + a.identifier() + " at " 
-                + System.currentTimeMillis());
+                    + System.currentTimeMillis());
         }
-        
+
         activitiesAdded++;
- 
-        
+
         lookup.put(a.identifier(), a);
 
         Context c = a.activity.getContext();
 
-System.out.println("BASE: got work " + c);      
+        if (c.isLocal()) { 
         
-        if (c.isAny() || c.isLocal() || c.satisfiedBy(myContext)) { 
+            local.insertLast(a);
+
+            System.out.println("BASE: got REMOTE work in LOCAL " + c);      
+            
+        } else if (c.isAny() || c.satisfiedBy(myContext)) { 
             if (a.isFresh()) {
-                fresh.insertLast(a);
+
+                System.out.println("BASE: got REMOTE work in FRESH " + c);      
+
+                fresh.enqueue(a);
+                // fresh.insertLast(a);
             } else {
+                
+                System.out.println("BASE: got REMOTE work in RUNNABLE " + c);      
+
                 runnable.insertLast(a);
             }
 
-System.out.println("BASE: Work inserted OK");      
-            
         } else {
 
-System.out.println("BASE: Work inserted WRONG context");      
-            
-            wrongContextAdded++;
-            wrongContext.insertLast(a);
+            System.out.println("BASE: got REMOTE work in WRONG " + c);      
+
+          //  wrongContextAdded++;
+
+            //wrongContext.insertLast(a);
+        //    wrongContext.enqueue(a);
+        
+            parent.push(a);
         }
     }
 
     protected ActivityRecord lookup(ActivityIdentifier id) { 
         return lookup.get(id);
     }
-    
+
     public ActivityIdentifier submit(Activity a) {
 
         ActivityIdentifier id = prepareSubmission(a);
@@ -260,66 +301,66 @@ System.out.println("BASE: Work inserted WRONG context");
     private ActivityIdentifier lookup(String name) { 
         return registry.get(name);
     }
-    
+
     private boolean register(String name, ActivityIdentifier id) {
-        
+
         if (registry.containsKey(name)) { 
             return false;
         }
-        
+
         registry.put(name, id);
         return true;
     }
-    
+
     private boolean deregister(String name) {
         return (registry.remove(name) != null);
     }
-    
+
     public ActivityIdentifier lookup(String name, Context scope) {
-        
+
         if (parent == null || scope.isLocal()) { 
             return lookup(name);
         }
-        
+
         return parent.lookup(name, scope);
     }    
-    
+
     public boolean register(String name, ActivityIdentifier id, Context scope) {
-        
+
         if (parent == null || scope.isLocal()) { 
             return register(name, id);
         }
-        
+
         return parent.register(name, id, scope);
     }
-    
+
     public boolean deregister(String name, Context scope) {
 
         if (parent == null || scope.isLocal()) { 
             return deregister(name);
         }
-        
+
         return parent.deregister(name, scope);
     }
-    
+
     public void send(ActivityIdentifier source, ActivityIdentifier target, 
             Object o) { 
         send(new MessageEvent(source, target, o));
     }
-    
+
     public void send(Event e) {
-        
+
         long start, end;
-        
+
         if (PROFILE) { 
             start = System.currentTimeMillis();
         }
-        
+
         if (Debug.DEBUG_EVENTS) {
             logger.info("SEND EVENT " + e.source + " to " 
                     + e.target + " at " + start);
         }
-        
+
         ActivityRecord ar = lookup.get(e.target);
 
         if (ar == null) {
@@ -329,11 +370,11 @@ System.out.println("BASE: Work inserted WRONG context");
 
             if (parent == null) { 
                 throw new RuntimeException("UNKNOWN TARGET: failed to find " +
-                                "destination activity " + e.target);
+                        "destination activity " + e.target);
             } else { 
                 parent.forwardEvent(e);
             }
-            
+
         } else {
 
             messagesInternal++;
@@ -346,7 +387,7 @@ System.out.println("BASE: Work inserted WRONG context");
                 runnable.insertLast(ar);
             }
         }
-        
+
         if (PROFILE) { 
             end = System.currentTimeMillis();
             messagesTime += (end-start);        
@@ -360,20 +401,20 @@ System.out.println("BASE: Work inserted WRONG context");
         if (ar == null) {
             if (Debug.DEBUG_EVENTS) { 
                 logger.info("CANNOT DELIVER EVENT Failed to find activity " + e.target);
-                
+
                 /*
-                
+
                 out.println("ERROR Failed to find activity " + e.target + " " + e.target.hashCode());
                 out.println("ERROR Contains: " + lookup.containsKey(e.target));
                 out.println("ERROR Available: ");
-                
+
                 Set<ActivityIdentifier> tmp = lookup.keySet();
-                
+
                 for (ActivityIdentifier a : tmp) { 
                     out.println(a + " " + (a.equals(e.target)) + " " + a.hashCode());      
                 }*/
             } 
-            
+
             return false;
         }
 
@@ -389,25 +430,25 @@ System.out.println("BASE: Work inserted WRONG context");
 
         return true;
     }
-  
+
     int available() { 
         return fresh.size();
     }
-    
+
     ActivityRecord [] steal(Context context, int count) {
 
         logger.warn("In STEAL on BASE " + context + " " + count);
-        
+
         steals++;
-        
+
         ActivityRecord [] result = new ActivityRecord[count];
-        
+
         for (int i=0;i<count;i++) { 
             result[i] = doSteal(context);
-       
+
             if (result[i] == null) { 
                 logger.warn("STEAL(" + count + ") only produced " + i + " results");
-            
+
                 if (i == 0) { 
                     return null;
                 } else { 
@@ -417,30 +458,31 @@ System.out.println("BASE: Work inserted WRONG context");
                 }
             }
         }
-  
+
         logger.warn("STEAL(" + count + ") only produced ALL results");
-        
+
         stolenJobs += count;
         stealSuccess++;                    
         return result;
     }
-    
+
     ActivityRecord steal(Context context) {
 
         steals++;
 
         ActivityRecord result = doSteal(context);
-        
+
         if (result != null) { 
             stealSuccess++;
             stolenJobs++;
         }
-        
+
         return result;
     }
-    
+
+    /*
     private ActivityRecord doSteal(Context context) {
-    
+
   //      synchronized (this) {
    //         System.out.println("sync");
    //    } 
@@ -450,29 +492,29 @@ System.out.println("BASE: Work inserted WRONG context");
                     + fresh.size() + " W: " + wrongContext.size() + " R: " 
                     + runnable.size() + " L: " + lookup.size());
         }
-        
+
         int size = wrongContext.size();
-        
+
         if (size > 0) {
 
             for (int i=0;i<size;i++) { 
                 // Get the first of the jobs (this is assumed to be the 
                 // largest one) and check if we are allowed to return it. 
                 ActivityRecord r = (ActivityRecord) wrongContext.get(i);
-                
+
                 if (!r.isStolen()) { 
-       
+
                     boolean steal = context.isAny();
-                    
+
                     if (!steal) { 
                         Context tmp = r.activity.getContext();
 
-                        
+
                         // FIXME: still confused about correctness of this!
                         steal = tmp.contains(context);
                         //System.err.println("COMPARE " + tmp + " with " + context + " -> " + steal);
                     }
-                    
+
                     if (steal) { 
                         wrongContext.remove(i);
 
@@ -486,7 +528,7 @@ System.out.println("BASE: Work inserted WRONG context");
 
                         return r;
                     }
-               
+
                 } else { 
                     // TODO: fix this!
                     logger.warning("MAJOR EEP!: stolen job not runnable on " 
@@ -494,7 +536,7 @@ System.out.println("BASE: Work inserted WRONG context");
                 }
             } 
         }
-        
+
         size = fresh.size();
 
         if (size > 0) {
@@ -503,15 +545,15 @@ System.out.println("BASE: Work inserted WRONG context");
                 // Get the first of the new jobs (this is assumed to be the 
                 // largest one) and check if we are allowed to return it. 
                 ActivityRecord r = (ActivityRecord) fresh.get(i);
-                
+
                 if (!r.isStolen()) { 
 
                     Context tmp = r.activity.getContext();
-                    
+
                     if (!tmp.isLocal()) { 
 
                         if (context.isAny() || tmp.contains(context)) { 
-                  
+
                             fresh.remove(i);
 
                             lookup.remove(r.identifier());
@@ -528,16 +570,59 @@ System.out.println("BASE: Work inserted WRONG context");
                 }
             } 
         }
+
+        return null;
+    }
+     */
+
+    private ActivityRecord doSteal(Context context) {
+
+        if (Debug.DEBUG_STEAL) { 
+            logger.info("STEAL BASE(" + identifier + "): activities F: " 
+                    + fresh.size() + " W: " + /*wrongContext.size() +*/ " R: " 
+                    + runnable.size() + " L: " + lookup.size());
+        }
+
         
+        /*
+        ActivityRecord r = wrongContext.steal(context);
+
+        if (r == null){ 
+            r = fresh.steal(context);
+        }
+        */
+        
+        ActivityRecord r = fresh.steal(context);
+        
+        if (r != null) { 
+
+            if (r.isStolen()) { 
+                // TODO: fix this!
+                logger.warning("MAJOR EEP!: return stolen job " 
+                        + identifier);
+            }   
+
+            lookup.remove(r.identifier());
+
+            if (Debug.DEBUG_STEAL) {
+                logger.info("STOLEN " + r.identifier());
+            }
+
+            r.setStolen(true);
+
+            return r;
+        }
+            
         return null;
     }
 
+
     public String printState() { 
-        
+
         String tmp = "BASE contains " + lookup.size()
-                + " activities " + runnable.size() + " runnable  " 
-                + fresh.size() + " fresh " + wrongContext.size() + " wrong ";
-      
+        + " activities " + runnable.size() + " runnable  " 
+        + fresh.size() + " fresh " + /*wrongContext.size() +*/ " wrong ";
+
         /*
         if (lookup.size() > 0) { 
 
@@ -552,18 +637,18 @@ System.out.println("BASE: Work inserted WRONG context");
                 }
             }
         }*/
-        
+
         return tmp;
     }
-    
+
     private void process(ActivityRecord tmp) { 
 
         long start, end;
-        
+
         tmp.activity.setCohort(this);
 
         current = tmp;
-        
+
         if (PROFILE) {
             start = System.currentTimeMillis();
         }
@@ -592,7 +677,7 @@ System.out.println("BASE: Work inserted WRONG context");
 
             cancel(tmp.identifier());
         } 
-              
+
         //else { 
         //  out.println("SUSPEND " + tmp.identifier().localName() + " at " + end  
         //          + " " + (end - start));
@@ -600,33 +685,36 @@ System.out.println("BASE: Work inserted WRONG context");
 
         current = null;
     }
-    
+
     boolean process() {
-        
+
         ActivityRecord tmp = dequeue();
 
         // NOTE: the queue is garanteed to only contain activities that we can 
         //       run. Whenever new activities are added or the the context of 
         //       this cohort changes we filter out all activities that do not 
         //       match. 
-                       
+
         if (tmp != null) {
             process(tmp);
             return true;
         }
-        
+
         return false;
     }
-    
+
+    /*
     protected ActivityRecord removeWrongContext() { 
+        
         if (wrongContext.size() == 0) { 
             return null;
         }
-        
-        ActivityRecord tmp = (ActivityRecord) wrongContext.removeFirst();
+
+        ActivityRecord tmp = (ActivityRecord) wrongContext.steal(Context.ANY);
         lookup.remove(tmp.identifier());
         return tmp;
     }
+    */
     
     long getComputationTime() { 
         return computationTime;
@@ -635,51 +723,51 @@ System.out.println("BASE: Work inserted WRONG context");
     long getActivitiesSubmitted() { 
         return activitiesSubmitted;
     }
-    
+
     long getActivitiesAdded() { 
         return activitiesAdded;
     }
-    
+
     long getWrongContextSubmitted() { 
         return wrongContextSubmitted;
     }
-    
+
     long getWrongContextAdded() { 
         return wrongContextAdded;
     }
-    
+
     long getWrongContextDicovered() { 
         return wrongContextDicovered;
     }
-    
+
     long getActivitiesInvoked() { 
         return activitiesInvoked;
     }
-    
+
     long getMessagesInternal() { 
         return messagesInternal;
     }
-    
+
     long getMessagesExternal() { 
         return messagesExternal;
     }
-    
+
     long getMessagesTime() { 
         return messagesTime;
     }
-    
+
     long getSteals() { 
         return steals;
     }
-    
+
     long getStealSuccess() { 
         return stealSuccess;
     }
-    
+
     long getStolen() { 
         return stolenJobs;
     }
-    
+
     public void printStatus() {
         System.out.println(identifier + ": " + lookup);
     }
@@ -689,11 +777,11 @@ System.out.println("BASE: Work inserted WRONG context");
     }
 
     public boolean isMaster() {
-        
+
         if (parent == null) { 
             return true;
         }
-        
+
         return parent.isMaster();
     }
 
@@ -703,48 +791,48 @@ System.out.println("BASE: Work inserted WRONG context");
 
     public void setContext(Context c) {
         myContext = c;
-        
+
         if (Debug.DEBUG_CONTEXT) { 
             logger.info("Setting context of " + identifier + " (BASE) to " + c);
             logger.info("I have " + fresh.size() +" fresh and " 
                     + runnable.size() + " runnable activities");
         }
-        
+
         // TODO: check status of local jobs 
         logger.fixme("CONTEXT CHANGED WITHOUT CHECKING JOBS FIX FIX FIX!", new Exception());
     }
-    
+
     public void setContext(CohortIdentifier id, Context context) throws Exception {
-     
+
         if (Debug.DEBUG_CONTEXT) { 
             logger.info("Setting context of BASE to " + context);
         }
-        
+
         if (id.equals(identifier)) { 
             setContext(context);
             return;
         }
-        
+
         throw new Exception("Cannot change context of " + id);
     }
-    
-    
+
+
     public void clearContext() {
         myContext = Context.ANY;
     }
-    
+
     public Cohort[] getSubCohorts() {
         return null;
     }
-    
+
     public boolean activate() { 
-     
+
         if (parent != null) { 
             return true;
         }
-        
+
         while (process());
-        
+
         return false;
     }
 
