@@ -12,6 +12,10 @@ import ibis.cohort.MessageEvent;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
+import ibis.cohort.extra.SmartWorkQueue;
+import ibis.cohort.extra.SynchronizedWorkQueue;
+import ibis.cohort.extra.WorkQueue;
+import ibis.cohort.extra.WorkQueueFactory;
 import ibis.cohort.impl.distributed.ActivityRecord;
 import ibis.cohort.impl.distributed.ActivityRecordQueue;
 import ibis.cohort.impl.distributed.ApplicationMessage;
@@ -35,17 +39,17 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     private static boolean REMOTE_STEAL_THROTTLE = false;
     private static long REMOTE_STEAL_TIMEOUT = 1000;
-
-    private boolean active;
+    private static boolean PUSHDOWN_SUBMITS = false;
     
+    private boolean active;
+
     private BottomCohort subCohort;
 
-    private final ActivityRecordQueue queue = new ActivityRecordQueue();
-
+    private final WorkQueue queue; 
+     
     private final CohortIdentifier identifier;
 
     private final LocationCache cache = new LocationCache();
-
 
     private final Pool pool;
 
@@ -53,13 +57,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     private final CohortLogger logger;
 
-
-//  private final Transfer transfer;
-
-//  private final Lookup lookup;
-
-//  private final Incoming incoming;
-
+    private ActivityIdentifierFactory aidFactory;
 
     private Context myContext;
 
@@ -70,96 +68,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     private boolean pendingSteal = false;
 
-    /*
-    private class Transfer extends Thread { 
-
-        private boolean done = false;
-
-        private final CircularBuffer work = new CircularBuffer(16);
-
-        public synchronized void done() { 
-            done = true;
-        }
-
-        private synchronized boolean getDone() { 
-            return done;
-        }
-
-        public synchronized void enqueue(Message m) {
-            work.insertLast(m);
-            notifyAll();
-        }
-
-        public void start() { 
-
-
-
-
-        }
-    }
-
-    private class Lookup extends Thread { 
-
-        private boolean done = false;
-
-        private final CircularBuffer work = new CircularBuffer(16);
-
-        public synchronized void done() { 
-            done = true;
-        }
-
-        private synchronized boolean getDone() { 
-            return done;
-        }
-
-        public synchronized void enqueue(Message m) {
-            work.insertLast(m);
-            notifyAll();
-        }
-
-        public void start() { 
-
-
-
-
-        }
-    }
-
-
-    private class Incoming extends Thread { 
-
-        private boolean done = false;
-
-        private final CircularBuffer work = new CircularBuffer(16);
-
-        public synchronized void done() { 
-            done = true;
-        }
-
-        private synchronized boolean getDone() { 
-            return done;
-        }
-
-        public synchronized void enqueue(Object o) {
-            work.insertFirst(o);
-            notifyAll();
-        }
-
-        public void start() { 
-
-
-
-
-
-        }
-    }
-     */
-
     public DistributedCohort(Properties p) throws Exception {         
-
-        //     if (PROFILE) { 
-        //        gcbeans = ManagementFactory.getGarbageCollectorMXBeans();
-        //     }
 
         String tmp = p.getProperty("ibis.cohort.remotesteal.throttle");
 
@@ -185,18 +94,23 @@ public class DistributedCohort implements Cohort, TopCohort {
             }
         }
 
+        tmp = p.getProperty("ibis.cohort.submit.pushdown");
+
+        if (tmp != null) {
+
+            try { 
+                PUSHDOWN_SUBMITS = Boolean.parseBoolean(tmp);
+            } catch (Exception e) {
+                System.err.println("Failed to parse " +
+                        "ibis.cohort.submits.pushdown: " + tmp);
+            }
+        }
+        
+        tmp = p.getProperty("ibis.cohort.workqueue");
+
+        queue = WorkQueueFactory.createQueue(tmp, true);
+        
         myContext = Context.ANY;
-
-        /*
-        lookup = new Lookup();
-        lookup.start();
-
-        transfer = new Transfer();
-        transfer.start();
-
-        incoming = new Incoming();
-        incoming.start();
-         */
 
         // Init communication here...
         pool = new Pool(this, p);
@@ -204,14 +118,11 @@ public class DistributedCohort implements Cohort, TopCohort {
         cidFactory = pool.getCIDFactory();        
         identifier = cidFactory.generateCohortIdentifier();
 
+        aidFactory = getActivityIdentifierFactory(identifier);        
+
         logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
 
         logger.warn("Starting DistributedCohort " + identifier + " / " + myContext);
-        
-        // TODO: THIS IS WRONG!!!
-      //  subCohort = new MultiThreadedMiddleCohort(p, this);     
-
-       // pool.setLogger(logger);        
     }
 
 
@@ -350,7 +261,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
             if (!pool.forward(new StealReply(identifier, sr.source, ar))) { 
                 logger.warning("DROP StealReply to " + sr.source);
-                queue.add(ar);
+                queue.enqueue(ar);
                 return;
             } 
         } else {
@@ -403,10 +314,10 @@ public class DistributedCohort implements Cohort, TopCohort {
         // block for a long period of time or communicate!
 
         System.err.println("DIST STEAL reply: " + Arrays.toString(sr.getWork()));
-        
+
         if (identifier.equals(sr.target)) { 
             if (!sr.isEmpty()) { 
-                queue.add(sr.getWork());
+                queue.enqueue(sr.getWork());
             }
             return;
         }
@@ -465,7 +376,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         synchronized (this) {
             active = true;
         }
-        
+
         pool.activate();
         return subCohort.activate();
     }
@@ -577,15 +488,50 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         subCohort.setContext(id, context);
     } 
+    
+    private synchronized ActivityIdentifier createActivityID() {
+
+        try {
+            return aidFactory.createActivityID();
+        } catch (Exception e) {
+            // Oops, we ran out of IDs. Get some more from our parent!
+            aidFactory = getActivityIdentifierFactory(identifier);
+        }
+
+        try {
+            return aidFactory.createActivityID();
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "INTERNAL ERROR: failed to create new ID block!", e);
+        }
+    }
 
     public ActivityIdentifier submit(Activity a) {
 
-        if (Debug.DEBUG_SUBMIT) { 
-            logger.info("D SUBMIT activity with context " + a.getContext());
-        }
+        if (PUSHDOWN_SUBMITS) { 
 
-        return subCohort.deliverSubmit(a);
+            if (Debug.DEBUG_SUBMIT) { 
+                logger.info("D PUSHDOWN SUBMIT activity with context " + a.getContext());
+            }
+
+            return subCohort.deliverSubmit(a);
+        }
+   
+        if (Debug.DEBUG_SUBMIT) { 
+            logger.info("D LOCAL SUBMIT activity with context " + a.getContext());
+        }
+        
+        ActivityIdentifier id = createActivityID();
+        a.initialize(id);
+
+        if (Debug.DEBUG_SUBMIT) {
+            logger.info("created " + id + " at " 
+                    + System.currentTimeMillis() + " from DIST"); 
+        }
+     
+        return id;
     }
+    
 
     /* =========== End of Cohort interface ================================== */
 
@@ -617,7 +563,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
             return new LookupReply(identifier, lr.source, lr.missing, tmp.id, tmp.count);
         }
-        
+
         logger.fixme("BROADCAST LOOKUP: " + lr.missing);
 
         pool.broadcast(lr);
@@ -731,29 +677,29 @@ public class DistributedCohort implements Cohort, TopCohort {
     public void handleStealReply(StealReply m) {
 
         logger.warn("D handling steal reply for " + m.target);
-        
+
         if (pool.forward(m)) { 
             // Succesfully send the reply. Cache new location of the activities
-          
+
             if (!m.isEmpty()) { 
-                
+
                 int size = m.getSize();
-                
+
                 for (int i=0;i<size;i++) {
                     ActivityRecord tmp = m.getWork(i);
-                    
+
                     if (tmp != null) { 
                         cache.put(tmp.identifier(), m.target, tmp.getHopCount()+1);
                     }
                 }
             }
-             
+
         } else { 
             // Send failed. Reclaim work
             if (!m.isEmpty()) {
                 logger.warning("DROP StealReply to " + m.target 
                         + " after reclaiming work");
-                queue.add(m.getWork());
+                queue.enqueue(m.getWork());
             } else { 
                 logger.warning("DROP Empty StealReply to " + m.target); 
             }
@@ -766,11 +712,11 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public void handleWrongContext(ActivityRecord ar) {
         // Store the 'unusable' activities at this level.
-        queue.add(ar);
+        queue.enqueue(ar);
     }
 
     public synchronized ActivityIdentifierFactory 
-    getActivityIdentifierFactory(CohortIdentifier cid) {
+        getActivityIdentifierFactory(CohortIdentifier cid) {
 
         ActivityIdentifierFactory tmp = new ActivityIdentifierFactory(
                 cid.id,  startID, startID+blockSize);
@@ -783,15 +729,15 @@ public class DistributedCohort implements Cohort, TopCohort {
             CohortIdentifier cid) {
         return cidFactory;
     }
-    
+
     public synchronized void register(BottomCohort cohort) throws Exception { 
-        
+
         if (active || subCohort != null) { 
             throw new Exception("Cannot register BottomCohort");
         }
-        
+
         subCohort = cohort;
     }
-    
+
     /* =========== End of TopCohort interface =============================== */
 }

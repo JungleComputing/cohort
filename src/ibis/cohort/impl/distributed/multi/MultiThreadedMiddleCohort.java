@@ -15,8 +15,8 @@ import ibis.cohort.extra.Debug;
 import ibis.cohort.extra.SmartWorkQueue;
 import ibis.cohort.extra.SynchronizedWorkQueue;
 import ibis.cohort.extra.WorkQueue;
+import ibis.cohort.extra.WorkQueueFactory;
 import ibis.cohort.impl.distributed.ActivityRecord;
-import ibis.cohort.impl.distributed.ActivityRecordQueue;
 import ibis.cohort.impl.distributed.ApplicationMessage;
 import ibis.cohort.impl.distributed.BottomCohort;
 import ibis.cohort.impl.distributed.LocationCache;
@@ -26,7 +26,6 @@ import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
 import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.UndeliverableEvent;
-import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -43,6 +42,8 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 //  private static final int REMOTE_STEAL_POLICY = 
 //  determineRemoteStealPolicy(REMOTE_STEAL_RANDOM);
 
+    private static boolean PUSHDOWN_SUBMITS = false;
+    
     private final TopCohort parent;
 
     private ArrayList<BottomCohort> incomingWorkers;
@@ -62,13 +63,14 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
    // private ActivityRecordQueue myActivities = new ActivityRecordQueue();
 
-    private WorkQueue myActivities = 
-        new SynchronizedWorkQueue(new SmartWorkQueue());
+    private final WorkQueue myActivities;
     
     private LocationCache locationCache = new LocationCache();
 
     private final CohortIdentifierFactory cidFactory;
 
+    private ActivityIdentifierFactory aidFactory;
+    
     private int nextSubmit = 0;
 
     private final LookupThread lookup;
@@ -258,26 +260,23 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
         cidFactory = parent.getCohortIdentifierFactory(null);
         identifier = cidFactory.generateCohortIdentifier();
+        aidFactory = getActivityIdentifierFactory(identifier);        
+        
+        String tmp = p.getProperty("ibis.cohort.submit.pushdown");
 
-    /*    
-        String tmp = p.getProperty("ibis.cohort.workers");
+        if (tmp != null) {
 
-        if (tmp != null && tmp.length() > 0) {
-            try {
-                count = Integer.parseInt(tmp);
+            try { 
+                PUSHDOWN_SUBMITS = Boolean.parseBoolean(tmp);
             } catch (Exception e) {
-                System.err.println("Failed to parse property " +
-                        "ibis.cohort.workers: " + e);
+                System.err.println("Failed to parse " +
+                        "ibis.cohort.submits.pushdown: " + tmp);
             }
         }
+        
+        tmp = p.getProperty("ibis.cohort.workqueue");
 
-        if (count == 0) {
-            // Automatically determine the number of cores to use
-            count = Runtime.getRuntime().availableProcessors();
-        }
-
-        this.workerCount = count;
-*/
+        myActivities = WorkQueueFactory.createQueue(tmp, true);
         
         this.logger = CohortLogger.getLogger(MultiThreadedMiddleCohort.class, identifier);
         
@@ -775,24 +774,57 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         return false;
     }
 
+    private synchronized ActivityIdentifier createActivityID() {
+
+        try {
+            return aidFactory.createActivityID();
+        } catch (Exception e) {
+            // Oops, we ran out of IDs. Get some more from our parent!
+            aidFactory = getActivityIdentifierFactory(identifier);
+        }
+
+        try {
+            return aidFactory.createActivityID();
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "INTERNAL ERROR: failed to create new ID block!", e);
+        }
+    }
 
     public synchronized ActivityIdentifier deliverSubmit(Activity a) {
 
+        if (PUSHDOWN_SUBMITS)  { 
+
+            if (Debug.DEBUG_SUBMIT) { 
+                logger.info("M PUSHDOWN SUBMIT activity with context " + a.getContext());
+            }
+
+            // We do a simple round-robin distribution of the jobs here.
+            if (nextSubmit >= workers.length) {
+                nextSubmit = 0;
+            }
+
+            if (Debug.DEBUG_SUBMIT) { 
+                logger.info("FORWARD SUBMIT to child " 
+                        + workers[nextSubmit].identifier());
+            }
+
+            return workers[nextSubmit++].deliverSubmit(a);
+        }
+        
         if (Debug.DEBUG_SUBMIT) { 
-            logger.info("M SUBMIT activity with context " + a.getContext());
+            logger.info("M LOCAL SUBMIT activity with context " + a.getContext());
         }
 
-        // We do a simple round-robin distribution of the jobs here.
-        if (nextSubmit >= workers.length) {
-            nextSubmit = 0;
-        }
+        ActivityIdentifier id = createActivityID();
+        a.initialize(id);
 
-        if (Debug.DEBUG_SUBMIT) { 
-            logger.info("FORWARD SUBMIT to child " 
-                    + workers[nextSubmit].identifier());
+        if (Debug.DEBUG_SUBMIT) {
+            logger.info("created " + id + " at " 
+                    + System.currentTimeMillis() + " from DIST"); 
         }
-
-        return workers[nextSubmit++].deliverSubmit(a);
+     
+        return id;
     }
 
     public void deliverStealRequest(StealRequest sr) {
