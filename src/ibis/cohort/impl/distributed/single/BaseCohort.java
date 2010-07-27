@@ -12,7 +12,6 @@ import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
-import ibis.cohort.extra.SimpleWorkQueue;
 import ibis.cohort.extra.SmartWorkQueue;
 import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.impl.distributed.ActivityRecord;
@@ -44,9 +43,13 @@ public class BaseCohort implements Cohort {
 //    private WorkQueue wrongContext = new SmartWorkQueue();
 
     // private CircularBuffer fresh = new CircularBuffer(1);
+   
+    private WorkQueue restricted = new SmartWorkQueue();
     private WorkQueue fresh = new SmartWorkQueue();
-
-    private CircularBuffer local = new CircularBuffer(1);
+   
+    //private CircularBuffer local = new CircularBuffer(1);
+    
+    
     private CircularBuffer runnable = new CircularBuffer(1);
 
     private ActivityIdentifierFactory generator;
@@ -86,7 +89,7 @@ public class BaseCohort implements Cohort {
         this.parent = null;
 
         if (context == null) { 
-            myContext = Context.ANY;
+            myContext = UnitContext.DEFAULT_ANYWHERE;
         } else { 
             myContext = context;
         }
@@ -128,11 +131,19 @@ public class BaseCohort implements Cohort {
             return (ActivityRecord) runnable.removeFirst();
         }
 
+        size = restricted.size();
+        
+        if (size > 0) { 
+            return restricted.dequeue();
+        }
+        
+        /*
         size = local.size();
         
         if (size > 0) { 
             return (ActivityRecord) local.removeLast();
         }
+        */
         
         size = fresh.size();
         
@@ -202,20 +213,25 @@ public class BaseCohort implements Cohort {
 
         Context c = a.getContext();
 
+        /*
         if (c.isLocal()) { 
             System.out.println("BASE: LOCAL Work inserted in LOCAL " + c);      
 
             local.insertLast(ar);
-        } else if (c.isAny() || c.satisfiedBy(myContext)) { 
+        } else*/
+        
+        if (c.satisfiedBy(myContext)) { 
 
             // System.out.println("BASE(" + identifier + ") submit " + a.identifier() + " COMPLETED");
 
-            fresh.enqueue(ar);
-            
-            // fresh.insertLast(ar);
-
-            System.out.println("BASE: LOCAL Work inserted in FRESH " + c);      
-
+            if (c.isRestrictedToLocal()) { 
+                restricted.enqueue(ar);
+                System.out.println("BASE: LOCAL Work inserted in RESTRICTED " + c);      
+            } else { 
+                fresh.enqueue(ar);
+                System.out.println("BASE: LOCAL Work inserted in FRESH " + c);      
+            }
+  
         } else {
 
             System.out.println("BASE: LOCAL Work inserted in WRONG " + c);      
@@ -254,23 +270,25 @@ public class BaseCohort implements Cohort {
 
         Context c = a.activity.getContext();
 
-        if (c.isLocal()) { 
+   /*     if (c.isLocal()) { 
         
             local.insertLast(a);
 
             System.out.println("BASE: got REMOTE work in LOCAL " + c);      
             
-        } else if (c.isAny() || c.satisfiedBy(myContext)) { 
+        } else */
+        
+        if (c.satisfiedBy(myContext)) { 
             if (a.isFresh()) {
-
-                System.out.println("BASE: got REMOTE work in FRESH " + c);      
-
-                fresh.enqueue(a);
-                // fresh.insertLast(a);
+                if (c.isRestrictedToLocal()) {
+                    System.out.println("BASE: got REMOTE work in RESTRICTED " + c);      
+                    restricted.enqueue(a);
+                } else { 
+                    System.out.println("BASE: got REMOTE work in FRESH " + c);      
+                    fresh.enqueue(a);
+                }
             } else {
-                
                 System.out.println("BASE: got REMOTE work in RUNNABLE " + c);      
-
                 runnable.insertLast(a);
             }
 
@@ -318,7 +336,8 @@ public class BaseCohort implements Cohort {
 
     public ActivityIdentifier lookup(String name, Context scope) {
 
-        if (parent == null || scope.isLocal()) { 
+        // TODO: does this still make sense ?
+        if (parent == null || scope.isRestrictedToLocal()) { 
             return lookup(name);
         }
 
@@ -327,7 +346,8 @@ public class BaseCohort implements Cohort {
 
     public boolean register(String name, ActivityIdentifier id, Context scope) {
 
-        if (parent == null || scope.isLocal()) { 
+        // TODO: does this still make sense ?
+        if (parent == null || scope.isRestrictedToLocal()) { 
             return register(name, id);
         }
 
@@ -336,7 +356,8 @@ public class BaseCohort implements Cohort {
 
     public boolean deregister(String name, Context scope) {
 
-        if (parent == null || scope.isLocal()) { 
+        // TODO: does this still make sense ?
+        if (parent == null || scope.isRestrictedToLocal()) { 
             return deregister(name);
         }
 
@@ -435,7 +456,7 @@ public class BaseCohort implements Cohort {
         return fresh.size();
     }
 
-    ActivityRecord [] steal(Context context, int count) {
+    ActivityRecord [] steal(Context context, boolean allowRestricted, int count) {
 
         logger.warn("In STEAL on BASE " + context + " " + count);
 
@@ -444,7 +465,7 @@ public class BaseCohort implements Cohort {
         ActivityRecord [] result = new ActivityRecord[count];
 
         for (int i=0;i<count;i++) { 
-            result[i] = doSteal(context);
+            result[i] = doSteal(context, allowRestricted);
 
             if (result[i] == null) { 
                 logger.warn("STEAL(" + count + ") only produced " + i + " results");
@@ -466,11 +487,11 @@ public class BaseCohort implements Cohort {
         return result;
     }
 
-    ActivityRecord steal(Context context) {
+    ActivityRecord steal(Context context, boolean remote) {
 
         steals++;
 
-        ActivityRecord result = doSteal(context);
+        ActivityRecord result = doSteal(context, remote);
 
         if (result != null) { 
             stealSuccess++;
@@ -575,14 +596,13 @@ public class BaseCohort implements Cohort {
     }
      */
 
-    private ActivityRecord doSteal(Context context) {
+    private ActivityRecord doSteal(Context context, boolean allowRestricted) {
 
         if (Debug.DEBUG_STEAL) { 
             logger.info("STEAL BASE(" + identifier + "): activities F: " 
                     + fresh.size() + " W: " + /*wrongContext.size() +*/ " R: " 
                     + runnable.size() + " L: " + lookup.size());
         }
-
         
         /*
         ActivityRecord r = wrongContext.steal(context);
@@ -591,6 +611,32 @@ public class BaseCohort implements Cohort {
             r = fresh.steal(context);
         }
         */
+        
+        if (allowRestricted) { 
+
+            ActivityRecord r = restricted.steal(context);
+            
+            if (r != null) { 
+
+                if (r.isStolen()) { 
+                    // TODO: fix this!
+                    logger.warning("MAJOR EEP!: return stolen job " 
+                            + identifier);
+                }   
+
+                lookup.remove(r.identifier());
+
+                if (Debug.DEBUG_STEAL) {
+                    logger.info("STOLEN " + r.identifier());
+                }
+
+                r.setStolen(true);
+
+                return r;
+            }
+  
+            // If restricted fails we try the regular queue 
+        }
         
         ActivityRecord r = fresh.steal(context);
         
@@ -818,7 +864,7 @@ public class BaseCohort implements Cohort {
 
 
     public void clearContext() {
-        myContext = Context.ANY;
+        myContext = UnitContext.DEFAULT_ANYWHERE;
     }
 
     public Cohort[] getSubCohorts() {

@@ -447,6 +447,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             }
             
             rm.finish();
+            ((StealRequest)m).setAllowRestricted();
             owner.deliverRemoteStealRequest((StealRequest)m);
             
         } else if (m instanceof LookupRequest) { 

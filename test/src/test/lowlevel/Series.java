@@ -8,6 +8,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.context.UnitContext;
 
 public class Series extends Activity {
     
@@ -25,7 +26,7 @@ public class Series extends Activity {
     private final int count;
     
     public Series(ActivityIdentifier root, int length, int count) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.root = root;
         this.length = length;
         this.count = count;

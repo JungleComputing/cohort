@@ -9,6 +9,7 @@ import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
@@ -110,7 +111,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         queue = WorkQueueFactory.createQueue(tmp, true);
         
-        myContext = Context.ANY;
+        myContext = UnitContext.DEFAULT_ANYWHERE;
 
         // Init communication here...
         pool = new Pool(this, p);

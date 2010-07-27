@@ -609,18 +609,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
             // Make sure the steal request is still valid!
             if (!s.getStale()) { 
+                
                 // NOTE: a is allowed to be null
-                
-                /* FIXME!
-                
-                HACK HACK HACK 
-                
-                ActivityRecord a = sequential.steal(s.context);
-                StealReply sr = new StealReply(sequential.identifier(), 
-                        s.source, a);
-               */
-              
-                ActivityRecord [] a = sequential.steal(s.context, stealSize);
+                ActivityRecord [] a = sequential.steal(s.context, s.allowRestricted(), stealSize);
                
                 if (a != null || !ignoreEmptyStealReplies) { 
                 

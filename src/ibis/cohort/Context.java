@@ -1,49 +1,29 @@
 package ibis.cohort;
 
-import ibis.cohort.context.AnyContext;
-import ibis.cohort.context.CohortContext;
-import ibis.cohort.context.LocalContext;
-
 import java.io.Serializable;
 
 public abstract class Context implements Serializable {
     
     /* Valid contexts: 
      * 
-     *      context = LOCAL | ANY | COHORT | UNIT | and
-     *      and     = (UNIT UNIT+) | (COHORT UNIT+)       
-     *      
-     * Valid contextsets:
-     * 
-     *      set     = ANY | LOCAL | COHORT | 
-     *                (UNIT (UNIT* | and*)) | (and (UNIT* | and*))
-     *      
+     *      context = UNIT | and | or
+     *      and     = (UNIT & UNIT+)        
+     *      or      = ((UNIT|AND) || (UNIT|AND)+)  
      */
-    
-    // Special values     
-    public final static Context LOCAL  = new LocalContext();
-    public final static Context COHORT = new CohortContext();    
-    public final static Context ANY    = new AnyContext();
 
-    protected Context() { 
-        // empty
+    // Is this context resticted to the local machine ? 
+    public final boolean restrictedToLocal;
+    
+    protected Context(boolean restrictedToLocal) { 
+        this.restrictedToLocal = restrictedToLocal;
     }
         
     public abstract boolean equals(Object other);
-    public abstract boolean contains(Context other);
     public abstract boolean satisfiedBy(Context other);
     
-    public boolean isLocal() { 
-        return false;
+    public boolean isRestrictedToLocal() { 
+        return restrictedToLocal;
     }    
-    
-    public boolean isCohort() { 
-        return false;
-    }
-    
-    public boolean isAny() { 
-        return false;
-    }
     
     public boolean isUnit() { 
         return false;
@@ -53,10 +33,11 @@ public abstract class Context implements Serializable {
         return false;
     }
     
-    public boolean isSet() { 
+    public boolean isOr() { 
         return false;
     }
 
     
     
+   
 }

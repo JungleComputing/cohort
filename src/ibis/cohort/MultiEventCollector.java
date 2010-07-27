@@ -1,5 +1,7 @@
 package ibis.cohort;
 
+import ibis.cohort.context.UnitContext;
+
 public class MultiEventCollector extends Activity {
 
     private static final long serialVersionUID = -538414301465754654L;
@@ -8,7 +10,7 @@ public class MultiEventCollector extends Activity {
     private int count;
     
     public MultiEventCollector(int events) {
-        super(Context.LOCAL);
+        super(UnitContext.DEFAULT_LOCAL);
         this.events = new Event[events];
     }
     

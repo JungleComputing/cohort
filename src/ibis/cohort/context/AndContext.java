@@ -1,114 +1,131 @@
 package ibis.cohort.context;
 
-import ibis.cohort.Context;
+import java.util.Arrays;
+import java.util.Comparator;
 
-import java.util.ArrayList;
+import ibis.cohort.Context;
+import ibis.cohort.context.UnitContext.UnitContextSorter;
 
 public class AndContext extends Context {
     
     private static final long serialVersionUID = -8084449299649996481L;
     
-    public final ArrayList<UnitContext> contexts = new ArrayList<UnitContext>(); 
+    protected final UnitContext [] unitContexts;
+    protected final int hashCode;
     
-    public AndContext(UnitContext a, UnitContext b) { 
-        contexts.add(a);
-        contexts.add(b);
+    public AndContext(UnitContext [] and, boolean restrictToLocal) { 
+      
+        super(restrictToLocal);
+        
+        if (and == null || and.length < 2) { 
+            throw new IllegalArgumentException("Illegal argument while " +
+                        "creating AndContext: " + and);
+        }
+        
+        unitContexts = UnitContext.sort(and);
+        hashCode = UnitContext.generateHash(and);
     }
     
-    protected void add(UnitContext c) { 
-        contexts.add(c);
-    }
-
     @Override
-    public boolean equals(Object obj) {
-
-        // NOTE: Very expensive operation!
-        
-        if (this == obj)
-            return true;
-        
-        if (obj == null)
-            return false;
-        
-        if (getClass() != obj.getClass())
-            return false;
-        
-        final AndContext other = (AndContext) obj;
-            
-        if (contexts.size() != other.contexts.size()) { 
-            return false;
-        }
-
-        for (UnitContext tmp : contexts) {             
-            if (!other.contains(tmp)) { 
-                return false;
-            }                 
-        }
-
+    public boolean isAnd() { 
         return true;
     }
-    
-    public boolean contains(UnitContext c) { 
-        return contexts.contains(c);
-    }
-
-    public boolean contains(AndContext c) { 
         
-        // Check if all context in c are also in this context. 
-        for (UnitContext tmp : c.contexts) {         
-            if (!contains(tmp)) { 
-                return false;
-            }
-        }
-        
-        return true;
-    }
-
-    @Override
-    public boolean contains(Context other) {
-        
-        if (other.isUnit()) { 
-            return contains((UnitContext)other);
-        }
-
-        if (other.isAnd()) { 
-            return contains((AndContext)other);
-        }
-        
-        return false;
-    }
-    
     public String toString() { 
         StringBuilder b = new StringBuilder();
         
-        for (UnitContext u : contexts) { 
-            b.append(u);
-            b.append(" and ");
+        for (int i=0;i<unitContexts.length;i++) { 
+            b.append(unitContexts[i]);
+           
+            if (i<unitContexts.length-1) { 
+                b.append(" and ");
+            }
         }
-
+        
         return b.toString();
     }
 
     @Override
     public boolean satisfiedBy(Context other) {
  
-        // TODO: incomplete ?
-        if (other.isUnit()) { 
+        if (other == null) { 
             return false;
         }
         
         if (other.isAnd()) { 
             return equals(other);
         }
-     
+        
         return false;
     }
 
     @Override
     public int hashCode() {
-        final int PRIME = 31;
-        int result = 1;
-        result = PRIME * result + ((contexts == null) ? 0 : contexts.hashCode());
-        return result;
+        return hashCode;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        
+        if (this == obj) {
+            return true;
+        }
+            
+        if (obj == null) {
+            return false;
+        }
+        
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        
+        AndContext other = (AndContext) obj;
+        
+        if (hashCode != other.hashCode) { 
+            return false;
+        }
+        
+        if (unitContexts.length != other.unitContexts.length) { 
+            return false;
+        }
+        
+        for (int i=0;i<unitContexts.length;i++) { 
+            if (!unitContexts[i].equals(other.unitContexts[i])) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    protected static class AndContextSorter implements Comparator<AndContext> {
+
+        public int compare(AndContext u1, AndContext u2) {
+            
+            if (u1.hashCode == u2.hashCode) { 
+                return 0;
+            } else if (u1.hashCode < u2.hashCode) { 
+                return -1;
+            } else {    
+                return 1;
+            }
+        }
+    }
+    
+    public static AndContext [] sort(AndContext [] in) { 
+        Arrays.sort(in, new AndContextSorter());
+        return in;
+    }
+    
+    public static int generateHash(AndContext [] in) { 
+      
+        // NOTE: result depends on order of elements in array! 
+        int hashCode = 1;
+       
+        for (int i=0;i<in.length;i++) {
+            hashCode = 31*hashCode + (in[i] == null ? 0 : in[i].hashCode);
+        }
+       
+        return hashCode;
     }
 }

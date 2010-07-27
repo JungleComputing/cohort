@@ -4,6 +4,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
+import ibis.cohort.context.UnitContext;
 
 public class Dummy extends Activity {
 
@@ -12,7 +13,7 @@ public class Dummy extends Activity {
     private final ActivityIdentifier parent;
     
     public Dummy(ActivityIdentifier parent) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
     }
 

@@ -5,6 +5,7 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.context.UnitContext;
 
 import java.util.ArrayList;
 
@@ -21,7 +22,7 @@ public class DivCon extends Activity {
     private boolean root;
     
     public DivCon(ActivityIdentifier parent, WorkUnit workUnit, int myIndex, boolean root) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.workUnit = workUnit;
         this.myIndex = myIndex;

@@ -3,7 +3,7 @@ package ibis.cohort.impl.distributed;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.context.AndContext;
-import ibis.cohort.context.ContextSet;
+import ibis.cohort.context.OrContext;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,8 +29,8 @@ public class ActivityRecordQueue {
         
         if (c == null) { 
             return new Context[0];
-        } else if (c.isSet()) { 
-            return ((ContextSet) c).getContexts();
+        } else if (c.isOr()) { 
+            return ((OrContext) c).getContexts();
         } else { 
             return new Context [] { c };
         }
@@ -122,9 +122,9 @@ public class ActivityRecordQueue {
        
         ActivityIdentifier id = null;
         
-        if (c.isSet()) { 
+        if (c.isOr()) { 
             
-            ContextSet s = (ContextSet) c;
+            OrContext s = (OrContext) c;
            
             if (s.countAndContexts() > 0) { 
                 id = sortAndSelectForSteal(s.andContexts());

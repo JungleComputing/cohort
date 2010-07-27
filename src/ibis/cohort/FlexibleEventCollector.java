@@ -1,5 +1,7 @@
 package ibis.cohort;
 
+import ibis.cohort.context.UnitContext;
+
 import java.util.ArrayList;
 
 public class FlexibleEventCollector extends Activity {
@@ -10,8 +12,12 @@ public class FlexibleEventCollector extends Activity {
     private boolean waiting = false;
     private int count;
     
+    public FlexibleEventCollector(Context c) {
+        super(c);
+    }
+    
     public FlexibleEventCollector() {
-        super(Context.LOCAL);
+        super(UnitContext.DEFAULT_LOCAL);
     }
     
     @Override

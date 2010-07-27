@@ -8,6 +8,7 @@ import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.context.UnitContext;
 
 public class DivideAndConquerWithLoad extends Activity {
 
@@ -30,7 +31,7 @@ public class DivideAndConquerWithLoad extends Activity {
     
     public DivideAndConquerWithLoad(ActivityIdentifier parent, int branch, 
             int depth, int load) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;

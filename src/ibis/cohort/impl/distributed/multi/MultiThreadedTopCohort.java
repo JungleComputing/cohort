@@ -9,8 +9,7 @@ import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
-import ibis.cohort.context.AndContext;
-import ibis.cohort.context.ContextSet;
+import ibis.cohort.context.OrContext;
 import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
@@ -78,7 +77,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         // NOTE: should use exp. backoff here!
 
         private boolean done = false;
-        
+
         private static final int TIMEOUT = 100; // 1 sec. timeout. 
 
         private CircularBuffer newMessages = new CircularBuffer(1);    
@@ -92,7 +91,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             done = true;
             notifyAll();
         }
-        
+
         public synchronized void add(ApplicationMessage m) {
             newMessages.insertLast(m);
         }
@@ -162,14 +161,14 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             } catch (InterruptedException e) {
                 // ignored
             }
-            
+
             return done;
         }
 
         public void run() { 
 
             boolean done = false;
-            
+
             while (!done) {
                 int oldM = processOldMessages();                    
                 int newM = addNewMessages();
@@ -178,7 +177,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
                     logger.debug("LOOKUP: " + oldM + " " + newM +
                             " " + oldMessages.size());
                 }
-  
+
                 done = waitForTimeout();
             }
         }
@@ -268,17 +267,17 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
 
         this.logger = CohortLogger.getLogger(MultiThreadedTopCohort.class,
                 identifier);
-        
-            // workers     = new SingleThreadedBottomCohort[count];
-       //     localSteals = new StealState[count];
-       // contexts    = new Context[count];
 
-        myContext = Context.ANY;
+        // workers     = new SingleThreadedBottomCohort[count];
+        //     localSteals = new StealState[count];
+        // contexts    = new Context[count];
+
+        myContext = UnitContext.DEFAULT_ANYWHERE;
         myContextChanged = false;
 
         logger.warn("Starting MultiThreadedTopCohort " + identifier + " / " + myContext);
 
-   
+
         lookup = new LookupThread();
         lookup.start();
 
@@ -334,19 +333,16 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             }
 
             if (myActivities.size() > 0) { 
-                if (c.isAny()) { 
-                    return (ActivityRecord) myActivities.removeFirst();
-                } else { 
-                    for (int i=0;i<myActivities.size();i++) { 
-                        ActivityRecord r = (ActivityRecord) myActivities.get(i); 
-                        Context tmp = r.activity.getContext();
+                for (int i=0;i<myActivities.size();i++) { 
+                    ActivityRecord r = (ActivityRecord) myActivities.get(i); 
+                    Context tmp = r.activity.getContext();
 
-                        if (c.contains(tmp)) { 
-                            myActivities.remove(i);
-                            return r;
-                        }
+                    if (tmp.satisfiedBy(c)) { 
+                        myActivities.remove(i);
+                        return r;
                     }
                 }
+
             }
 
         }
@@ -711,7 +707,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
     public void handleStealReply(StealReply m) { 
 
         logger.warn("MT handling STEAL REPLY " + m.isTargetSet() + " " + m.isEmpty());
-        
+
         if (m.isTargetSet()) { 
 
             BottomCohort b = getWorker(m.target);
@@ -811,11 +807,11 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
     }
 
     public void done() {
-        
+
         logger.warn("done");
-        
+
         lookup.done();
-        
+
         if (active) { 
             for (BottomCohort u : workers) {
                 u.done();
@@ -884,44 +880,16 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         if (!myContextChanged) { 
             return myContext;
         } else { 
-
-            ContextSet tmp = null;
-
+            
+            Context [] tmp = new Context[workerCount];
+            
             for (int i=0;i<workerCount;i++) {
-
-                Context other = workers[i].getContext();
-
-                if (other.isUnit()) {
-
-                    if (tmp == null) { 
-                        tmp = new ContextSet((UnitContext) other);
-                    } else { 
-                        tmp.add((UnitContext) other);
-                    }
-                } else if (other.isAnd()) { 
-
-                    if (tmp == null) { 
-                        tmp = new ContextSet((AndContext) other);
-                    } else { 
-                        tmp.add((AndContext) other);
-                    }
-                } else if (other.isSet()) {
-
-                    if (tmp == null) { 
-                        tmp = new ContextSet((ContextSet) other);
-                    } else { 
-                        tmp.add((ContextSet) other);
-                    }
-                }
+                tmp[i] = workers[i].getContext();
             }
 
+            myContext = OrContext.merge(tmp);
             myContextChanged = false;
-
-            if (tmp == null) { 
-                return Context.ANY;
-            } else { 
-                return tmp;
-            }
+            return myContext;
         } 
     }
 
@@ -942,13 +910,13 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             workers = incomingWorkers.toArray(new BottomCohort[workerCount]);
 
             contexts = new Context[workerCount];
-            
+
             for (int i=0;i<workerCount;i++) { 
                 contexts[i] = workers[i].getContext();
             }
-            
+
             myContextChanged = true;
-            
+
             // No workers may be added after this point
             incomingWorkers = null;
         }

@@ -5,6 +5,7 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.context.UnitContext;
 
 public class BarnesJob extends Activity {
 
@@ -72,7 +73,7 @@ public class BarnesJob extends Activity {
                                 || ch == tree) 
                                 ? tree : new BodyTreeNode(tree, ch);
                 
-                cohort.submit(new BarnesJob(Context.ANY, identifier(),  
+                cohort.submit(new BarnesJob(UnitContext.DEFAULT_ANYWHERE, identifier(),  
                         ch, necessaryTree, params));
             }
         }

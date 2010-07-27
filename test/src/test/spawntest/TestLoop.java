@@ -4,6 +4,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
+import ibis.cohort.context.UnitContext;
 
 public class TestLoop extends Activity {
 
@@ -20,7 +21,7 @@ public class TestLoop extends Activity {
     private long end;
     
     public TestLoop(ActivityIdentifier parent, long count, int spawns) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.count = count;
         this.spawns = spawns;

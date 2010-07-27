@@ -8,6 +8,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.context.UnitContext;
 
 public class Streaming extends Activity {
     
@@ -29,7 +30,7 @@ public class Streaming extends Activity {
     private int dataSeen;
     
     public Streaming(ActivityIdentifier root, int length, int index, int totaldata) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.root = root;
         this.length = length;
         this.index = index;

@@ -6,7 +6,7 @@ import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.context.AndContext;
-import ibis.cohort.context.ContextSet;
+import ibis.cohort.context.OrContext;
 import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortIdentifierFactory;
@@ -284,7 +284,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         //     localSteals = new StealState[count];
         contexts    = new Context[count];
 
-        myContext = Context.ANY;
+        myContext = UnitContext.DEFAULT_ANYWHERE;
         myContextChanged = false;
 
         lookup = new LookupThread();
@@ -685,47 +685,19 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (!myContextChanged) { 
             return myContext;
         } else { 
-
-            ContextSet tmp = null;
-
+                
+            Context [] tmp = new Context[workerCount];
+                
             for (int i=0;i<workerCount;i++) {
-
-                Context other = workers[i].getContext();
-
-                if (other.isUnit()) {
-
-                    if (tmp == null) { 
-                        tmp = new ContextSet((UnitContext) other);
-                    } else { 
-                        tmp.add((UnitContext) other);
-                    }
-                } else if (other.isAnd()) { 
-
-                    if (tmp == null) { 
-                        tmp = new ContextSet((AndContext) other);
-                    } else { 
-                        tmp.add((AndContext) other);
-                    }
-                } else if (other.isSet()) {
-
-                    if (tmp == null) { 
-                        tmp = new ContextSet((ContextSet) other);
-                    } else { 
-                        tmp.add((ContextSet) other);
-                    }
-                }
+                tmp[i] = workers[i].getContext();
             }
 
+            myContext = OrContext.merge(tmp);
             myContextChanged = false;
-
-            if (tmp == null) { 
-                return Context.ANY;
-            } else { 
-                return tmp;
-            }
+            return myContext;
         } 
     }
-
+    
     public CohortIdentifier identifier() {
         return identifier;
     }

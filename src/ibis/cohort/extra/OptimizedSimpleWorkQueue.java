@@ -16,19 +16,7 @@ public class OptimizedSimpleWorkQueue extends SimpleWorkQueue {
         }
         
         ActivityRecord [] result = new ActivityRecord[count];
-        
-        if (c.isAny()) { 
-            for (int i=0;i<count;i++) { 
-                result[i] = (ActivityRecord) buffer.removeFirst();
          
-                if (buffer.empty()) { 
-                    return trim(result, i);
-                }
-            }
-   
-            return result;
-        }
-     
         int size = 0;
         int index = 0;
         
@@ -36,7 +24,7 @@ public class OptimizedSimpleWorkQueue extends SimpleWorkQueue {
             
             Context tmp = ((ActivityRecord) buffer.get(index)).activity.getContext();
             
-            if (tmp.contains(c)) { 
+            if (tmp.satisfiedBy(c)) { 
                 result[size++] = (ActivityRecord) buffer.get(index);
                 buffer.remove(index);
                 size++;

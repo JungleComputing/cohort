@@ -4,10 +4,10 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.context.UnitContext;
 
 public class Fibonacci extends Activity {
 
@@ -20,7 +20,7 @@ public class Fibonacci extends Activity {
     private int merged = 0;
 
     public Fibonacci(ActivityIdentifier parent, int input) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.input = input;
     }

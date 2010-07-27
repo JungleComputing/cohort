@@ -12,6 +12,7 @@ import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
+import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Log;
@@ -46,7 +47,7 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
         System.out.println("Starting SingleThreadedCohort " + identifier);
       
         if (context == null) { 
-            myContext = Context.ANY;
+            myContext = UnitContext.DEFAULT_ANYWHERE;
         } else { 
             myContext = context;
         }

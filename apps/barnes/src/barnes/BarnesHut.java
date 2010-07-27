@@ -5,6 +5,7 @@ import ibis.cohort.CohortFactory;
 import ibis.cohort.Context;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.context.UnitContext;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -326,7 +327,7 @@ import java.util.Arrays;
 
                 SingleEventCollector a = new SingleEventCollector();
                 cohort.submit(a);
-                cohort.submit(new BarnesJob(Context.ANY, a.identifier(), 
+                cohort.submit(new BarnesJob(UnitContext.DEFAULT_ANYWHERE, a.identifier(), 
                         bodies.getRoot(), bodies.getRoot(), params));
 
                 result = (BodyUpdates) ((MessageEvent) a.waitForEvent()).message;        

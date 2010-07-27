@@ -8,6 +8,7 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
+import ibis.cohort.context.UnitContext;
 
 import java.util.Arrays;
 
@@ -36,7 +37,7 @@ public class DivideAndConquerWithChecks extends Activity {
     private ActivityIdentifier [] received;
     
     public DivideAndConquerWithChecks(ActivityIdentifier parent, int branch, int depth) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;

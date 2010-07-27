@@ -1,5 +1,7 @@
 package ibis.cohort;
 
+import ibis.cohort.context.UnitContext;
+
 public class SingleEventCollector extends Activity {
 
     private static final long serialVersionUID = -538414301465754654L;
@@ -11,8 +13,12 @@ public class SingleEventCollector extends Activity {
         suspend();
     }
 
+    public SingleEventCollector(Context c) {
+        super(c);
+    }
+    
     public SingleEventCollector() {
-        super(Context.LOCAL);
+        super(UnitContext.DEFAULT_LOCAL);
     }
     
     @Override

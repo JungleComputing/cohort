@@ -43,15 +43,11 @@ public class SimpleWorkQueue extends WorkQueue {
             return null;
         }
         
-        if (c.isAny()) { 
-            return (ActivityRecord) buffer.removeFirst();
-        }
-        
         for (int i=0;i<buffer.size();i++) { 
             
             Context tmp = ((ActivityRecord) buffer.get(i)).activity.getContext();
             
-            if (tmp.contains(c)) { 
+            if (tmp.satisfiedBy(c)) { 
                 ActivityRecord a = (ActivityRecord) buffer.get(i);
                 buffer.remove(i);
                 return a;

@@ -1,7 +1,7 @@
 package ibis.cohort.extra;
 
 import ibis.cohort.Context;
-import ibis.cohort.context.ContextSet;
+import ibis.cohort.context.OrContext;
 import ibis.cohort.context.UnitContext;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
@@ -52,8 +52,8 @@ public class SmartWorkQueue extends WorkQueue {
     
     private ActivityRecord getOr(Context c) { 
         
-        if (c.isSet()) { 
-            c = ((ContextSet) c).getContexts()[0];
+        if (c.isOr()) { 
+            c = ((OrContext) c).getContexts()[0];
         }
         
         CircularBuffer tmp = or.get(c);
@@ -64,7 +64,7 @@ public class SmartWorkQueue extends WorkQueue {
 
         ActivityRecord a = (ActivityRecord) tmp.removeLast();
 
-        Context [] all = ((ContextSet) a.activity.getContext()).getContexts();
+        Context [] all = ((OrContext) a.activity.getContext()).getContexts();
         
         for (int i=0;i<all.length;i++) { 
 
@@ -122,9 +122,9 @@ public class SmartWorkQueue extends WorkQueue {
     }
  
     // NOTE: only works for Unit and and contexts
-    private void enqueueOr(ContextSet c, ActivityRecord a) {
+    private void enqueueOr(OrContext c, ActivityRecord a) {
  
-        Context [] all = ((ContextSet) c).getContexts();
+        Context [] all = ((OrContext) c).getContexts();
         
         for (int i=0;i<all.length;i++) { 
 
@@ -147,19 +147,13 @@ public class SmartWorkQueue extends WorkQueue {
     
         Context c = a.activity.getContext();
         
-        if (c.isAny()) { 
-            any.insertLast(a);
-            size++;
-            return;
-        }
-        
         if (c.isUnit() || c.isAnd()) {
             enqueueUnitAnd((UnitContext) c, a);
             return;
         }
         
-        if (c.isSet()) {
-            enqueueOr((ContextSet) c, a);
+        if (c.isOr()) {
+            enqueueOr((OrContext) c, a);
             return;
         }
     
@@ -184,9 +178,9 @@ public class SmartWorkQueue extends WorkQueue {
             return a;
         }
         
-        if (c.isSet()) { 
+        if (c.isOr()) { 
             
-            Context [] and = ((ContextSet) c).andContexts();
+            Context [] and = ((OrContext) c).andContexts();
             
             if (and != null && and.length > 0) { 
                 for (int i=0;i<and.length;i++) {
@@ -204,7 +198,7 @@ public class SmartWorkQueue extends WorkQueue {
                 }
             } 
             
-            Context [] unit = ((ContextSet) c).unitContexts();
+            Context [] unit = ((OrContext) c).unitContexts();
             
             if (unit != null && unit.length > 0) { 
                 for (int i=0;i<unit.length;i++) {

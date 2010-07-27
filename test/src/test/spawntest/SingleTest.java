@@ -4,6 +4,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Context;
 import ibis.cohort.Event;
+import ibis.cohort.context.UnitContext;
 
 public class SingleTest extends Activity {
 
@@ -15,7 +16,7 @@ public class SingleTest extends Activity {
     private int replies;
     
     public SingleTest(ActivityIdentifier parent, int spawns) {
-        super(Context.ANY);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.spawns= spawns;
     }
