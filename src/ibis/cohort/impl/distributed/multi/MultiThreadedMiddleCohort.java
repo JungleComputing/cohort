@@ -130,6 +130,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                     (ApplicationMessage) oldMessages.removeFirst();
 
                 if (!attemptDelivery(m)) { 
+                    
+                    System.out.println("Trying to deliver to " + m.targetActivity());
+                    
                     triggerLookup(m.targetActivity());
                     oldMessages.insertLast(m);
                 }
@@ -349,6 +352,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     private void triggerLookup(ActivityIdentifier id) {
 
+        
+        System.out.println("Sending lookuprequest for " + id);
+        
         // Send a lookup request to parent and all children, regardless of 
         // whether anything is cached... 
         LookupRequest lr = new LookupRequest(identifier, id);
@@ -369,6 +375,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     }
 
     private void enqueueMessage(ApplicationMessage m) { 
+        
+        System.out.println("Queued message for" + m.targetActivity() + " from " + m.source);
+        
         triggerLookup(m.targetActivity());
         lookup.add(m);
     }
