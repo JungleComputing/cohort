@@ -31,7 +31,7 @@ public class DivideAndConquerWithLoad extends Activity {
     
     public DivideAndConquerWithLoad(ActivityIdentifier parent, int branch, 
             int depth, int load) {
-        super(UnitContext.DEFAULT);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;

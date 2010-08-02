@@ -73,7 +73,7 @@ public class BarnesJob extends Activity {
                                 || ch == tree) 
                                 ? tree : new BodyTreeNode(tree, ch);
                 
-                cohort.submit(new BarnesJob(UnitContext.DEFAULT, identifier(),  
+                cohort.submit(new BarnesJob(UnitContext.DEFAULT_ANYWHERE, identifier(),  
                         ch, necessaryTree, params));
             }
         }

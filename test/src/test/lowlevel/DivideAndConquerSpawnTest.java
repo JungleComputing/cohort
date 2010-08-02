@@ -35,7 +35,7 @@ public class DivideAndConquerSpawnTest extends Activity {
     private long start;
     
     public DivideAndConquerSpawnTest(ActivityIdentifier parent, boolean spawn) {
-        super(UnitContext.DEFAULT);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.spawn = spawn;
     }

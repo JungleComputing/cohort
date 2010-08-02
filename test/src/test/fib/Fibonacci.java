@@ -20,7 +20,7 @@ public class Fibonacci extends Activity {
     private int merged = 0;
 
     public Fibonacci(ActivityIdentifier parent, int input) {
-        super(UnitContext.DEFAULT);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.input = input;
     }

@@ -31,7 +31,7 @@ public class DivideAndConquerWithSleep extends Activity {
 
     public DivideAndConquerWithSleep(ActivityIdentifier parent, int branch, 
             int depth, int load) {
-        super(UnitContext.DEFAULT);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;

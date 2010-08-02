@@ -22,7 +22,7 @@ public class DivCon extends Activity {
     private boolean root;
     
     public DivCon(ActivityIdentifier parent, WorkUnit workUnit, int myIndex, boolean root) {
-        super(UnitContext.DEFAULT);
+        super(UnitContext.DEFAULT_ANYWHERE);
         this.parent = parent;
         this.workUnit = workUnit;
         this.myIndex = myIndex;

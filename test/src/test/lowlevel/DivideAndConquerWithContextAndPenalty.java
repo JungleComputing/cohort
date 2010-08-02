@@ -75,7 +75,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 Context machineContext = getCohort().getContext();
                 Context activitycontext = getContext();
                     
-                if (machineContext == null || machineContext.equals(UnitContext.DEFAULT)) { 
+                if (machineContext == null || machineContext.equals(UnitContext.DEFAULT_ANYWHERE)) { 
                     
                     // Check if context stored in LocalData is same as activity 
                     // context. If not, add penalty to time.
@@ -130,7 +130,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                     for (int i=0;i<branch;i++) { 
                         cohort.submit(new DivideAndConquerWithContextAndPenalty(
                                 identifier(), branch, depth-1, sleep, penalty, mode, 
-                                type, UnitContext.DEFAULT));
+                                type, UnitContext.DEFAULT_ANYWHERE));
                     }
                 }
                 
@@ -194,7 +194,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                     for (int i=0;i<branch;i++) { 
                         cohort.submit(new DivideAndConquerWithContextAndPenalty(
                                 identifier(), branch, depth-1, sleep, penalty, mode, 
-                                type, UnitContext.DEFAULT));
+                                type, UnitContext.DEFAULT_ANYWHERE));
                     }
                 }
             }
@@ -294,9 +294,9 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             int type = parseType(args[7]);         
             
             if (mode == CONTEXT_NONE) { 
-                cohortContext = UnitContext.DEFAULT;
+                cohortContext = UnitContext.DEFAULT_ANYWHERE;
             } else if (mode == CONTEXT_WEAK) { 
-                cohortContext = UnitContext.DEFAULT;
+                cohortContext = UnitContext.DEFAULT_ANYWHERE;
    
                 Context local = null;
                 

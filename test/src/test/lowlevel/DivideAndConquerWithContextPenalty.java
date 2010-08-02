@@ -55,7 +55,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
             Context machineContext = getCohort().getContext();
             Context activitycontext = getContext();
             
-            if (machineContext == null || machineContext.equals(UnitContext.DEFAULT)) { 
+            if (machineContext == null || machineContext.equals(UnitContext.DEFAULT_ANYWHERE)) { 
             
                 // Check if context stored in LocalData is same as activity 
                 // context. If not, add penalty to time.
