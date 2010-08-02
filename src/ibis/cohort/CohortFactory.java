@@ -1,5 +1,7 @@
 package ibis.cohort;
 
+import ibis.cohort.context.AndContext;
+import ibis.cohort.context.OrContext;
 import ibis.cohort.context.UnitContext;
 import ibis.cohort.impl.distributed.BottomCohort;
 import ibis.cohort.impl.distributed.TopCohort;
@@ -9,6 +11,7 @@ import ibis.cohort.impl.distributed.multi.MultiThreadedTopCohort;
 import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 import ibis.cohort.impl.distributed.single.SingleThreadedTopCohort;
 
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -36,6 +39,46 @@ public class CohortFactory {
                     + "\" selected");
     }
     
+    private static Context parseOr(String c) {
+        
+        StringTokenizer tok = new StringTokenizer(c, "+");
+        
+        ArrayList<UnitContext> unit = new ArrayList<UnitContext>();
+        ArrayList<AndContext> and = new ArrayList<AndContext>();
+          
+        while (tok.hasMoreTokens()) { 
+            
+            String t = tok.nextToken();
+            
+            if (t.contains("*")) {
+                and.add(parseAnd(t));
+            } else {
+                unit.add(new UnitContext(t));
+            }
+        }
+        
+        UnitContext [] u = unit.toArray(new UnitContext[unit.size()]);
+        AndContext [] a = and.toArray(new AndContext[and.size()]);
+        
+        return new OrContext(u, a);
+    }
+    
+    private static AndContext parseAnd(String c) {
+        
+        ArrayList<UnitContext> unit = new ArrayList<UnitContext>();
+        
+        StringTokenizer tok = new StringTokenizer(c, "*");
+        
+        while (tok.hasMoreTokens()) { 
+            unit.add(new UnitContext(tok.nextToken()));
+        }
+        
+        UnitContext [] u = unit.toArray(new UnitContext[unit.size()]);
+
+        return new AndContext(u);
+    }
+    
+    
     private static BottomCohort createBottomCohort(String name, 
             TopCohort parent, Properties p) throws Exception {
 
@@ -44,9 +87,14 @@ public class CohortFactory {
         if (name.contains(":")) { 
             String c = name.substring(name.indexOf(":")+1);
             name = name.substring(0, name.indexOf(":"));
-           
-            // TODO: support complex context ?
-            context = new UnitContext(c);
+   
+            if (c.contains("+")) { 
+                context = parseOr(c);
+            } else if (c.contains("*")) { 
+                context = parseAnd(c);
+            } else { 
+                context = new UnitContext(c);
+            }
         }
         
         if (name.equals("st") || name.equals("singlethreaded")) { 
