@@ -659,12 +659,18 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                         logger.info("Sending lookup reply for " + s.missing 
                                 + " to " + s.source);
                     }
+                
+                    System.out.println("Sending lookup reply for " + s.missing 
+                            + " to " + s.source);
                     
                     LookupReply tmp = new LookupReply(sequential.identifier(), 
                             s.source, s.missing, sequential.identifier(), 
                             a.getHopCount());
                     parent.handleLookupReply(tmp);
                 }
+            } else { 
+                System.out.println("DROPPING STALE LOOKUP!");
+            
             }
         }
     }
