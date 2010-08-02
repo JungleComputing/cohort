@@ -5,10 +5,16 @@ public abstract class SimpleActivity extends Activity {
     protected ActivityIdentifier parent;
     
     protected SimpleActivity(ActivityIdentifier parent, Context context) {
-        super(context);
+        this(parent, context, false);
+    }
+
+    protected SimpleActivity(ActivityIdentifier parent, Context context, 
+            boolean rertictToLocal) {
+        super(context, rertictToLocal);
         this.parent = parent;
     }
 
+    
     @Override
     public void initialize() throws Exception {
         simpleActivity();

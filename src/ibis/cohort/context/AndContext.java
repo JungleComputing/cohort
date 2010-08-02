@@ -13,9 +13,9 @@ public class AndContext extends Context {
     protected final UnitContext [] unitContexts;
     protected final int hashCode;
     
-    public AndContext(UnitContext [] and, boolean restrictToLocal) { 
+    public AndContext(UnitContext [] and) { 
       
-        super(restrictToLocal);
+        super();
         
         if (and == null || and.length < 2) { 
             throw new IllegalArgumentException("Illegal argument while " +

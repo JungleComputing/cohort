@@ -39,7 +39,7 @@ public class CohortFactory {
     private static BottomCohort createBottomCohort(String name, 
             TopCohort parent, Properties p) throws Exception {
 
-        Context context = UnitContext.DEFAULT_ANYWHERE;
+        Context context = UnitContext.DEFAULT;
         
         if (name.contains(":")) { 
             String c = name.substring(name.indexOf(":")+1);
@@ -52,7 +52,7 @@ public class CohortFactory {
         if (name.equals("st") || name.equals("singlethreaded")) { 
             return new SingleThreadedBottomCohort(parent, p, context);                
         } else if (name.equals("mt") || name.equals("multithreaded")) { 
-            if (context != UnitContext.DEFAULT_ANYWHERE) { 
+            if (context != UnitContext.DEFAULT) { 
                 throw new Exception("Setting context for multithreaded cohort has no effect");
             }
             return new MultiThreadedMiddleCohort(parent, p);                
@@ -70,7 +70,7 @@ public class CohortFactory {
         int tokens = st.countTokens();
         
         String name = st.nextToken();
-        Context context = UnitContext.DEFAULT_ANYWHERE;
+        Context context = UnitContext.DEFAULT;
         
         if (name.contains(":")) { 
             String c = name.substring(name.indexOf(":")+1);

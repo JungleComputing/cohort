@@ -111,7 +111,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         queue = WorkQueueFactory.createQueue(tmp, true);
         
-        myContext = UnitContext.DEFAULT_ANYWHERE;
+        myContext = UnitContext.DEFAULT;
 
         // Init communication here...
         pool = new Pool(this, p);

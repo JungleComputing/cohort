@@ -13,7 +13,7 @@ public class Dummy extends Activity {
     private final ActivityIdentifier parent;
     
     public Dummy(ActivityIdentifier parent) {
-        super(UnitContext.DEFAULT_ANYWHERE);
+        super(UnitContext.DEFAULT);
         this.parent = parent;
     }
 

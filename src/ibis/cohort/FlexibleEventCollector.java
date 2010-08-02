@@ -13,11 +13,11 @@ public class FlexibleEventCollector extends Activity {
     private int count;
     
     public FlexibleEventCollector(Context c) {
-        super(c);
+        super(c, true);
     }
     
     public FlexibleEventCollector() {
-        super(UnitContext.DEFAULT_LOCAL);
+        super(UnitContext.DEFAULT, true);
     }
     
     @Override

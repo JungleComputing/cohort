@@ -9,9 +9,14 @@ public class MultiEventCollector extends Activity {
     private final Event [] events;
     private int count;
     
-    public MultiEventCollector(int events) {
-        super(UnitContext.DEFAULT_LOCAL);
+    public MultiEventCollector(Context c, int events) {
+        super(c, true);
         this.events = new Event[events];
+    }
+    
+    
+    public MultiEventCollector(int events) {
+        this(UnitContext.DEFAULT, events);
     }
     
     @Override

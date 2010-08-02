@@ -89,7 +89,7 @@ public class BaseCohort implements Cohort {
         this.parent = null;
 
         if (context == null) { 
-            myContext = UnitContext.DEFAULT_ANYWHERE;
+            myContext = UnitContext.DEFAULT;
         } else { 
             myContext = context;
         }
@@ -224,7 +224,7 @@ public class BaseCohort implements Cohort {
 
             // System.out.println("BASE(" + identifier + ") submit " + a.identifier() + " COMPLETED");
 
-            if (c.isRestrictedToLocal()) { 
+            if (ar.isRestrictedToLocal()) { 
                 restricted.enqueue(ar);
                 System.out.println("BASE: LOCAL Work inserted in RESTRICTED " + c);      
             } else { 
@@ -280,7 +280,7 @@ public class BaseCohort implements Cohort {
         
         if (c.satisfiedBy(myContext)) { 
             if (a.isFresh()) {
-                if (c.isRestrictedToLocal()) {
+                if (a.isRestrictedToLocal()) {
                     System.out.println("BASE: got REMOTE work in RESTRICTED " + c);      
                     restricted.enqueue(a);
                 } else { 
@@ -337,7 +337,7 @@ public class BaseCohort implements Cohort {
     public ActivityIdentifier lookup(String name, Context scope) {
 
         // TODO: does this still make sense ?
-        if (parent == null || scope.isRestrictedToLocal()) { 
+        if (parent == null /*|| scope.isRestrictedToLocal()*/) { 
             return lookup(name);
         }
 
@@ -347,7 +347,7 @@ public class BaseCohort implements Cohort {
     public boolean register(String name, ActivityIdentifier id, Context scope) {
 
         // TODO: does this still make sense ?
-        if (parent == null || scope.isRestrictedToLocal()) { 
+        if (parent == null /*|| scope.isRestrictedToLocal()*/) { 
             return register(name, id);
         }
 
@@ -357,7 +357,7 @@ public class BaseCohort implements Cohort {
     public boolean deregister(String name, Context scope) {
 
         // TODO: does this still make sense ?
-        if (parent == null || scope.isRestrictedToLocal()) { 
+        if (parent == null /*|| scope.isRestrictedToLocal()*/) { 
             return deregister(name);
         }
 
@@ -864,7 +864,7 @@ public class BaseCohort implements Cohort {
 
 
     public void clearContext() {
-        myContext = UnitContext.DEFAULT_ANYWHERE;
+        myContext = UnitContext.DEFAULT;
     }
 
     public Cohort[] getSubCohorts() {

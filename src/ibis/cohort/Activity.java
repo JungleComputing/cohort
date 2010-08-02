@@ -14,11 +14,18 @@ public abstract class Activity implements Serializable {
     
     private ActivityIdentifier identifier;
     private final Context context; 
-   
+    private final boolean restrictToLocal;
+    
     private byte next = REQUEST_UNKNOWN;
         
+    protected Activity(Context context, boolean restrictToLocal) { 
+        this.context = context;
+        this.restrictToLocal = true;
+    }
+
     protected Activity(Context context) { 
         this.context = context;
+        this.restrictToLocal = false;
     }
     
     public void initialize(ActivityIdentifier id) { 
@@ -51,6 +58,10 @@ public abstract class Activity implements Serializable {
         return context;
     }
   
+    public boolean isRestrictedToLocal() { 
+        return restrictToLocal;
+    }
+    
     public void reset() { 
         next = REQUEST_UNKNOWN;
     }
