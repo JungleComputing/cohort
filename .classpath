@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="external/ibis-util-2.2.jar"/>
 	<classpathentry kind="lib" path="external/ipl-2.2.jar"/>
 	<classpathentry kind="lib" path="external/log4j-1.2.13.jar"/>
+	<classpathentry kind="lib" path="apps/genesequencing/external/neobio.jar"/>
 	<classpathentry kind="output" path="build-eclipse"/>
 </classpath>
