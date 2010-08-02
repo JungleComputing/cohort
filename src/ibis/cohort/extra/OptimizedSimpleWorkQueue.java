@@ -7,6 +7,9 @@ public class OptimizedSimpleWorkQueue extends SimpleWorkQueue {
     
     // Slightly optimized version of simple workqueue which adds an optimized 
     // version of steal(Context, count).
+    public OptimizedSimpleWorkQueue(String id) { 
+        super(id);
+    }
     
     @Override
     public ActivityRecord [] steal(Context c, int count) {

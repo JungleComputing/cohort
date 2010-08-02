@@ -7,7 +7,8 @@ public class SynchronizedWorkQueue extends WorkQueue {
 
     private WorkQueue queue;
     
-    public SynchronizedWorkQueue(WorkQueue queue) { 
+    public SynchronizedWorkQueue(WorkQueue queue) {
+        super(queue.id);
         this.queue = queue;
     }
     

@@ -44,8 +44,8 @@ public class BaseCohort implements Cohort {
 
     // private CircularBuffer fresh = new CircularBuffer(1);
    
-    private WorkQueue restricted = new SmartWorkQueue();
-    private WorkQueue fresh = new SmartWorkQueue();
+    private WorkQueue restricted;
+    private WorkQueue fresh;
    
     //private CircularBuffer local = new CircularBuffer(1);
     
@@ -83,6 +83,10 @@ public class BaseCohort implements Cohort {
         this.generator = parent.getActivityIdentifierFactory(identifier);
         this.logger = logger;
         this.myContext = context;
+   
+        restricted = new SmartWorkQueue("Br(" + identifier + ")");
+        fresh = new SmartWorkQueue("Bf(" + identifier + ")");
+       
     }
 
     public BaseCohort(Properties p, Context context) {

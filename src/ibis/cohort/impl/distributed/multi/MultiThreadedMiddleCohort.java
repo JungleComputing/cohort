@@ -279,7 +279,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         
         tmp = p.getProperty("ibis.cohort.workqueue");
 
-        myActivities = WorkQueueFactory.createQueue(tmp, true);
+        myActivities = WorkQueueFactory.createQueue(tmp, true, "M(" + identifier + ")");
         
         this.logger = CohortLogger.getLogger(MultiThreadedMiddleCohort.class, identifier);
         

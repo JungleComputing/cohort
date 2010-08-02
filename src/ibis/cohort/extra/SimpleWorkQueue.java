@@ -16,6 +16,10 @@ public class SimpleWorkQueue extends WorkQueue {
     
     protected final CircularBuffer buffer = new CircularBuffer(1);
     
+    public SimpleWorkQueue(String id) { 
+        super(id);
+    }
+    
     @Override
     public int size() {
         return buffer.size();

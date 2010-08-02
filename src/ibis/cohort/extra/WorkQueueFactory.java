@@ -2,7 +2,7 @@ package ibis.cohort.extra;
 
 public class WorkQueueFactory {
 
-    public static WorkQueue createQueue(String type, boolean sync) throws Exception { 
+    public static WorkQueue createQueue(String type, boolean sync, String id) throws Exception { 
         
         if (type == null) { 
             type = "smart";
@@ -11,11 +11,11 @@ public class WorkQueueFactory {
         WorkQueue result = null;
         
         if (type.equals("smart")) { 
-            result = new SmartWorkQueue();
+            result = new SmartWorkQueue(id);
         } else if (type.equals("simple")) { 
-            result = new SimpleWorkQueue();
+            result = new SimpleWorkQueue(id);
         } else if (type.equals("optsimple")) { 
-            result = new OptimizedSimpleWorkQueue();
+            result = new OptimizedSimpleWorkQueue(id);
         } else {
             throw new Exception("Unknown workqueue type: " + type);
         }

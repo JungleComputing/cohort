@@ -5,6 +5,12 @@ import ibis.cohort.impl.distributed.ActivityRecord;
 
 public abstract class WorkQueue {
 
+    protected final String id; 
+    
+    protected WorkQueue(String id) { 
+        this.id = id;
+    }
+    
     public abstract void enqueue(ActivityRecord a);
     public abstract ActivityRecord dequeue();
     public abstract ActivityRecord steal(Context c); 

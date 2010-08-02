@@ -24,6 +24,10 @@ public class SmartWorkQueue extends WorkQueue {
     
     protected int size;
     
+    public SmartWorkQueue(String id) { 
+        super(id);
+    }
+    
     @Override
     public int size() {
         return size;
@@ -31,18 +35,18 @@ public class SmartWorkQueue extends WorkQueue {
     
     private ActivityRecord getUnitAnd(Context c) { 
 
-        System.out.println("SMART getUnitAnd " + c);
+        System.out.println("SMART " + id + " getUnitAnd " + c);
         
         CircularBuffer tmp = unitAnd.get(c);
         
         if (tmp == null) { 
-            System.out.println("SMART getUnitAnd empty!");
+            System.out.println("SMART " + id + " getUnitAnd empty!");
             return null;
         }
         
         ActivityRecord a = (ActivityRecord) tmp.removeLast();
        
-        System.out.println("SMART getUnitAnd returns " + a.identifier());
+        System.out.println("SMART " + id + " getUnitAnd returns " + a.identifier());
        
         if (tmp.size() == 0) { 
             unitAnd.remove(c);
@@ -55,10 +59,12 @@ public class SmartWorkQueue extends WorkQueue {
     
     private ActivityRecord getOr(Context c) { 
         
+        System.out.println("SMART " + id + " getOr " + c);
+        
         if (c.isOr()) { 
             c = ((OrContext) c).getContexts()[0];
         }
-        
+              
         CircularBuffer tmp = or.get(c);
 
         if (tmp == null) { 
@@ -83,6 +89,8 @@ public class SmartWorkQueue extends WorkQueue {
             }
         }
 
+        System.out.println("SMART " + id + " getOr returns " + a.identifier() + " " + a.activity.getContext());
+        
         size--;
         return a;
     }
