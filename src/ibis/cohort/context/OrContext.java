@@ -1,11 +1,8 @@
 package ibis.cohort.context;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 import ibis.cohort.Context;
-import ibis.cohort.context.AndContext.AndContextSorter;
-import ibis.cohort.context.UnitContext.UnitContextSorter;
 
 public class OrContext extends Context {
 
@@ -16,8 +13,8 @@ public class OrContext extends Context {
     
     protected final int hashCode;
     
-    public OrContext(UnitContext [] unit, AndContext [] and, boolean restrictToLocal) {        
-        super(restrictToLocal);
+    public OrContext(UnitContext [] unit, AndContext [] and) {        
+        super();
       
         checkArrays(unit, and);
         
@@ -71,7 +68,7 @@ public class OrContext extends Context {
     }
 
     public OrContext(OrContext s) {        
-        this(s.unitContexts, s.andContexts, s.restrictedToLocal);
+        this(s.unitContexts, s.andContexts);
     }
     
     public boolean contains(UnitContext u) {
@@ -275,7 +272,7 @@ public class OrContext extends Context {
     public static Context merge(Context[] a) {
 
         if (a == null || a.length == 0) { 
-            return UnitContext.DEFAULT_ANYWHERE;
+            return UnitContext.DEFAULT;
         }
         
         ArrayList<UnitContext> unit = new ArrayList<UnitContext>();
@@ -328,7 +325,7 @@ public class OrContext extends Context {
             int size = and.size();
             
             if (size == 0) { 
-                return UnitContext.DEFAULT_ANYWHERE;
+                return UnitContext.DEFAULT;
             }
         
             if (size == 1) { 
@@ -342,7 +339,8 @@ public class OrContext extends Context {
             }
         }   
         
-        return new OrContext(unit.toArray(new UnitContext[unit.size()]), 
-                and.toArray(new AndContext[and.size()]), false);
+        return new OrContext(
+                unit.toArray(new UnitContext[unit.size()]), 
+                and.toArray(new AndContext[and.size()]));
     }
 }

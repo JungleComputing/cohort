@@ -284,7 +284,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         //     localSteals = new StealState[count];
         contexts    = new Context[count];
 
-        myContext = UnitContext.DEFAULT_ANYWHERE;
+        myContext = UnitContext.DEFAULT;
         myContextChanged = false;
 
         lookup = new LookupThread();

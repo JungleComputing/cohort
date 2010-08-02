@@ -11,20 +11,13 @@ public abstract class Context implements Serializable {
      *      or      = ((UNIT|AND) || (UNIT|AND)+)  
      */
 
-    // Is this context resticted to the local machine ? 
-    public final boolean restrictedToLocal;
-    
-    protected Context(boolean restrictedToLocal) { 
-        this.restrictedToLocal = restrictedToLocal;
+    protected Context() { 
+        // empty
     }
         
     public abstract boolean equals(Object other);
     public abstract boolean satisfiedBy(Context other);
-    
-    public boolean isRestrictedToLocal() { 
-        return restrictedToLocal;
-    }    
-    
+        
     public boolean isUnit() { 
         return false;
     }
@@ -36,8 +29,4 @@ public abstract class Context implements Serializable {
     public boolean isOr() { 
         return false;
     }
-
-    
-    
-   
 }

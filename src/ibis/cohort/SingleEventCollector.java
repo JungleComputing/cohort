@@ -8,17 +8,17 @@ public class SingleEventCollector extends Activity {
    
     private Event event;
     
-    @Override
-    public void initialize() throws Exception {
-        suspend();
-    }
-
     public SingleEventCollector(Context c) {
-        super(c);
+        super(c, true);
     }
     
     public SingleEventCollector() {
-        super(UnitContext.DEFAULT_LOCAL);
+        this(UnitContext.DEFAULT);
+    }
+    
+    @Override
+    public void initialize() throws Exception {
+        suspend();
     }
     
     @Override

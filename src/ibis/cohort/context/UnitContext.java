@@ -9,20 +9,15 @@ public class UnitContext extends Context {
 
     private static final long serialVersionUID = 6134114690113562356L;
 
-    public static final Context DEFAULT_ANYWHERE = new UnitContext("DEFAULT", false);
-    public static final Context DEFAULT_LOCAL = new UnitContext("DEFAULT", true);
+    public static final Context DEFAULT = new UnitContext("DEFAULT");
        
     public final String name; 
     
     protected final int hashCode;
     
     public UnitContext(String name) {
-        this(name, false);
-    }
-
-    public UnitContext(String name, boolean restrictToLocal) {
         
-        super(restrictToLocal);
+        super();
         
         if (name == null) { 
             throw new IllegalArgumentException("name cannot be null!");

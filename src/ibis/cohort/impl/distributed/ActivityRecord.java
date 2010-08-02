@@ -82,11 +82,15 @@ public class ActivityRecord implements Serializable {
     }
 
     boolean isRemote() { 
-        return (remote);
+        return remote;
     }
 
     public void setRemote(boolean value) { 
         remote = value;
+    }
+    
+    public boolean isRestrictedToLocal() { 
+        return activity.isRestrictedToLocal();
     }
     
     public boolean isDone() { 

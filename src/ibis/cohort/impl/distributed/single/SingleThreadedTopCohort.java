@@ -47,7 +47,7 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
         System.out.println("Starting SingleThreadedCohort " + identifier);
       
         if (context == null) { 
-            myContext = UnitContext.DEFAULT_ANYWHERE;
+            myContext = UnitContext.DEFAULT;
         } else { 
             myContext = context;
         }

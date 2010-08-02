@@ -272,7 +272,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         //     localSteals = new StealState[count];
         // contexts    = new Context[count];
 
-        myContext = UnitContext.DEFAULT_ANYWHERE;
+        myContext = UnitContext.DEFAULT;
         myContextChanged = false;
 
         logger.warn("Starting MultiThreadedTopCohort " + identifier + " / " + myContext);
