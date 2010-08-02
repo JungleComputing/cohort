@@ -41,7 +41,7 @@ public class CohortFactory {
     
     private static Context parseOr(String c) {
         
-        StringTokenizer tok = new StringTokenizer(c, "+");
+        StringTokenizer tok = new StringTokenizer(c, "^");
         
         ArrayList<UnitContext> unit = new ArrayList<UnitContext>();
         ArrayList<AndContext> and = new ArrayList<AndContext>();
@@ -88,7 +88,7 @@ public class CohortFactory {
             String c = name.substring(name.indexOf(":")+1);
             name = name.substring(0, name.indexOf(":"));
    
-            if (c.contains("+")) { 
+            if (c.contains("^")) { 
                 context = parseOr(c);
             } else if (c.contains("*")) { 
                 context = parseAnd(c);
