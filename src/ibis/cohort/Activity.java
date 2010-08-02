@@ -20,12 +20,11 @@ public abstract class Activity implements Serializable {
         
     protected Activity(Context context, boolean restrictToLocal) { 
         this.context = context;
-        this.restrictToLocal = true;
+        this.restrictToLocal = restrictToLocal;
     }
 
     protected Activity(Context context) { 
-        this.context = context;
-        this.restrictToLocal = false;
+        this(context, false);
     }
     
     public void initialize(ActivityIdentifier id) { 
