@@ -1,6 +1,6 @@
 <project name="Cohort" default="build" basedir=".">
 
-	<property name="version" value="0.3.6" />
+	<property name="version" value="0.4.0" />
 	<property name="jar" value="cohort-${version}.jar" />
 	<property name="zip" value="cohort-${version}.zip" />
 	<property name="src-zip" value="cohort-${version}-src.zip" />
