@@ -208,9 +208,6 @@ public class BaseCohort implements Cohort {
         //  }
 
         ActivityRecord ar = new ActivityRecord(a);
-
-        lookup.put(a.identifier(), ar);
-
         Context c = a.getContext();
 
         /*
@@ -224,6 +221,8 @@ public class BaseCohort implements Cohort {
 
             // System.out.println("BASE(" + identifier + ") submit " + a.identifier() + " COMPLETED");
 
+            lookup.put(a.identifier(), ar);
+            
             if (ar.isRestrictedToLocal()) { 
                 restricted.enqueue(ar);
                 System.out.println("BASE: LOCAL Work inserted in RESTRICTED " + c);      

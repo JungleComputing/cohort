@@ -524,6 +524,8 @@ public class DistributedCohort implements Cohort, TopCohort {
         
         ActivityIdentifier id = createActivityID();
         a.initialize(id);
+        
+        queue.enqueue(new ActivityRecord(a));
 
         if (Debug.DEBUG_SUBMIT) {
             logger.info("created " + id + " at " 
