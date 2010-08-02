@@ -532,7 +532,7 @@ public class DistributedCohort implements Cohort, TopCohort {
                     + System.currentTimeMillis() + " from DIST"); 
         }
 
-        System.out.println("DIST -- LOCAL ENQ: " + id);
+        System.out.println("DIST -- LOCAL ENQ: " + id + " " + a.getContext());
         
         return id;
     }

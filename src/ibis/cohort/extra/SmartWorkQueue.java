@@ -16,8 +16,6 @@ public class SmartWorkQueue extends WorkQueue {
     // 'UNIT or AND' jobs are likely to have limited suitable locations
     // 'OR' jobs have more suitable locations
     
-    protected final CircularBuffer any = new CircularBuffer(1);
-   
     protected final HashMap<Context, CircularBuffer> unitAnd = 
         new HashMap<Context, CircularBuffer>();
       
@@ -33,14 +31,19 @@ public class SmartWorkQueue extends WorkQueue {
     
     private ActivityRecord getUnitAnd(Context c) { 
 
+        System.out.println("SMART getUnitAnd " + c);
+        
         CircularBuffer tmp = unitAnd.get(c);
         
         if (tmp == null) { 
+            System.out.println("SMART getUnitAnd empty!");
             return null;
         }
         
         ActivityRecord a = (ActivityRecord) tmp.removeLast();
-        
+       
+        System.out.println("SMART getUnitAnd returns " + a.identifier());
+       
         if (tmp.size() == 0) { 
             unitAnd.remove(c);
         }
@@ -99,11 +102,7 @@ public class SmartWorkQueue extends WorkQueue {
             return getOr(or.keySet().iterator().next());
         } 
     
-        if (any.size() > 0) { 
-            size--;
-            return (ActivityRecord) any.removeLast();
-        }
-    
+      
         return null;
     }
 
@@ -169,10 +168,6 @@ public class SmartWorkQueue extends WorkQueue {
             
             if (a == null) { 
                 a = getOr(c);
-            
-                if (a == null && any.size() > 0) { 
-                    a = (ActivityRecord) any.removeFirst();
-                }
             }
             
             return a;
@@ -215,13 +210,8 @@ public class SmartWorkQueue extends WorkQueue {
                     } 
                 }
             } 
-        
-            if (any.size() > 0) { 
-                return (ActivityRecord) any.removeFirst();
-            }
         }
    
-        // NOT SURE WHAT TO DO WITH ANY!
         return null;
     }
 }
