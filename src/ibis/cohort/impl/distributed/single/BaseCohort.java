@@ -265,8 +265,6 @@ public class BaseCohort implements Cohort {
 
         activitiesAdded++;
 
-        lookup.put(a.identifier(), a);
-
         Context c = a.activity.getContext();
 
    /*     if (c.isLocal()) { 
@@ -278,16 +276,19 @@ public class BaseCohort implements Cohort {
         } else */
         
         if (c.satisfiedBy(myContext)) { 
+
+            lookup.put(a.identifier(), a);
+
             if (a.isFresh()) {
                 if (a.isRestrictedToLocal()) {
-                    System.out.println("BASE: got REMOTE work in RESTRICTED " + c);      
+                    System.out.println("BASE: got REMOTE work in RESTRICTED " + c + " " + a.identifier());      
                     restricted.enqueue(a);
                 } else { 
-                    System.out.println("BASE: got REMOTE work in FRESH " + c);      
+                    System.out.println("BASE: got REMOTE work in FRESH " + c + " " + a.identifier());      
                     fresh.enqueue(a);
                 }
             } else {
-                System.out.println("BASE: got REMOTE work in RUNNABLE " + c);      
+                System.out.println("BASE: got REMOTE work in RUNNABLE " + c + " " + a.identifier());      
                 runnable.insertLast(a);
             }
 
