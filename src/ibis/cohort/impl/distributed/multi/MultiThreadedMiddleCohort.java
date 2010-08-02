@@ -352,13 +352,11 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     private void triggerLookup(ActivityIdentifier id) {
 
-        
         System.out.println("Sending lookuprequest for " + id);
         
         // Send a lookup request to parent and all children, regardless of 
         // whether anything is cached... 
         LookupRequest lr = new LookupRequest(identifier, id);
-
 
         // Check if the parent has cached the location         
         LookupReply tmp = parent.handleLookup(lr);
@@ -580,7 +578,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
-        System.out.println("MT STEAL");
+      //  System.out.println("MT STEAL");
         
         if (Debug.DEBUG_STEAL) { 
             logger.info("M STEAL REQUEST from child " + sr.source + " with context " 

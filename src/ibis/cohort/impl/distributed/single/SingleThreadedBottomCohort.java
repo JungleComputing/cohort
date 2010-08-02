@@ -239,7 +239,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     public void setContext(CohortIdentifier id, Context c) throws Exception { 
 
-        System.out.println("Setting context of " + id + " to " + c);
+     //   System.out.println("Setting context of " + id + " to " + c);
         
         if (!identifier.equals(id)) { 
             throw new Exception("Received stray contextChange! " + c);
@@ -449,7 +449,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private ActivityIdentifier submit(Activity a) {
 
-        System.out.println("S SUBMIT activity with context " + a.getContext());
+    //    System.out.println("ST SUBMIT activity with context " + a.getContext());
         
         ActivityIdentifier id = sequential.prepareSubmission(a);
         
@@ -599,7 +599,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     private void processStealRequests() { 
         
-        System.out.println("Processing steal requests " + processing.stealRequests.size());
+      //  System.out.println("Processing steal requests " + processing.stealRequests.size());
         
         if (processing.stealRequests.size() == 0) { 
             return;
@@ -876,7 +876,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
                     logger.info("STEAL");
                     
-                    System.out.println("ST STEAL");
+                 //   System.out.println("ST STEAL");
                
                     StealRequest sr = new StealRequest(identifier, getContext());
                     ActivityRecord ar = parent.handleStealRequest(sr);
@@ -1167,7 +1167,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
      
     public void setContext(Context context) {
         
-        System.out.println("Setting context of ST to " + context);
+      //  System.out.println("Setting context of ST to " + context);
         
         sequential.setContext(context);
     }

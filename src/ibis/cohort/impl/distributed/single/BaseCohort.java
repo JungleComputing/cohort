@@ -199,7 +199,7 @@ public class BaseCohort implements Cohort {
 
     public void finishSubmission(Activity a) {
 
-        System.out.println("BASE: LOCAL got work " + a.getContext());      
+    //    System.out.println("BASE: LOCAL got work " + a.getContext());      
         
         activitiesSubmitted++;
 

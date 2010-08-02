@@ -251,10 +251,15 @@ public class DistributedCohort implements Cohort, TopCohort {
                     + " context " + sr.context);
         }
 
+        System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
+        
         ActivityRecord ar = queue.steal(sr.context);
 
         if (ar != null) { 
 
+            System.out.println("DIST REMOTE STEAL RESTURNS " 
+                    + ar.activity.getContext() + " " + ar.identifier());     
+            
             if (Debug.DEBUG_STEAL) {
                 logger.info("D LOCAL REPLY for STEAL REQUEST from child " 
                         + sr.source + " context " + sr.context);
@@ -263,8 +268,9 @@ public class DistributedCohort implements Cohort, TopCohort {
             if (!pool.forward(new StealReply(identifier, sr.source, ar))) { 
                 logger.warning("DROP StealReply to " + sr.source);
                 queue.enqueue(ar);
-                return;
             } 
+
+            return;
         } else {
             if (Debug.DEBUG_STEAL) {
                 logger.info("D No local reply for STEAL REQUEST from child " 
@@ -578,17 +584,16 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
-        System.out.println("DIST STEAL");
+       // System.out.println("DIST STEAL");
 
         // A steal request coming in from the subcohort below. 
 
         // First check if we can satisfy the request locally.
-
         if (Debug.DEBUG_STEAL) { 
             logger.info("D STEAL REQUEST from child " + sr.source);
         }
 
-   System.out.println("DIST STEAL " + sr.context + " from " + sr.source);     
+   System.out.println("DIST LOCAL STEAL " + sr.context + " from " + sr.source);     
         
         ActivityRecord ar = queue.steal(sr.context);
         
@@ -599,13 +604,13 @@ public class DistributedCohort implements Cohort, TopCohort {
                         + " for child " + sr.source);
             }
 
-   System.out.println("DIST STEAL RETURNS " + ar.identifier());     
+   System.out.println("DIST LOCAL STEAL RETURNS " + ar.activity.getContext() + " " +  ar.identifier());     
             
             return ar;
         }
 
 
-  System.out.println("DIST STEAL FORWARD");     
+//  System.out.println("DIST STEAL FORWARD");     
 
         
         // Next, select a random cohort to steal a job from.
