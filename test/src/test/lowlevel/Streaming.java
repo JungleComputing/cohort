@@ -30,7 +30,7 @@ public class Streaming extends Activity {
     private int dataSeen;
     
     public Streaming(ActivityIdentifier root, int length, int index, int totaldata) {
-        super(UnitContext.DEFAULT_ANYWHERE);
+        super(UnitContext.DEFAULT);
         this.root = root;
         this.length = length;
         this.index = index;

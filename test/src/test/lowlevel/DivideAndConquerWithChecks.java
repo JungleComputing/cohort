@@ -37,7 +37,7 @@ public class DivideAndConquerWithChecks extends Activity {
     private ActivityIdentifier [] received;
     
     public DivideAndConquerWithChecks(ActivityIdentifier parent, int branch, int depth) {
-        super(UnitContext.DEFAULT_ANYWHERE);
+        super(UnitContext.DEFAULT);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
