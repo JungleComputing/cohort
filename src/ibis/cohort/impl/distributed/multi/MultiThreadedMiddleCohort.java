@@ -81,7 +81,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
         // NOTE: should use exp. backoff here!
 
-        private static final int TIMEOUT = 100; // 1 sec. timeout. 
+        private static final int TIMEOUT = 1000; // 1 sec. timeout. 
 
         private boolean done = false;
 
