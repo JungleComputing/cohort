@@ -526,12 +526,14 @@ public class DistributedCohort implements Cohort, TopCohort {
         a.initialize(id);
         
         queue.enqueue(new ActivityRecord(a));
-
+        
         if (Debug.DEBUG_SUBMIT) {
             logger.info("created " + id + " at " 
                     + System.currentTimeMillis() + " from DIST"); 
         }
-     
+
+        System.out.println("DIST -- LOCAL ENQ: " + id);
+        
         return id;
     }
     
@@ -586,8 +588,10 @@ public class DistributedCohort implements Cohort, TopCohort {
             logger.info("D STEAL REQUEST from child " + sr.source);
         }
 
+   System.out.println("DIST STEAL " + sr.context + " from " + sr.source);     
+        
         ActivityRecord ar = queue.steal(sr.context);
-
+        
         if (ar != null) { 
 
             if (Debug.DEBUG_STEAL) { 
@@ -595,9 +599,15 @@ public class DistributedCohort implements Cohort, TopCohort {
                         + " for child " + sr.source);
             }
 
+   System.out.println("DIST STEAL RETURNS " + ar.identifier());     
+            
             return ar;
         }
 
+
+  System.out.println("DIST STEAL FORWARD");     
+
+        
         // Next, select a random cohort to steal a job from.
         if (pool.randomForward(sr)) { 
 
