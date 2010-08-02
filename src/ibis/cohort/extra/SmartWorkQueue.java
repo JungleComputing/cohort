@@ -179,7 +179,7 @@ public class SmartWorkQueue extends WorkQueue {
             
             if (and != null && and.length > 0) { 
                 for (int i=0;i<and.length;i++) {
-                    ActivityRecord a = getUnitAnd(c);
+                    ActivityRecord a = getUnitAnd(and[i]);
                     
                     if (a != null) { 
                         return a;
@@ -197,7 +197,7 @@ public class SmartWorkQueue extends WorkQueue {
             
             if (unit != null && unit.length > 0) { 
                 for (int i=0;i<unit.length;i++) {
-                    ActivityRecord a = getUnitAnd(c);
+                    ActivityRecord a = getUnitAnd(unit[i]);
                     
                     if (a != null) { 
                         return a;
