@@ -53,7 +53,7 @@ public class SortedList {
                 tail = n;
             }
             
-            size++;
+            size = 2;
             return;
         }
         
@@ -97,6 +97,8 @@ public class SortedList {
                 size++;
                 return;
             }
+            
+            current = current.next;
         }
         
         // When we run out of nodes we insert at the end -- SHOULD NOT HAPPEN!--
