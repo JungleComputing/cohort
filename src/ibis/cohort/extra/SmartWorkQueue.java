@@ -9,12 +9,13 @@ import java.util.HashMap;
 
 public class SmartWorkQueue extends WorkQueue {
 
-    // We maintain three lists here, which reflect the relative complexity of 
+    // We maintain two lists here, which reflect the relative complexity of 
     // the context associated with the jobs: 
     //
-    // 'Any' jobs are easy to place
-    // 'UNIT or AND' jobs are likely to have limited suitable locations
-    // 'OR' jobs have more suitable locations
+    // 'UNIT or AND' jobs are likely to have limited suitable locations, but 
+    //     their context matching is easy
+    // 'OR' jobs have more suitable locations, but their context matching may be 
+    //     expensive
     
     protected final HashMap<Context, CircularBuffer> unitAnd = 
         new HashMap<Context, CircularBuffer>();
@@ -33,7 +34,7 @@ public class SmartWorkQueue extends WorkQueue {
         return size;
     }
     
-    private ActivityRecord getUnitAnd(Context c) { 
+    private ActivityRecord getUnitAnd(Context c, boolean head) { 
 
      //   System.out.println(System.currentTimeMillis() +" SMART " + id + " getUnitAnd " + c);
         
@@ -44,8 +45,14 @@ public class SmartWorkQueue extends WorkQueue {
             return null;
         }
         
-        ActivityRecord a = (ActivityRecord) tmp.removeLast();
-       
+        ActivityRecord a; 
+        
+        if (head) { 
+            a = (ActivityRecord) tmp.removeFirst();
+        } else { 
+            a = (ActivityRecord) tmp.removeLast();
+        } 
+        
      //   System.out.println(System.currentTimeMillis() + " SMART " + id + " getUnitAnd returns " + a.identifier());
        
         if (tmp.size() == 0) { 
@@ -57,7 +64,7 @@ public class SmartWorkQueue extends WorkQueue {
         return a;
     }
     
-    private ActivityRecord getOr(Context c) { 
+    private ActivityRecord getOr(Context c, boolean head) { 
         
       //  System.out.println(System.currentTimeMillis() +" SMART " + id + " getOr " + c);
         
@@ -71,8 +78,13 @@ public class SmartWorkQueue extends WorkQueue {
             return null;
         }
 
-        ActivityRecord a = (ActivityRecord) tmp.removeLast();
-
+        ActivityRecord a;
+        
+        if (head) { 
+            a = (ActivityRecord) tmp.removeFirst();
+        } else { 
+            a = (ActivityRecord) tmp.removeLast();
+        }
         Context [] all = ((OrContext) a.activity.getContext()).getContexts();
         
         for (int i=0;i<all.length;i++) { 
@@ -96,20 +108,19 @@ public class SmartWorkQueue extends WorkQueue {
     }
     
     @Override
-    public ActivityRecord dequeue() {
+    public ActivityRecord dequeue(boolean head) {
     
         if (size == 0) { 
             return null;
         }
     
         if (unitAnd.size() > 0) {
-            return getUnitAnd(unitAnd.keySet().iterator().next());
+            return getUnitAnd(unitAnd.keySet().iterator().next(), head);
         }
     
         if (or.size() > 0) { 
-            return getOr(or.keySet().iterator().next());
+            return getOr(or.keySet().iterator().next(), head);
         } 
-    
       
         return null;
     }
@@ -168,14 +179,14 @@ public class SmartWorkQueue extends WorkQueue {
     }
 
     @Override
-    public ActivityRecord steal(Context c) {
+    public ActivityRecord steal(Context c, boolean head) {
        
         if (c.isUnit() || c.isAnd()) { 
         
-            ActivityRecord a = getUnitAnd(c);
+            ActivityRecord a = getUnitAnd(c, head);
             
             if (a == null) { 
-                a = getOr(c);
+                a = getOr(c, head);
             }
             
             return a;
@@ -187,13 +198,13 @@ public class SmartWorkQueue extends WorkQueue {
             
             if (and != null && and.length > 0) { 
                 for (int i=0;i<and.length;i++) {
-                    ActivityRecord a = getUnitAnd(and[i]);
+                    ActivityRecord a = getUnitAnd(and[i], head);
                     
                     if (a != null) { 
                         return a;
                     } 
  
-                    a = getOr(c);
+                    a = getOr(c, head);
                     
                     if (a != null) { 
                         return a;
@@ -205,13 +216,13 @@ public class SmartWorkQueue extends WorkQueue {
             
             if (unit != null && unit.length > 0) { 
                 for (int i=0;i<unit.length;i++) {
-                    ActivityRecord a = getUnitAnd(unit[i]);
+                    ActivityRecord a = getUnitAnd(unit[i], head);
                     
                     if (a != null) { 
                         return a;
                     } 
  
-                    a = getOr(c);
+                    a = getOr(c, head);
                     
                     if (a != null) { 
                         return a;

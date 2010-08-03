@@ -251,14 +251,14 @@ public class DistributedCohort implements Cohort, TopCohort {
                     + " context " + sr.context);
         }
 
-        System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
+     //   System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
         
-        ActivityRecord ar = queue.steal(sr.context);
+        ActivityRecord ar = queue.steal(sr.context, true);
 
         if (ar != null) { 
 
-            System.out.println("DIST REMOTE STEAL RESTURNS " 
-                    + ar.activity.getContext() + " " + ar.identifier());     
+        //    System.out.println("DIST REMOTE STEAL RESTURNS " 
+        //            + ar.activity.getContext() + " " + ar.identifier());     
             
             if (Debug.DEBUG_STEAL) {
                 logger.info("D LOCAL REPLY for STEAL REQUEST from child " 
@@ -593,9 +593,9 @@ public class DistributedCohort implements Cohort, TopCohort {
             logger.info("D STEAL REQUEST from child " + sr.source);
         }
 
-   System.out.println("DIST LOCAL STEAL " + sr.context + " from " + sr.source);     
+  // System.out.println("DIST LOCAL STEAL " + sr.context + " from " + sr.source);     
         
-        ActivityRecord ar = queue.steal(sr.context);
+        ActivityRecord ar = queue.steal(sr.context, false);
         
         if (ar != null) { 
 
@@ -604,7 +604,7 @@ public class DistributedCohort implements Cohort, TopCohort {
                         + " for child " + sr.source);
             }
 
-   System.out.println("DIST LOCAL STEAL RETURNS " + ar.activity.getContext() + " " +  ar.identifier());     
+  // System.out.println("DIST LOCAL STEAL RETURNS " + ar.activity.getContext() + " " +  ar.identifier());     
             
             return ar;
         }

@@ -5,15 +5,12 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Context;
-import ibis.cohort.context.AndContext;
 import ibis.cohort.context.OrContext;
 import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
-import ibis.cohort.extra.SmartWorkQueue;
-import ibis.cohort.extra.SynchronizedWorkQueue;
 import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.extra.WorkQueueFactory;
 import ibis.cohort.impl.distributed.ActivityRecord;
@@ -585,7 +582,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                     + sr.context);
         }
 
-        ActivityRecord tmp = myActivities.steal(sr.context);
+        ActivityRecord tmp = myActivities.steal(sr.context, false);
 
         if (tmp != null) { 
 
@@ -815,7 +812,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                     + " context " + sr.context);
         }
 
-        ActivityRecord [] tmp = myActivities.steal(sr.context, 10);
+        ActivityRecord [] tmp = myActivities.steal(sr.context, 10, true);
     
         if (tmp != null && tmp.length > 0) { 
 

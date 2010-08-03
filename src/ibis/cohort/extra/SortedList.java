@@ -108,7 +108,7 @@ public class SortedList {
         size++;
     }
     
-    public Object getHead() { 
+    public Object removeHead() { 
      
         if (size == 0) { 
             return null;
@@ -129,7 +129,7 @@ public class SortedList {
         return tmp;
     }
     
-    public Object getTail() { 
+    public Object removeTail() { 
      
         if (size == 0) { 
             return null;
@@ -152,5 +152,48 @@ public class SortedList {
 
     public int size() { 
         return size;
+    }
+
+    public boolean removeByReference(Object o) {
+    
+        Node current = head;
+        
+        while (current != null) { 
+            
+            if (current.data == o) { 
+        
+                // Found it
+                if (size == 1) { 
+                    head = tail = null;
+                    size = 0;
+                    return true;
+                }
+            
+                if (current == head) { 
+                    head = head.next;
+                    head.prev = null;
+                    size--;
+                    return true;
+                }
+                
+                if (current == tail) { 
+                    tail = tail.prev;
+                    tail.next = null;
+                    size--;
+                    return true;
+                }
+                
+                current.prev.next = current.next;
+                current.next.prev = current.prev;
+                current.prev = null;
+                current.next = null;
+                size--;
+                return true;
+            }
+       
+            current = current.next;
+        }
+        
+        return false;
     }
 }

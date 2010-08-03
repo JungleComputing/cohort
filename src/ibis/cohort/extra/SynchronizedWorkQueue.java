@@ -13,8 +13,8 @@ public class SynchronizedWorkQueue extends WorkQueue {
     }
     
     @Override
-    public synchronized ActivityRecord dequeue() {
-        return queue.dequeue();
+    public synchronized ActivityRecord dequeue(boolean head) {
+        return queue.dequeue(head);
     }
 
     @Override
@@ -28,8 +28,8 @@ public class SynchronizedWorkQueue extends WorkQueue {
     }
 
     @Override
-    public synchronized ActivityRecord steal(Context c) {
-        return queue.steal(c);
+    public synchronized ActivityRecord steal(Context c, boolean head) {
+        return queue.steal(c, head);
     }
 
     @Override
@@ -38,12 +38,12 @@ public class SynchronizedWorkQueue extends WorkQueue {
     }
     
     @Override
-    public synchronized ActivityRecord [] dequeue(int count) { 
-        return queue.dequeue(count);
+    public synchronized ActivityRecord [] dequeue(int count, boolean head) { 
+        return queue.dequeue(count, head);
     }
     
     @Override
-    public synchronized ActivityRecord [] steal(Context c, int count) {
-        return queue.steal(c, count);
+    public synchronized ActivityRecord [] steal(Context c, int count, boolean head) {
+        return queue.steal(c, count, head);
     }
 }

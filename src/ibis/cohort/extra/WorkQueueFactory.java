@@ -5,12 +5,14 @@ public class WorkQueueFactory {
     public static WorkQueue createQueue(String type, boolean sync, String id) throws Exception { 
         
         if (type == null) { 
-            type = "smart";
+            type = "smartsorted";
         }
         
         WorkQueue result = null;
         
-        if (type.equals("smart")) { 
+        if (type.equals("smartsorted")) { 
+            result = new SmartSortedWorkQueue(id, new ActivitySizeComparator());
+        } else if (type.equals("smart")) { 
             result = new SmartWorkQueue(id);
         } else if (type.equals("simple")) { 
             result = new SimpleWorkQueue(id);

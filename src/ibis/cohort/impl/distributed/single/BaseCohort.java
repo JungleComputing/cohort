@@ -9,9 +9,11 @@ import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.context.UnitContext;
+import ibis.cohort.extra.ActivitySizeComparator;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
+import ibis.cohort.extra.SmartSortedWorkQueue;
 import ibis.cohort.extra.SmartWorkQueue;
 import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.impl.distributed.ActivityRecord;
@@ -84,9 +86,8 @@ public class BaseCohort implements Cohort {
         this.logger = logger;
         this.myContext = context;
    
-        restricted = new SmartWorkQueue("Br(" + identifier + ")");
-        fresh = new SmartWorkQueue("Bf(" + identifier + ")");
-       
+        restricted = new SmartSortedWorkQueue("Br(" + identifier + ")", new ActivitySizeComparator());
+        fresh = new SmartSortedWorkQueue("Bf(" + identifier + ")", new ActivitySizeComparator());
     }
 
     public BaseCohort(Properties p, Context context) {
@@ -138,7 +139,7 @@ public class BaseCohort implements Cohort {
         size = restricted.size();
         
         if (size > 0) { 
-            return restricted.dequeue();
+            return restricted.dequeue(false);
         }
         
         /*
@@ -152,7 +153,7 @@ public class BaseCohort implements Cohort {
         size = fresh.size();
         
         if (size > 0) { 
-            return fresh.dequeue();
+            return fresh.dequeue(false);
         }
         
 /*                
@@ -618,7 +619,7 @@ public class BaseCohort implements Cohort {
         
         if (allowRestricted) { 
 
-            ActivityRecord r = restricted.steal(context);
+            ActivityRecord r = restricted.steal(context, true);
             
             if (r != null) { 
 
@@ -642,7 +643,7 @@ public class BaseCohort implements Cohort {
             // If restricted fails we try the regular queue 
         }
         
-        ActivityRecord r = fresh.steal(context);
+        ActivityRecord r = fresh.steal(context, true);
         
         if (r != null) { 
 

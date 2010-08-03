@@ -12,8 +12,10 @@ public class OptimizedSimpleWorkQueue extends SimpleWorkQueue {
     }
     
     @Override
-    public ActivityRecord [] steal(Context c, int count) {
+    public ActivityRecord [] steal(Context c, int count, boolean head) {
      
+        // FIXME: head is ignored!!! 
+        
         if (buffer.empty()) { 
             return null;
         }

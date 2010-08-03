@@ -38,7 +38,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
         return size;
     }
 
-    private ActivityRecord getUnitAnd(Context c) { 
+    private ActivityRecord getUnitAnd(Context c, boolean head) { 
 
         //   System.out.println(System.currentTimeMillis() +" SMART " + id + " getUnitAnd " + c);
 
@@ -49,7 +49,13 @@ public class SmartSortedWorkQueue extends WorkQueue {
             return null;
         }
 
-        ActivityRecord a = (ActivityRecord) tmp.removeHead();
+        ActivityRecord a;
+        
+        if (head) { 
+            a = (ActivityRecord) tmp.removeHead();
+        } else { 
+            a = (ActivityRecord) tmp.removeTail();
+        }
 
         //   System.out.println(System.currentTimeMillis() + " SMART " + id + " getUnitAnd returns " + a.identifier());
 
@@ -62,7 +68,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
         return a;
     }
 
-    private ActivityRecord getOr(Context c) { 
+    private ActivityRecord getOr(Context c, boolean head) { 
 
         //  System.out.println(System.currentTimeMillis() +" SMART " + id + " getOr " + c);
 
@@ -76,7 +82,13 @@ public class SmartSortedWorkQueue extends WorkQueue {
             return null;
         }
 
-        ActivityRecord a = (ActivityRecord) tmp.removeHead();
+        ActivityRecord a;
+        
+        if (head) {
+            a = (ActivityRecord) tmp.removeHead();
+        } else { 
+            a = (ActivityRecord) tmp.removeTail();
+        }
 
         Context [] all = ((OrContext) a.activity.getContext()).getContexts();
 
@@ -101,18 +113,18 @@ public class SmartSortedWorkQueue extends WorkQueue {
     }
 
     @Override
-    public ActivityRecord dequeue() {
+    public ActivityRecord dequeue(boolean head) {
 
         if (size == 0) { 
             return null;
         }
 
         if (unitAnd.size() > 0) {
-            return getUnitAnd(unitAnd.keySet().iterator().next());
+            return getUnitAnd(unitAnd.keySet().iterator().next(), head);
         }
 
         if (or.size() > 0) { 
-            return getOr(or.keySet().iterator().next());
+            return getOr(or.keySet().iterator().next(), head);
         } 
 
 
@@ -171,16 +183,16 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         System.err.println("EEP: ran into unknown Context Type ! " + c);
     }
-
+    
     @Override
-    public ActivityRecord steal(Context c) {
+    public ActivityRecord steal(Context c, boolean head) {
 
         if (c.isUnit() || c.isAnd()) { 
 
-            ActivityRecord a = getUnitAnd(c);
+            ActivityRecord a = getUnitAnd(c, head);
 
             if (a == null) { 
-                a = getOr(c);
+                a = getOr(c, head);
             }
 
             return a;
@@ -192,13 +204,13 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
             if (and != null && and.length > 0) { 
                 for (int i=0;i<and.length;i++) {
-                    ActivityRecord a = getUnitAnd(and[i]);
+                    ActivityRecord a = getUnitAnd(and[i], head);
 
                     if (a != null) { 
                         return a;
                     } 
 
-                    a = getOr(c);
+                    a = getOr(c, head);
 
                     if (a != null) { 
                         return a;
@@ -210,13 +222,13 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
             if (unit != null && unit.length > 0) { 
                 for (int i=0;i<unit.length;i++) {
-                    ActivityRecord a = getUnitAnd(unit[i]);
+                    ActivityRecord a = getUnitAnd(unit[i], head);
 
                     if (a != null) { 
                         return a;
                     } 
 
-                    a = getOr(c);
+                    a = getOr(c, head);
 
                     if (a != null) { 
                         return a;

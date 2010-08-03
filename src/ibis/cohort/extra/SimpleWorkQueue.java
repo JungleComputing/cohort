@@ -26,13 +26,17 @@ public class SimpleWorkQueue extends WorkQueue {
     }
     
     @Override
-    public ActivityRecord dequeue() {
+    public ActivityRecord dequeue(boolean head) {
     
         if (buffer.empty()) { 
             return null;
         }
         
-        return (ActivityRecord) buffer.removeLast();
+        if (head) { 
+            return (ActivityRecord) buffer.removeFirst();
+        } else { 
+            return (ActivityRecord) buffer.removeLast();
+        }
     }
 
     @Override
@@ -41,24 +45,42 @@ public class SimpleWorkQueue extends WorkQueue {
     }
 
     @Override
-    public ActivityRecord steal(Context c) {
+    public ActivityRecord steal(Context c, boolean head) {
     
         if (buffer.empty()) { 
             return null;
         }
         
-        for (int i=0;i<buffer.size();i++) { 
-            
-            Context tmp = ((ActivityRecord) buffer.get(i)).activity.getContext();
-            
-            if (tmp.satisfiedBy(c)) { 
-                ActivityRecord a = (ActivityRecord) buffer.get(i);
-                buffer.remove(i);
-                return a;
+        if (head) { 
+
+            for (int i=0;i<buffer.size();i++) { 
+
+                Context tmp = ((ActivityRecord) buffer.get(i)).activity.getContext();
+
+                if (tmp.satisfiedBy(c)) { 
+                    ActivityRecord a = (ActivityRecord) buffer.get(i);
+                    buffer.remove(i);
+                    return a;
+                }
+
             }
-   
-        }
         
+        } else { 
+
+            for (int i=buffer.size()-1;i>=0;i--) { 
+
+                Context tmp = ((ActivityRecord) buffer.get(i)).activity.getContext();
+
+                if (tmp.satisfiedBy(c)) { 
+                    ActivityRecord a = (ActivityRecord) buffer.get(i);
+                    buffer.remove(i);
+                    return a;
+                }
+
+            }
+            
+        }
+
         return null;
     }
 }

@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 public abstract class Activity implements Serializable {
 
+    private static final int DEFAULT_RANK = Integer.MAX_VALUE / 2;
+    
     private static final long serialVersionUID = -83331265534440970L;
 
     private static final byte REQUEST_UNKNOWN = 0;
@@ -14,17 +16,24 @@ public abstract class Activity implements Serializable {
     
     private ActivityIdentifier identifier;
     private final Context context; 
+    
     private final boolean restrictToLocal;
+    private final int rank; 
     
     private byte next = REQUEST_UNKNOWN;
         
-    protected Activity(Context context, boolean restrictToLocal) { 
+    protected Activity(Context context, int rank, boolean restrictToLocal) { 
         this.context = context;
+        this.rank = rank;
         this.restrictToLocal = restrictToLocal;
     }
 
+    protected Activity(Context context, boolean restrictToLocal) { 
+        this(context, DEFAULT_RANK, restrictToLocal);
+    }
+    
     protected Activity(Context context) { 
-        this(context, false);
+        this(context, DEFAULT_RANK, false);
     }
     
     public void initialize(ActivityIdentifier id) { 
@@ -59,6 +68,10 @@ public abstract class Activity implements Serializable {
   
     public boolean isRestrictedToLocal() { 
         return restrictToLocal;
+    }
+    
+    public int getRank() { 
+        return rank;
     }
     
     public void reset() { 

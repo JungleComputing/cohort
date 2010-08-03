@@ -12,8 +12,8 @@ public abstract class WorkQueue {
     }
     
     public abstract void enqueue(ActivityRecord a);
-    public abstract ActivityRecord dequeue();
-    public abstract ActivityRecord steal(Context c); 
+    public abstract ActivityRecord dequeue(boolean head);
+    public abstract ActivityRecord steal(Context c, boolean head); 
     public abstract int size(); 
     
     protected ActivityRecord [] trim(ActivityRecord [] a, int count) { 
@@ -29,12 +29,12 @@ public abstract class WorkQueue {
         }
     }
     
-    public ActivityRecord [] dequeue(int count) { 
+    public ActivityRecord [] dequeue(int count, boolean head) { 
         
         ActivityRecord [] tmp = new ActivityRecord[count];
         
         for (int i=0;i<count;i++) { 
-            tmp[i] = dequeue();
+            tmp[i] = dequeue(head);
             
             if (tmp[i] == null) { 
                 return trim(tmp, i);
@@ -44,12 +44,12 @@ public abstract class WorkQueue {
         return tmp;
     }
     
-    public ActivityRecord [] steal(Context c, int count) {
+    public ActivityRecord [] steal(Context c, int count, boolean head) {
         
         ActivityRecord [] tmp = new ActivityRecord[count];
         
         for (int i=0;i<count;i++) { 
-            tmp[i] = steal(c);
+            tmp[i] = steal(c, head);
             
             if (tmp[i] == null) { 
                 return trim(tmp, i);
