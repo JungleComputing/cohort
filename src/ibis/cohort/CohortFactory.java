@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 public class CohortFactory {
 
     public static String SEPARATOR = "+";
