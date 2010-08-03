@@ -35,7 +35,7 @@ public class SmartWorkQueue extends WorkQueue {
     
     private ActivityRecord getUnitAnd(Context c) { 
 
-        System.out.println(System.currentTimeMillis() +" SMART " + id + " getUnitAnd " + c);
+     //   System.out.println(System.currentTimeMillis() +" SMART " + id + " getUnitAnd " + c);
         
         CircularBuffer tmp = unitAnd.get(c);
         
@@ -46,7 +46,7 @@ public class SmartWorkQueue extends WorkQueue {
         
         ActivityRecord a = (ActivityRecord) tmp.removeLast();
        
-        System.out.println(System.currentTimeMillis() + " SMART " + id + " getUnitAnd returns " + a.identifier());
+     //   System.out.println(System.currentTimeMillis() + " SMART " + id + " getUnitAnd returns " + a.identifier());
        
         if (tmp.size() == 0) { 
             unitAnd.remove(c);
@@ -59,7 +59,7 @@ public class SmartWorkQueue extends WorkQueue {
     
     private ActivityRecord getOr(Context c) { 
         
-        System.out.println(System.currentTimeMillis() +" SMART " + id + " getOr " + c);
+      //  System.out.println(System.currentTimeMillis() +" SMART " + id + " getOr " + c);
         
         if (c.isOr()) { 
             c = ((OrContext) c).getContexts()[0];
@@ -89,7 +89,7 @@ public class SmartWorkQueue extends WorkQueue {
             }
         }
 
-        System.out.println(System.currentTimeMillis() + " SMART " + id + " getOr returns " + a.identifier() + " " + a.activity.getContext());
+     //   System.out.println(System.currentTimeMillis() + " SMART " + id + " getOr returns " + a.identifier() + " " + a.activity.getContext());
         
         size--;
         return a;
@@ -164,7 +164,7 @@ public class SmartWorkQueue extends WorkQueue {
             return;
         }
     
-        System.err.println("EEP: ran into unknown Context! " + c);
+        System.err.println("EEP: ran into unknown Context Type ! " + c);
     }
 
     @Override
