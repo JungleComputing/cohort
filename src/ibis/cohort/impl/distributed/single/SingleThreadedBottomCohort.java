@@ -877,13 +877,13 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             long t3 = System.currentTimeMillis();
             
             if (jobs > 0) { 
-                System.out.println("ACTIVE " + jobs + " " + (t2-start) + " " 
-                        + (t3-start) + " " + (t3-t2));
+                System.out.println("ACTIVE from " + (t2-start) + " to " 
+                        + (t3-start) + " total " + (t3-t2) + " jobs " + jobs);
             }
             
-            long t4 = t3; 
-            
             while (!more && !havePendingRequests) {
+         
+                long ts = System.currentTimeMillis();
                 
                 logger.info("IDLE");                             
                
@@ -911,11 +911,13 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 
                 logger.info("ACTIVE");                             
           
-                t4 = System.currentTimeMillis();
+                long te = System.currentTimeMillis();
                
-                System.out.println("IDLE " + (t3-start) + " " + (t4-start) + " " + (t4-t3));
+                System.out.println("IDLE from " + (ts-start) + " to " + (te-start) + " total " + (te-ts));
             }
-                
+            
+            long t4 = System.currentTimeMillis();
+            
             eventTime   += t2 - t1;
             activeTime  += t3 - t2;
             idleTime    += t4 - t3;
