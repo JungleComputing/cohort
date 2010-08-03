@@ -9,8 +9,14 @@ public abstract class SimpleActivity extends Activity {
     }
 
     protected SimpleActivity(ActivityIdentifier parent, Context context, 
-            boolean rertictToLocal) {
-        super(context, rertictToLocal);
+            boolean restictToLocal) {
+        super(context, restictToLocal);
+        this.parent = parent;
+    }
+
+    protected SimpleActivity(ActivityIdentifier parent, Context context, 
+            int rank, boolean restictToLocal) {
+        super(context, rank, restictToLocal);
         this.parent = parent;
     }
 
