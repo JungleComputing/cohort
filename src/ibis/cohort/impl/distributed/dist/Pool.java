@@ -89,12 +89,18 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
         ibis.registry().enableEvents();
 
-        // Elect a server
-        master = ibis.registry().elect("Cohort Master");
+        String tmp = p.getProperty("ibis.cohort.master", "auto");
 
+        if (tmp.equalsIgnoreCase("auto") || tmp.equalsIgnoreCase("true")) {
+            // Elect a server
+            master = ibis.registry().elect("Cohort Master");
+        } else if (tmp.equalsIgnoreCase("false")) { 
+            master = ibis.registry().getElectionResult("Cohort Master");
+        } 
+            
         // We determine our rank here. This rank should only be used for 
         // debugging purposes ??
-        String tmp = System.getProperty("ibis.cohort.rank");
+        tmp = System.getProperty("ibis.cohort.rank");
         
         if (tmp != null) {
             try {

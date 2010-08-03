@@ -107,9 +107,6 @@ public class DistributedCohort implements Cohort, TopCohort {
             }
         }
         
-        tmp = p.getProperty("ibis.cohort.workqueue");
-
-        
         myContext = UnitContext.DEFAULT;
 
         // Init communication here...
@@ -118,6 +115,8 @@ public class DistributedCohort implements Cohort, TopCohort {
         cidFactory = pool.getCIDFactory();        
         identifier = cidFactory.generateCohortIdentifier();
 
+        tmp = p.getProperty("ibis.cohort.workqueue");
+        
         queue = WorkQueueFactory.createQueue(tmp, true, "D(" + identifier + ")");
         
         aidFactory = getActivityIdentifierFactory(identifier);        
