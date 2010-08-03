@@ -40,7 +40,7 @@ public class SmartWorkQueue extends WorkQueue {
         CircularBuffer tmp = unitAnd.get(c);
         
         if (tmp == null) { 
-            System.out.println(System.currentTimeMillis() + " SMART " + id + " getUnitAnd empty!");
+           // System.out.println(System.currentTimeMillis() + " SMART " + id + " getUnitAnd empty!");
             return null;
         }
         
