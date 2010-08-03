@@ -847,11 +847,21 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             // NOTE: one problem here is that we cannot tell if we did any work 
             // or not. We would like to know, since this allows us to reset
             // several variables (e.g., sleepIndex)
+         
+            int jobs = 0;
             
             boolean more = sequential.process();
 
+            if (more) {
+                jobs++;
+            }
+            
             while (more && !havePendingRequests) {
                 more = sequential.process();
+            
+                if (more) {
+                    jobs++;
+                }
             }
             
             /*
@@ -866,8 +876,15 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             
             long t3 = System.currentTimeMillis();
             
-            while (!more && !havePendingRequests) {
+            if (jobs > 0) { 
+                System.out.println("ACTIVE " + jobs + " " + (t2-start) + " " 
+                        + (t3-start) + " " + (t3-t2));
+            }
             
+            long t4 = t3; 
+            
+            while (!more && !havePendingRequests) {
+                
                 logger.info("IDLE");                             
                
                 long nextDeadline = stealAllowed();
@@ -893,10 +910,11 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 }
                 
                 logger.info("ACTIVE");                             
-                
+          
+                t4 = System.currentTimeMillis();
+               
+                System.out.println("IDLE " + (t3-start) + " " + (t4-start) + " " + (t4-t3));
             }
-            
-            long t4 = System.currentTimeMillis();
                 
             eventTime   += t2 - t1;
             activeTime  += t3 - t2;
