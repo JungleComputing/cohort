@@ -4,6 +4,7 @@ import ibis.cohort.CohortIdentifier;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
 import ibis.cohort.impl.distributed.ApplicationMessage;
+import ibis.cohort.impl.distributed.CombinedMessage;
 import ibis.cohort.impl.distributed.LookupReply;
 import ibis.cohort.impl.distributed.LookupRequest;
 import ibis.cohort.impl.distributed.Message;
@@ -28,7 +29,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Pool implements RegistryEventHandler, MessageUpcall {
     
@@ -429,20 +429,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         pending.add(m);
     }
     
-    public void upcall(ReadMessage rm) throws IOException, ClassNotFoundException {
- 
-        Message m = (Message) rm.readObject();
+    private boolean handleMessage(Message m, ReadMessage rm) throws IOException { 
        
-        synchronized (this) {
-            received++;
-            
-            if (!active) { 
-                logger.warn("POOL Received message while inactive!", new Exception());
-                addPendingMessage(m);
-                return;
-            }
-        }
-        
         if (m instanceof StealRequest) { 
             // This method may result in a nested call to send. Therefore we 
             // need to finish the ReadMessage first to allow 'stealing' of the  
@@ -451,10 +439,13 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) { 
                 logger.info("POOL RECEIVE StealRequest from " + m.source);
             }
-            
-            rm.finish();
+  
+            if (rm != null) { 
+                rm.finish();
+            }
             ((StealRequest)m).setAllowRestricted();
             owner.deliverRemoteStealRequest((StealRequest)m);
+            return true;
             
         } else if (m instanceof LookupRequest) { 
             // This method may result in a nested call to send. Therefore we 
@@ -465,8 +456,11 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
                 logger.info("POOL RECEIVE LookupRequest from " + m.source);
             }
           
-            rm.finish();
+            if (rm != null) { 
+                rm.finish();
+            }
             owner.deliverRemoteLookupRequest((LookupRequest)m);
+            return true;
             
         } else if (m instanceof StealReply) {
             
@@ -504,7 +498,38 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             // Should never happen!
             logger.warning("POOL DROP unknown message type! " + m);
         }
+        
+        return false;
+    }
+    
+    public void upcall(ReadMessage rm) throws IOException, ClassNotFoundException {
+ 
+        Message m = (Message) rm.readObject();
        
+        synchronized (this) {
+            received++;
+            
+            if (!active) { 
+                logger.warn("POOL Received message while inactive!", new Exception());
+                addPendingMessage(m);
+                return;
+            }
+        }
+      
+        if (m instanceof CombinedMessage) { 
+           
+            Message [] messages = ((CombinedMessage)m).getMessages();
+            
+            for (int i=0;i<messages.length;i++) { 
+                boolean rmFinished = handleMessage(messages[i], rm);
+                
+                if (rmFinished) { 
+                    rm = null;
+                }
+            }
+        } else { 
+            handleMessage(m, rm);
+        }
     }
     
     public void broadcast(Message m) { 
