@@ -13,12 +13,9 @@ import ibis.cohort.context.UnitContext;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
-import ibis.cohort.extra.SmartWorkQueue;
-import ibis.cohort.extra.SynchronizedWorkQueue;
 import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.extra.WorkQueueFactory;
 import ibis.cohort.impl.distributed.ActivityRecord;
-import ibis.cohort.impl.distributed.ActivityRecordQueue;
 import ibis.cohort.impl.distributed.ApplicationMessage;
 import ibis.cohort.impl.distributed.BottomCohort;
 import ibis.cohort.impl.distributed.LocationCache;
@@ -28,7 +25,6 @@ import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
 import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.UndeliverableEvent;
-import ibis.cohort.impl.distributed.multi.MultiThreadedMiddleCohort;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -38,8 +34,9 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     private static final boolean PROFILE = true;
 
-    private static boolean REMOTE_STEAL_THROTTLE = false;
-    private static long REMOTE_STEAL_TIMEOUT = 1000;
+    private static boolean REMOTE_STEAL_THROTTLE = true;
+    private static long REMOTE_STEAL_TIMEOUT = 100;
+    
     private static boolean PUSHDOWN_SUBMITS = false;
     
     private boolean active;
@@ -584,8 +581,6 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
-       // System.out.println("DIST STEAL");
-
         // A steal request coming in from the subcohort below. 
 
         // First check if we can satisfy the request locally.
@@ -593,8 +588,6 @@ public class DistributedCohort implements Cohort, TopCohort {
             logger.info("D STEAL REQUEST from child " + sr.source);
         }
 
-  // System.out.println("DIST LOCAL STEAL " + sr.context + " from " + sr.source);     
-        
         ActivityRecord ar = queue.steal(sr.context, false);
         
         if (ar != null) { 
@@ -603,15 +596,20 @@ public class DistributedCohort implements Cohort, TopCohort {
                 logger.info("D STEAL REPLY (LOCAL) " + ar.identifier() 
                         + " for child " + sr.source);
             }
-
-  // System.out.println("DIST LOCAL STEAL RETURNS " + ar.activity.getContext() + " " +  ar.identifier());     
             
             return ar;
         }
 
+        if (REMOTE_STEAL_THROTTLE) { 
+            
+            boolean pending = setPendingSteal(true);
 
-//  System.out.println("DIST STEAL FORWARD");     
-
+            if (pending) { 
+                // We have already send out a steal in this slot, so 
+                // we're not allowed to send another one.
+                return null;
+            }
+        }
         
         // Next, select a random cohort to steal a job from.
         if (pool.randomForward(sr)) { 
@@ -623,32 +621,6 @@ public class DistributedCohort implements Cohort, TopCohort {
 
             return null;
         }
-
-        /*
-        CohortIdentifier target = pool.selectTarget();
-
-        if (target != null) { 
-            StealRequest sr2 = new StealRequest(sr.source, sr.context);
-            sr2.setTarget(target);
-            pool.forward(sr2);
-
-            System.out.println(identifier + ": Send steal request to " + target);
-            return null;
-        }
-         */
-
-
-        /* FIXME!
-
-        boolean pending = setPendingSteal(true);
-
-        if (pending) { 
-            // Steal request was already pending, so ignore this one.
-            return null;
-        }
-
-        queueOutgoingMessage(sr);
-         */
 
         logger.fixme("D STEAL REQUEST swizzled from " + sr.source);
 
