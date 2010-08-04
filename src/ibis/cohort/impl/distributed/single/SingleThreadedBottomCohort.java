@@ -141,12 +141,12 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         this.parent = parent;
         this.identifier = parent.getCohortIdentifierFactory(null).generateCohortIdentifier();
             
-        super.setName("SingleThreadedBottomCohort " + identifier);
+        super.setName("SingleThreadedBottomCohort " + identifier.id);
         
         String outfile = p.getProperty("ibis.cohort.outputfile");
         
         if (outfile != null) {
-            String filename = outfile + "." + identifier;
+            String filename = outfile + "." + identifier.id;
             
             try {
                 out = new PrintStream(new BufferedOutputStream(
@@ -383,7 +383,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             
                 if (tmp != null) { 
                     logger.warn("Steal request overtaken: " + s.source);
-                    System.out.println("Steal request overtaken: " + s.source);
+                    //System.out.println("Steal request overtaken: " + s.source);
                 }
             }
        
@@ -877,7 +877,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             long t3 = System.currentTimeMillis();
             
             if (jobs > 0) { 
-                System.out.println("ACTIVE from " + (t2-start) + " to " 
+                out.println("ACTIVE from " + (t2-start) + " to " 
                         + (t3-start) + " total " + (t3-t2) + " jobs " + jobs);
             }
             
@@ -913,7 +913,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
           
                 long te = System.currentTimeMillis();
                
-                System.out.println("IDLE from " + (ts-start) + " to " + (te-start) + " total " + (te-ts));
+                out.println("IDLE from " + (ts-start) + " to " + (te-start) + " total " + (te-ts));
             }
             
             long t4 = System.currentTimeMillis();
@@ -1120,7 +1120,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             */
         }
 
-        synchronized (System.out) {
+        synchronized (out) {
 
             out.println(identifier + " statistics");
             out.println(" Time");

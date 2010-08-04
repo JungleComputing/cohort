@@ -14,7 +14,6 @@ import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
 import ibis.cohort.extra.SmartSortedWorkQueue;
-import ibis.cohort.extra.SmartWorkQueue;
 import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.impl.distributed.ActivityRecord;
 

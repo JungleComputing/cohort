@@ -35,7 +35,7 @@ public class CohortIdentifier implements Serializable {
     
         return (id == other.id);
     }
-
+    
     public String toString() { 
         return "CID: " + Long.toHexString(id);
     }
