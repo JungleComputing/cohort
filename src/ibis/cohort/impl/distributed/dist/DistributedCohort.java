@@ -34,22 +34,21 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     private static final int STEAL_RANDOM = 1; 
     private static final int STEAL_MASTER = 2;
+    private static final int STEAL_NONE   = 3;
     
     private static final boolean PROFILE = true;
 
     private static boolean REMOTE_STEAL_THROTTLE = true;
     private static long REMOTE_STEAL_TIMEOUT = 100;
-    
+
     private static boolean PUSHDOWN_SUBMITS = false;
-    
-    
-    
+
     private boolean active;
 
     private BottomCohort subCohort;
 
     private final WorkQueue queue; 
-     
+
     private final CohortIdentifier identifier;
 
     private final LocationCache cache = new LocationCache();
@@ -70,9 +69,9 @@ public class DistributedCohort implements Cohort, TopCohort {
     private long blockSize = 1000000;
 
     private boolean pendingSteal = false;
-    
+
     private final int stealing; 
-    
+
     public DistributedCohort(Properties p) throws Exception {         
 
         String tmp = p.getProperty("ibis.cohort.remotesteal.throttle");
@@ -113,15 +112,17 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         String stealName = p.getProperty("ibis.cohort.stealing", "random");
 
-        if (stealName.equals("random")) { 
+        if (stealName.equalsIgnoreCase("random")) { 
             stealing = STEAL_RANDOM;
-        } else if (stealName.equals("mw")) {
+        } else if (stealName.equalsIgnoreCase("mw")) {
             stealing = STEAL_MASTER;
+        } else if (stealName.equalsIgnoreCase("none")) {
+            stealing = STEAL_NONE;
         } else { 
             System.err.println("Unknown stealing strategy: " + stealName);
             throw new Exception("Unknown stealing strategy: " + stealName);
         }
-        
+
         myContext = UnitContext.DEFAULT;
 
         // Init communication here...
@@ -131,10 +132,10 @@ public class DistributedCohort implements Cohort, TopCohort {
         identifier = cidFactory.generateCohortIdentifier();
 
         String queueName = p.getProperty("ibis.cohort.workqueue");
-        
+
         queue = WorkQueueFactory.createQueue(queueName, true, 
                 "D(" + identifier.id + ")");
-        
+
         aidFactory = getActivityIdentifierFactory(identifier);        
 
         logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
@@ -147,7 +148,7 @@ public class DistributedCohort implements Cohort, TopCohort {
             System.out.println("           queue : " + queueName);     
             System.out.println("        stealing : " + stealName);     
         }
-        
+
         logger.warn("Starting DistributedCohort " + identifier + " / " + myContext);
     }
 
@@ -276,15 +277,15 @@ public class DistributedCohort implements Cohort, TopCohort {
                     + " context " + sr.context);
         }
 
-     //   System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
-        
+        //   System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
+
         ActivityRecord ar = queue.steal(sr.context, true);
 
         if (ar != null) { 
 
-        //    System.out.println("DIST REMOTE STEAL RESTURNS " 
-        //            + ar.activity.getContext() + " " + ar.identifier());     
-            
+            //    System.out.println("DIST REMOTE STEAL RESTURNS " 
+            //            + ar.activity.getContext() + " " + ar.identifier());     
+
             if (Debug.DEBUG_STEAL) {
                 logger.info("D LOCAL REPLY for STEAL REQUEST from child " 
                         + sr.source + " context " + sr.context);
@@ -520,7 +521,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         subCohort.setContext(id, context);
     } 
-    
+
     private synchronized ActivityIdentifier createActivityID() {
 
         try {
@@ -548,26 +549,26 @@ public class DistributedCohort implements Cohort, TopCohort {
 
             return subCohort.deliverSubmit(a);
         }
-   
+
         if (Debug.DEBUG_SUBMIT) { 
             logger.info("D LOCAL SUBMIT activity with context " + a.getContext());
         }
-        
+
         ActivityIdentifier id = createActivityID();
         a.initialize(id);
-        
+
         queue.enqueue(new ActivityRecord(a));
-        
+
         if (Debug.DEBUG_SUBMIT) {
             logger.info("created " + id + " at " 
                     + System.currentTimeMillis() + " from DIST"); 
         }
 
         System.out.println("DIST -- LOCAL ENQ: " + id + " " + a.getContext() + " " + a.getRank());
-        
+
         return id;
     }
-    
+
 
     /* =========== End of Cohort interface ================================== */
 
@@ -617,19 +618,19 @@ public class DistributedCohort implements Cohort, TopCohort {
         }
 
         ActivityRecord ar = queue.steal(sr.context, false);
-        
+
         if (ar != null) { 
 
             if (Debug.DEBUG_STEAL) { 
                 logger.info("D STEAL REPLY (LOCAL) " + ar.identifier() 
                         + " for child " + sr.source);
             }
-            
+
             return ar;
         }
 
         if (REMOTE_STEAL_THROTTLE) { 
-            
+
             boolean pending = setPendingSteal(true);
 
             if (pending) { 
@@ -638,20 +639,39 @@ public class DistributedCohort implements Cohort, TopCohort {
                 return null;
             }
         }
-        
-        // Next, select a random cohort to steal a job from.
-        if (pool.randomForward(sr)) { 
 
-            if (Debug.DEBUG_STEAL) { 
-                logger.info("D RANDOM FORWARD steal request from child " 
-                        + sr.source);
+        if (stealing == STEAL_RANDOM) { 
+
+            // Next, select a random cohort to steal a job from.
+            if (pool.randomForward(sr)) { 
+
+                if (Debug.DEBUG_STEAL) { 
+                    logger.info("D RANDOM FORWARD steal request from child " 
+                            + sr.source);
+                }
+
+                return null;
             }
 
+        } else if (stealing == STEAL_MASTER) {
+
+            if (pool.forwardToMaster(sr)) { 
+
+                if (Debug.DEBUG_STEAL) { 
+                    logger.info("D MASTER FORWARD steal request from child " 
+                            + sr.source);
+                }
+
+                return null;
+            }
+
+        } else if (stealing == STEAL_NONE) {
+            logger.debug("D STEAL REQUEST swizzled from " + sr.source);
             return null;
         }
-
-        logger.fixme("D STEAL REQUEST swizzled from " + sr.source);
-
+        
+        logger.fixme("D STEAL REQUEST unknown stealing strategy " + stealing);
+        
         return null;
     }
 
@@ -734,7 +754,7 @@ public class DistributedCohort implements Cohort, TopCohort {
     }
 
     public synchronized ActivityIdentifierFactory 
-        getActivityIdentifierFactory(CohortIdentifier cid) {
+    getActivityIdentifierFactory(CohortIdentifier cid) {
 
         ActivityIdentifierFactory tmp = new ActivityIdentifierFactory(
                 cid.id,  startID, startID+blockSize);

@@ -328,6 +328,31 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return null;
     }
     
+    private boolean forward(IbisIdentifier id, Message m) { 
+
+        SendPort s = getSendPort(id); 
+        
+        if (s == null) { 
+            logger.warning("POOL failed to connect to " + id); 
+            return false;
+        }
+        
+        try { 
+            WriteMessage wm = s.newMessage();
+            wm.writeObject(m);
+            wm.finish();
+        } catch (Exception e) {
+            logger.warning("POOL lost communication to " + id, e); 
+            return false;
+        }
+        
+        synchronized (this) {
+            send++;
+        }
+  
+        return true;
+    }
+    
     public boolean forward(Message m) { 
         
         CohortIdentifier target = m.target;
@@ -337,34 +362,18 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         }
         
         IbisIdentifier id = translate(target);
-        
+
         if (id == null) { 
             logger.warning("POOL failed to translate " + target 
                     + " to an IbisIdentifier");
             return false;
         }
-        
-        SendPort s = getSendPort(id); 
-        
-        if (s == null) { 
-            logger.warning("POOL failed to connect to " + target); 
-            return false;
-        }
-        
-        try { 
-            WriteMessage wm = s.newMessage();
-            wm.writeObject(m);
-            wm.finish();
-        } catch (Exception e) {
-            logger.warning("POOL lost communication to " + target, e); 
-            return false;
-        }
-        
-        synchronized (this) {
-            send++;
-        }
-  
-        return true;
+    
+        return forward(id, m);
+    }
+    
+    public boolean forwardToMaster(Message m) { 
+        return forward(master, m);
     }
     
     public boolean randomForward(Message m) { 
