@@ -117,7 +117,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         }
         
         isMaster = local.equals(master);
-      
+        
         rp = ibis.createReceivePort(portType, "cohort", this);
         rp.enableMessageUpcalls();
         rp.enableConnections();

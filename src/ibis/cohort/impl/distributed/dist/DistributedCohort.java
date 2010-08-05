@@ -32,12 +32,17 @@ import java.util.Properties;
 
 public class DistributedCohort implements Cohort, TopCohort {
 
+    private static final int STEAL_RANDOM = 1; 
+    private static final int STEAL_MASTER = 2;
+    
     private static final boolean PROFILE = true;
 
     private static boolean REMOTE_STEAL_THROTTLE = true;
     private static long REMOTE_STEAL_TIMEOUT = 100;
     
     private static boolean PUSHDOWN_SUBMITS = false;
+    
+    
     
     private boolean active;
 
@@ -65,7 +70,9 @@ public class DistributedCohort implements Cohort, TopCohort {
     private long blockSize = 1000000;
 
     private boolean pendingSteal = false;
-
+    
+    private final int stealing; 
+    
     public DistributedCohort(Properties p) throws Exception {         
 
         String tmp = p.getProperty("ibis.cohort.remotesteal.throttle");
@@ -103,6 +110,17 @@ public class DistributedCohort implements Cohort, TopCohort {
                         "ibis.cohort.submits.pushdown: " + tmp);
             }
         }
+
+        String stealName = p.getProperty("ibis.cohort.stealing", "random");
+
+        if (stealName.equals("random")) { 
+            stealing = STEAL_RANDOM;
+        } else if (stealName.equals("mw")) {
+            stealing = STEAL_MASTER;
+        } else { 
+            System.err.println("Unknown stealing strategy: " + stealName);
+            throw new Exception("Unknown stealing strategy: " + stealName);
+        }
         
         myContext = UnitContext.DEFAULT;
 
@@ -112,14 +130,24 @@ public class DistributedCohort implements Cohort, TopCohort {
         cidFactory = pool.getCIDFactory();        
         identifier = cidFactory.generateCohortIdentifier();
 
-        tmp = p.getProperty("ibis.cohort.workqueue");
+        String queueName = p.getProperty("ibis.cohort.workqueue");
         
-        queue = WorkQueueFactory.createQueue(tmp, true, "D(" + identifier + ")");
+        queue = WorkQueueFactory.createQueue(queueName, true, 
+                "D(" + identifier.id + ")");
         
         aidFactory = getActivityIdentifierFactory(identifier);        
 
         logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
 
+        if (true) { 
+            System.out.println("DistributeCohort : " + identifier.id);
+            System.out.println("        throttle : " + REMOTE_STEAL_THROTTLE);
+            System.out.println("  throttle delay : " + REMOTE_STEAL_TIMEOUT);
+            System.out.println("        pushdown : " + PUSHDOWN_SUBMITS);
+            System.out.println("           queue : " + queueName);     
+            System.out.println("        stealing : " + stealName);     
+        }
+        
         logger.warn("Starting DistributedCohort " + identifier + " / " + myContext);
     }
 
