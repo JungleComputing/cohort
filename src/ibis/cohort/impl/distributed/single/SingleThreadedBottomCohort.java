@@ -823,6 +823,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         //WorkQueue wrongContext = sequential.getWrongContextQueue();
         
         long start = System.currentTimeMillis();
+        long idlestart = start;
 
         while (!getDone()) {
 
@@ -877,15 +878,23 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             long t3 = System.currentTimeMillis();
             
             if (jobs > 0) { 
+
+                if (t2-idlestart > 0) { 
+                    out.println("IDLE from " + (idlestart-start) + " to " + (t2-start) + " total " + (t2-idlestart));
+                }
+                
+                idlestart = t3;
+                
                 out.println("ACTIVE from " + (t2-start) + " to " 
                         + (t3-start) + " total " + (t3-t2) + " jobs " + jobs);
+            
+                System.out.flush();
             }
             
             while (!more && !havePendingRequests) {
          
-                long ts = System.currentTimeMillis();
-                
-                logger.info("IDLE");                             
+                // long ts = System.currentTimeMillis();
+                // logger.info("IDLE");                             
                
                 long nextDeadline = stealAllowed();
                 
@@ -909,11 +918,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                     more = pauseUntil(nextDeadline);
                 }
                 
-                logger.info("ACTIVE");                             
-          
-                long te = System.currentTimeMillis();
-               
-                out.println("IDLE from " + (ts-start) + " to " + (te-start) + " total " + (te-ts));
+                // logger.info("ACTIVE");                                      
+                // long te = System.currentTimeMillis();               
+                // out.println("IDLE from " + (ts-start) + " to " + (te-start) + " total " + (te-ts));
             }
             
             long t4 = System.currentTimeMillis();
