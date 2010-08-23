@@ -97,9 +97,13 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         } else if (tmp.equalsIgnoreCase("false")) { 
             master = ibis.registry().getElectionResult("Cohort Master");
         } 
-            
+        
+        if (master == null) {
+        	throw new Exception("Failed to find master!");
+        }
+        
         // We determine our rank here. This rank should only be used for 
-        // debugging purposes ??
+        // debugging purposes!
         tmp = System.getProperty("ibis.cohort.rank");
         
         if (tmp != null) {
@@ -119,8 +123,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         isMaster = local.equals(master);
         
         rp = ibis.createReceivePort(portType, "cohort", this);
-        rp.enableMessageUpcalls();
         rp.enableConnections();
+        rp.enableMessageUpcalls();
                 
         cidFactory = new DistributedCohortIdentifierFactory(local, rank);
     }
@@ -145,9 +149,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         while (pending.size() > 0) { 
             Message m = pending.removeFirst();
       
-            if (m instanceof StealReply) { 
+            if (m instanceof StealRequest) { 
             
-                logger.warn("POOL processing PENDING StealReply from " + m.source);
+                logger.warn("POOL processing PENDING StealRequest from " + m.source);
                 owner.deliverRemoteStealRequest((StealRequest)m);
             
             } else if (m instanceof ApplicationMessage) { 
@@ -209,7 +213,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             if (sp == null) { 
           
                 logger.warn("Connecting to " + id + " from " + ibis.identifier());
-            
+  
+                System.err.println("Connecting to " + id + " from " + ibis.identifier());
+                
                 try {
                     sp = ibis.createSendPort(portType);
                     sp.connect(id, "cohort");
@@ -452,6 +458,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             if (rm != null) { 
                 rm.finish();
             }
+            
             ((StealRequest)m).setAllowRestricted();
             owner.deliverRemoteStealRequest((StealRequest)m);
             return true;
@@ -543,9 +550,22 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     
     public void broadcast(Message m) { 
         
-        for (int i=0;i<others.size();i++) { 
+    	// This seems to produce many problems...
+    	int size = 0;
+    	
+    	synchronized (others) {
+    		size = others.size();
+    	}
+    	
+        for (int i=0;i<size;i++) { 
             
-            IbisIdentifier tmp = others.get(i);
+            IbisIdentifier tmp = null;
+            
+            synchronized (others) {
+            	if (i < others.size()) {
+            		tmp = others.get(i);
+            	}
+            }
             
             if (tmp == null) { 
                 logger.warning("POOL failed to retrieve Ibis " + i); 
