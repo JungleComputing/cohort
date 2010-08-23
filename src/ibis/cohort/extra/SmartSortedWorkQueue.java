@@ -187,8 +187,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
     @Override
     public ActivityRecord steal(Context c, boolean head) {
 
+    	System.out.println("STEAL " + c + " " + head);
+    	
         if (c.isUnit() || c.isAnd()) { 
 
+        	System.out.println("STEAL unit or and");
+        	        	
             ActivityRecord a = getUnitAnd(c, head);
 
             if (a == null) { 
@@ -200,8 +204,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         if (c.isOr()) { 
 
-            Context [] and = ((OrContext) c).andContexts();
+        	System.out.println("STEAL or");
+        	
+        	Context [] and = ((OrContext) c).andContexts();
 
+        	System.out.println("STEAL or: and = " + (and == null ? 0 : and.length));        	
+        	
             if (and != null && and.length > 0) { 
                 for (int i=0;i<and.length;i++) {
                     ActivityRecord a = getUnitAnd(and[i], head);
@@ -210,7 +218,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
                         return a;
                     } 
 
-                    a = getOr(c, head);
+                    a = getOr(and[i], head);
 
                     if (a != null) { 
                         return a;
@@ -220,15 +228,20 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
             Context [] unit = ((OrContext) c).unitContexts();
 
+            System.out.println("STEAL or: or = " + (unit == null ? 0 : unit.length));        	
+        	
             if (unit != null && unit.length > 0) { 
                 for (int i=0;i<unit.length;i++) {
+                	
+                	System.out.println("STEAL or: or : " + unit[i]);        	
+                	    	
                     ActivityRecord a = getUnitAnd(unit[i], head);
 
                     if (a != null) { 
                         return a;
                     } 
 
-                    a = getOr(c, head);
+                    a = getOr(unit[i], head);
 
                     if (a != null) { 
                         return a;
