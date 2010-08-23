@@ -900,8 +900,11 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 
                 if (nextDeadline == 0) { 
 
-                    logger.info("STEAL");
-                    
+                    if (Debug.DEBUG_STEAL) { 
+                        logger.info("GENERATING STEAL REQUEST at " + identifier + " with context " + getContext());
+                    } else { 
+                    	logger.info("STEAL");
+                    }
                  //   System.out.println("ST STEAL");
                
                     StealRequest sr = new StealRequest(identifier, getContext());

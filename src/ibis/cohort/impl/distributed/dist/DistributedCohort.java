@@ -614,7 +614,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         // First check if we can satisfy the request locally.
         if (Debug.DEBUG_STEAL) { 
-            logger.info("D STEAL REQUEST from child " + sr.source);
+            logger.info("D STEAL REQUEST from child " + sr.source + " with context " + sr.context);
         }
 
         ActivityRecord ar = queue.steal(sr.context, false);
