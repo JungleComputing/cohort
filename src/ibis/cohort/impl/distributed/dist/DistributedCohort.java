@@ -655,6 +655,12 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         } else if (stealing == STEAL_MASTER) {
 
+        	if (pool.isMaster()) {
+        		// Master does not steal from itself!
+        		return null;
+        	}
+        		
+        	
             if (pool.forwardToMaster(sr)) { 
 
                 if (Debug.DEBUG_STEAL) { 
