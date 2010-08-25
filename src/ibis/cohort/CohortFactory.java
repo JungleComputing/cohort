@@ -44,6 +44,7 @@ public class CohortFactory {
         
         ArrayList<UnitWorkerContext> unit = new ArrayList<UnitWorkerContext>();
           
+        // TODO: add range etc.
         while (tok.hasMoreTokens()) { 
             unit.add(new UnitWorkerContext(tok.nextToken()));
         }

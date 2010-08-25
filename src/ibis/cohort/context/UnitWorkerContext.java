@@ -168,18 +168,19 @@ public class UnitWorkerContext extends WorkerContext {
         
         switch (opcode) { 
         case BIGGEST:
-        	tmp += "BIGGEST";
+        	return tmp + "BIGGEST";
         case SMALLEST:
-        	tmp += "SMALLEST";
+        	return tmp + "SMALLEST";
         case ANY:
-        	tmp += "ANY";
+        	return tmp + "ANY";
         case VALUE: 
-        	tmp += "VALUE(" + start + ")";
+        	return tmp + "VALUE(" + start + ")";
         case RANGE:
-        	tmp += "RANGE(" + start + " to " + end + ")";
-    	}
-        
-        return tmp;
+        	return tmp + "RANGE(" + start + " to " + end + ")";
+    	default:
+    		// should never happen!
+    	    return tmp + "UNKNOWN";
+        }
     }
 
     /*

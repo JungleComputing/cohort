@@ -10,13 +10,6 @@ public class UnitActivityContext extends ActivityContext {
 
     private static final long serialVersionUID = 6134114690113562356L;
 
-    public static final long BIGGEST   = Long.MIN_VALUE;
-    public static final long SMALLEST  = Long.MIN_VALUE+1;
-    public static final long ANY       = Long.MIN_VALUE+2;
-    
-    public static final long MAX_VALUE = Long.MAX_VALUE;
-    public static final long MIN_VALUE = Long.MIN_VALUE+3;
-    
     public static final long DEFAULT_RANK = 0;
     
     public static final UnitActivityContext DEFAULT = new UnitActivityContext("DEFAULT", DEFAULT_RANK);
@@ -34,21 +27,13 @@ public class UnitActivityContext extends ActivityContext {
             throw new IllegalArgumentException("Context name cannot be null!");
         }
         
-        if (rank < Long.MIN_VALUE) { 
-        	throw new IllegalArgumentException("Context rank cannot be smaller than " + MIN_VALUE);
-        }
-        
-        if (rank > Long.MAX_VALUE) { 
-        	throw new IllegalArgumentException("Context rank cannot be larger than " + MAX_VALUE);
-        }
-        
         this.name = name;
         this.rank = rank;
         this.hashCode = name.hashCode();
     }
     
     public UnitActivityContext(String name) {
-    	this(name, 0);
+    	this(name, DEFAULT_RANK);
     }
     
     @Override

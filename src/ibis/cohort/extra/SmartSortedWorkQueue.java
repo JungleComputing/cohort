@@ -57,6 +57,8 @@ public class SmartSortedWorkQueue extends WorkQueue {
             unit.remove(name);
         }
         
+        size--;
+        
         return a;
     }
     	
@@ -66,6 +68,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
         SortedList tmp = unit.get(c.name);
 
         if (tmp == null) { 
+        	System.out.println(id + "   GetUnit " + c.name + " empty! " + unit.size() + " " + unit.keySet());
             return null;
         }
 
@@ -87,6 +90,8 @@ public class SmartSortedWorkQueue extends WorkQueue {
         	break;
         }
         
+        System.out.println(id + "   GetUnit " + c.name + " succeeded!");
+        
         if (tmp.size() == 0) { 
             unit.remove(c.name);
         }
@@ -100,7 +105,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
     	SortedList tmp = or.get(name);
 
-    	if (tmp == null) { 
+    	if (tmp == null) {
     		return null;
     	}
 
@@ -141,10 +146,13 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         SortedList tmp = or.get(c.name);
 
-        if (tmp == null) { 
+        if (tmp == null) {
+        	System.out.println(id + "   GetOR empty!");            		
             return null;
         }
 
+    	System.out.println(id + "   GetOR NOT empty!");            		
+        
         ActivityRecord a = null;
         
         switch (c.opcode) { 
@@ -168,18 +176,20 @@ public class SmartSortedWorkQueue extends WorkQueue {
         }
         
         // Remove entry for this ActivityRecord from all lists.... 
-        UnitActivityContext[] all = ((OrActivityContext) a.activity.getContext()).getContexts();
+        OrActivityContext cntx = (OrActivityContext) a.activity.getContext();
+        
+        for (int i=0;i<cntx.size();i++) { 
 
-        for (int i=0;i<all.length;i++) { 
-
+        	UnitActivityContext u = cntx.get(i);
+        	
             // Remove this activity from all entries in the 'or' table
-            tmp = or.get(all[i].name);
+            tmp = or.get(u.name);
 
             if (tmp != null) { 
                 tmp.removeByReference(a);
 
                 if (tmp.size()== 0) { 
-                    or.remove(all[i].name);
+                    or.remove(u.name);
                 }
             }
         }
@@ -209,6 +219,8 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
     private void enqueueUnit(UnitActivityContext c, ActivityRecord a) {
 
+    	System.out.println(id + "    ENQUEUE UNIT: " + c);
+    	
         SortedList tmp = unit.get(c.name);
 
         if (tmp == null) { 
@@ -222,18 +234,22 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
     private void enqueueOr(OrActivityContext c, ActivityRecord a) {
 
-        UnitActivityContext [] all = c.getContexts();
-
-        for (int i=0;i<all.length;i++) { 
-
-            SortedList tmp = or.get(all[i].name);
+    	System.out.println(id + "    ENQUEUE OR: " + c);
+    	
+        for (int i=0;i<c.size();i++) { 
+            
+        	UnitActivityContext uc = c.get(i);
+        
+        	SortedList tmp = or.get(uc.name);
 
             if (tmp == null) { 
-                tmp = new SortedList(all[i].name);
-                or.put(all[i].name, tmp);
+                tmp = new SortedList(uc.name);
+                or.put(uc.name, tmp);
             }
 
-            tmp.insert(a, all[i].rank);
+            tmp.insert(a, uc.rank);
+            
+            System.out.println(id + "    ENQUEUE " + uc.name);
         }
 
         size++;
@@ -243,8 +259,10 @@ public class SmartSortedWorkQueue extends WorkQueue {
     @Override
     public void enqueue(ActivityRecord a) {
 
-        ActivityContext c = a.activity.getContext();
+    	ActivityContext c = a.activity.getContext();
 
+    	System.out.println(id + "   1 ENQUEUE " + c);
+    	
         if (c.isUnit()) {
             enqueueUnit((UnitActivityContext) c, a);
             return;
@@ -255,12 +273,14 @@ public class SmartSortedWorkQueue extends WorkQueue {
             return;
         }
 
-        System.err.println("EEP: ran into unknown Context Type ! " + c);
+        System.out.println(id + "EEP: ran into unknown Context Type ! " + c);
     }
     
     @Override
     public ActivityRecord steal(WorkerContext c) {
 
+    	System.out.println(id + "   STEAL: " + c);
+    	
     	if (c.isUnit()) { 
 
         	UnitWorkerContext tmp = (UnitWorkerContext) c;
@@ -275,17 +295,26 @@ public class SmartSortedWorkQueue extends WorkQueue {
         }
 
         if (c.isOr()) { 
+
+        	System.out.println(id + "  STEAL is OR");
         	
-            UnitWorkerContext [] unit = ((OrWorkerContext) c).getContexts();
+        	OrWorkerContext o = (OrWorkerContext) c;
         	
-            for (int i=0;i<unit.length;i++) {                	
-            	ActivityRecord a = getUnit(unit[i]); 
+            for (int i=0;i<o.size();i++) {
+            	
+            	UnitWorkerContext ctx = o.get(i);
+
+            	System.out.println(id + "   STEAL attempt from unit with " + ctx);            		
+            	
+            	ActivityRecord a = getUnit(ctx); 
 
             	if (a != null) { 
             		return a;
             	} 
 
-            	a = getOr(unit[i]);
+            	System.out.println(id + "   STEAL attempt from or with " + ctx);            		
+            	
+            	a = getOr(ctx);
 
             	if (a != null) { 
             		return a;

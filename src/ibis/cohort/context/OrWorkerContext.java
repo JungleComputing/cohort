@@ -22,6 +22,11 @@ public class OrWorkerContext extends WorkerContext {
         this.ordered = ordered;
 	}
 
+	@Override
+    public boolean isOr() { 
+        return true;
+    }
+	
 	public int size() {
 		return unitContexts.length;
 	}
@@ -38,4 +43,17 @@ public class OrWorkerContext extends WorkerContext {
 		return ordered;
 	}
 	
+	public String toString() {
+		
+		StringBuilder result = new StringBuilder("OrWorkerContext(");
+		
+		for (int i=0;i<unitContexts.length-1;i++) { 
+			result.append(unitContexts[i].toString());
+			result.append(" or ");
+		}
+		
+		result.append(unitContexts[unitContexts.length-1].toString());
+		result.append(")");
+		return result.toString();
+    }
 }

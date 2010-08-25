@@ -4,9 +4,10 @@ import java.io.Serializable;
 
 public class WorkerContext implements Serializable {
     
+	private static final long serialVersionUID = 7860363329440102125L;
+
 	protected WorkerContext() { 
         // empty
-    
 	}
         
     //public abstract boolean equals(Object other);
@@ -19,9 +20,4 @@ public class WorkerContext implements Serializable {
     public boolean isOr() { 
         return false;
     }
-
-	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
-	}    
 }
