@@ -688,54 +688,52 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
         if (!myContextChanged) { 
             return myContext;
-        } else { 
-                
-            
-        	// We should now combine all contexts of our workers into one
-            HashMap<String, UnitWorkerContext> map = 
-            	new HashMap<String, UnitWorkerContext>();
-            
-            for (int i=0;i<workerCount;i++) {
-
-            	WorkerContext tmp = workers[i].getContext();
-            	
-            	if (tmp.isUnit()) { 
-            		
-            		UnitWorkerContext u = (UnitWorkerContext) tmp;
-            		
-            		String tag = u.uniqueTag();
-            		
-            		if (!map.containsKey(tag)) { 
-            			map.put(tag, u);
-            		}
-            	} else if (tmp.isOr()) { 
-            		OrWorkerContext o = (OrWorkerContext) tmp;
-            		
-            		for (int j=0;j<o.size();j++) { 
-            			UnitWorkerContext u = o.get(i);
-            			
-            			String tag = u.uniqueTag();
-                		
-                		if (!map.containsKey(tag)) { 
-                			map.put(tag, u);
-                		}
-            		}
-            	}
-            }
-
-            if (map.size() == 0) { 
-            	// FIXME should not happen ?
-            	myContext = UnitWorkerContext.DEFAULT;
-            } else if (map.size() == 1) { 
-            	myContext = contexts[1];
-            } else { 
-                UnitWorkerContext [] contexts = map.values().toArray(new UnitWorkerContext[map.size()]);                
-                myContext = new OrWorkerContext(contexts, false); 
-            }
-
-            myContextChanged = false;
-            return myContext;
         } 
+ 
+        // We should now combine all contexts of our workers into one
+        HashMap<String, UnitWorkerContext> map = 
+        	new HashMap<String, UnitWorkerContext>();
+
+        for (int i=0;i<workerCount;i++) {
+
+        	WorkerContext tmp = workers[i].getContext();
+
+        	if (tmp.isUnit()) { 
+
+        		UnitWorkerContext u = (UnitWorkerContext) tmp;
+
+        		String tag = u.uniqueTag();
+
+        		if (!map.containsKey(tag)) { 
+        			map.put(tag, u);
+        		}
+        	} else if (tmp.isOr()) { 
+        		OrWorkerContext o = (OrWorkerContext) tmp;
+
+        		for (int j=0;j<o.size();j++) { 
+        			UnitWorkerContext u = o.get(i);
+
+        			String tag = u.uniqueTag();
+
+        			if (!map.containsKey(tag)) { 
+        				map.put(tag, u);
+        			}
+        		}
+        	}
+        }
+
+        if (map.size() == 0) { 
+        	// FIXME should not happen ?
+        			myContext = UnitWorkerContext.DEFAULT;
+        } else if (map.size() == 1) { 
+        	myContext = contexts[1];
+        } else { 
+        	UnitWorkerContext [] contexts = map.values().toArray(new UnitWorkerContext[map.size()]);                
+        	myContext = new OrWorkerContext(contexts, false); 
+        }
+
+        myContextChanged = false;
+        return myContext;
     }
     
     public CohortIdentifier identifier() {
