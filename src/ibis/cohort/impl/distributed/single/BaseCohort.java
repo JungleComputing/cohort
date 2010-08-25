@@ -1,15 +1,15 @@
 package ibis.cohort.impl.distributed.single;
 
 import ibis.cohort.Activity;
+import ibis.cohort.ActivityContext;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
-import ibis.cohort.context.UnitContext;
-import ibis.cohort.extra.ActivitySizeComparator;
+import ibis.cohort.WorkerContext;
+import ibis.cohort.context.UnitWorkerContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
@@ -32,7 +32,7 @@ public class BaseCohort implements Cohort {
     private final CohortLogger logger;
 
     // Default context is ANY
-    private Context myContext = new UnitContext("EMPTY"); // HACK Context.ANY;
+    private WorkerContext myContext = new UnitWorkerContext("EMPTY"); 
 
     private HashMap<String, ActivityIdentifier> registry = 
         new HashMap<String, ActivityIdentifier>();
@@ -78,22 +78,22 @@ public class BaseCohort implements Cohort {
     private ActivityRecord current;
 
     BaseCohort(SingleThreadedBottomCohort parent, Properties p, 
-            CohortIdentifier identifier, CohortLogger logger, Context context) {
+            CohortIdentifier identifier, CohortLogger logger, WorkerContext context) {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getActivityIdentifierFactory(identifier);
         this.logger = logger;
         this.myContext = context;
    
-        restricted = new SmartSortedWorkQueue("Br(" + identifier + ")", new ActivitySizeComparator());
-        fresh = new SmartSortedWorkQueue("Bf(" + identifier + ")", new ActivitySizeComparator());
+        restricted = new SmartSortedWorkQueue("Br(" + identifier + ")");
+        fresh = new SmartSortedWorkQueue("Bf(" + identifier + ")");
     }
 
-    public BaseCohort(Properties p, Context context) {
+    public BaseCohort(Properties p, WorkerContext context) {
         this.parent = null;
 
         if (context == null) { 
-            myContext = UnitContext.DEFAULT;
+            myContext = UnitWorkerContext.DEFAULT;
         } else { 
             myContext = context;
         }
@@ -212,7 +212,7 @@ public class BaseCohort implements Cohort {
         //  }
 
         ActivityRecord ar = new ActivityRecord(a);
-        Context c = a.getContext();
+        ActivityContext c = a.getContext();
 
         /*
         if (c.isLocal()) { 
@@ -269,7 +269,7 @@ public class BaseCohort implements Cohort {
 
         activitiesAdded++;
 
-        Context c = a.activity.getContext();
+        ActivityContext c = a.activity.getContext();
 
    /*     if (c.isLocal()) { 
         
@@ -338,7 +338,7 @@ public class BaseCohort implements Cohort {
         return (registry.remove(name) != null);
     }
 
-    public ActivityIdentifier lookup(String name, Context scope) {
+    public ActivityIdentifier lookup(String name, ActivityContext scope) {
 
         // TODO: does this still make sense ?
         if (parent == null /*|| scope.isRestrictedToLocal()*/) { 
@@ -348,7 +348,7 @@ public class BaseCohort implements Cohort {
         return parent.lookup(name, scope);
     }    
 
-    public boolean register(String name, ActivityIdentifier id, Context scope) {
+    public boolean register(String name, ActivityIdentifier id, ActivityContext scope) {
 
         // TODO: does this still make sense ?
         if (parent == null /*|| scope.isRestrictedToLocal()*/) { 
@@ -358,7 +358,7 @@ public class BaseCohort implements Cohort {
         return parent.register(name, id, scope);
     }
 
-    public boolean deregister(String name, Context scope) {
+    public boolean deregister(String name, ActivityContext scope) {
 
         // TODO: does this still make sense ?
         if (parent == null /*|| scope.isRestrictedToLocal()*/) { 
@@ -460,7 +460,7 @@ public class BaseCohort implements Cohort {
         return fresh.size();
     }
 
-    ActivityRecord [] steal(Context context, boolean allowRestricted, int count) {
+    ActivityRecord [] steal(WorkerContext context, boolean allowRestricted, int count) {
 
         logger.warn("In STEAL on BASE " + context + " " + count);
 
@@ -491,7 +491,7 @@ public class BaseCohort implements Cohort {
         return result;
     }
 
-    ActivityRecord steal(Context context, boolean remote) {
+    ActivityRecord steal(WorkerContext context, boolean remote) {
 
         steals++;
 
@@ -600,7 +600,7 @@ public class BaseCohort implements Cohort {
     }
      */
 
-    private ActivityRecord doSteal(Context context, boolean allowRestricted) {
+    private ActivityRecord doSteal(WorkerContext context, boolean allowRestricted) {
 
         if (Debug.DEBUG_STEAL) { 
             logger.info("STEAL BASE(" + identifier + "): activities F: " 
@@ -618,7 +618,7 @@ public class BaseCohort implements Cohort {
         
         if (allowRestricted) { 
 
-            ActivityRecord r = restricted.steal(context, true);
+            ActivityRecord r = restricted.steal(context);
             
             if (r != null) { 
 
@@ -642,7 +642,7 @@ public class BaseCohort implements Cohort {
             // If restricted fails we try the regular queue 
         }
         
-        ActivityRecord r = fresh.steal(context, true);
+        ActivityRecord r = fresh.steal(context);
         
         if (r != null) { 
 
@@ -835,11 +835,11 @@ public class BaseCohort implements Cohort {
         return parent.isMaster();
     }
 
-    public Context getContext() {
+    public WorkerContext getContext() {
         return myContext;
     }
 
-    public void setContext(Context c) {
+    public void setContext(WorkerContext c) {
         myContext = c;
 
         if (Debug.DEBUG_CONTEXT) { 
@@ -852,7 +852,7 @@ public class BaseCohort implements Cohort {
         logger.fixme("CONTEXT CHANGED WITHOUT CHECKING JOBS FIX FIX FIX!", new Exception());
     }
 
-    public void setContext(CohortIdentifier id, Context context) throws Exception {
+    public void setContext(CohortIdentifier id, WorkerContext context) throws Exception {
 
         if (Debug.DEBUG_CONTEXT) { 
             logger.info("Setting context of BASE to " + context);
@@ -868,7 +868,7 @@ public class BaseCohort implements Cohort {
 
 
     public void clearContext() {
-        myContext = UnitContext.DEFAULT;
+        myContext = UnitWorkerContext.DEFAULT;
     }
 
     public Cohort[] getSubCohorts() {

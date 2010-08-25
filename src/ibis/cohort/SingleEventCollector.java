@@ -1,6 +1,6 @@
 package ibis.cohort;
 
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
 
 public class SingleEventCollector extends Activity {
 
@@ -8,12 +8,12 @@ public class SingleEventCollector extends Activity {
    
     private Event event;
     
-    public SingleEventCollector(Context c) {
+    public SingleEventCollector(ActivityContext c) {
         super(c, true);
     }
     
     public SingleEventCollector() {
-        this(UnitContext.DEFAULT);
+        this(UnitActivityContext.DEFAULT);
     }
     
     @Override

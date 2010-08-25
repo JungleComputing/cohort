@@ -2,9 +2,8 @@ package test.spawntest;
 
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
 
 public class SingleTest extends Activity {
 
@@ -16,7 +15,7 @@ public class SingleTest extends Activity {
     private int replies;
     
     public SingleTest(ActivityIdentifier parent, int spawns) {
-        super(UnitContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT);
         this.parent = parent;
         this.spawns= spawns;
     }

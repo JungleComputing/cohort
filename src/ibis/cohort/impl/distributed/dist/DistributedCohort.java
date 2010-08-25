@@ -1,15 +1,16 @@
 package ibis.cohort.impl.distributed.dist;
 
 import ibis.cohort.Activity;
+import ibis.cohort.ActivityContext;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CancelEvent;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.WorkerContext;
+import ibis.cohort.context.UnitWorkerContext;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
@@ -61,7 +62,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     private ActivityIdentifierFactory aidFactory;
 
-    private Context myContext;
+    private WorkerContext myContext;
 
     private long stealReplyDeadLine;
 
@@ -123,7 +124,7 @@ public class DistributedCohort implements Cohort, TopCohort {
             throw new Exception("Unknown stealing strategy: " + stealName);
         }
 
-        myContext = UnitContext.DEFAULT;
+        myContext = UnitWorkerContext.DEFAULT;
 
         // Init communication here...
         pool = new Pool(this, p);
@@ -279,7 +280,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         //   System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
 
-        ActivityRecord ar = queue.steal(sr.context, true);
+        ActivityRecord ar = queue.steal(sr.context);
 
         if (ar != null) { 
 
@@ -418,8 +419,8 @@ public class DistributedCohort implements Cohort, TopCohort {
         send(new CancelEvent(id));
     }
 
-    public boolean deregister(String name, Context scope) {
-        // TODO Auto-generated method stub
+    public boolean deregister(String name, ActivityContext scope) {
+        // TODO DOES THIS MAKE SENSE ?
         return false;
     }
 
@@ -460,12 +461,12 @@ public class DistributedCohort implements Cohort, TopCohort {
         return pool.isMaster();
     }
 
-    public ActivityIdentifier lookup(String name, Context scope) {
+    public ActivityIdentifier lookup(String name, ActivityContext scope) {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public boolean register(String name, ActivityIdentifier id, Context scope) {
+    public boolean register(String name, ActivityIdentifier id, ActivityContext scope) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -499,16 +500,16 @@ public class DistributedCohort implements Cohort, TopCohort {
         enqueue(tmp);
     }
 
-    public synchronized Context getContext() {
+    public synchronized WorkerContext getContext() {
         return myContext;
     }
 
 
-    public void setContext(Context context) throws Exception {
+    public void setContext(WorkerContext context) throws Exception {
         setContext(null, context);
     }
 
-    public synchronized void setContext(CohortIdentifier id, Context context) 
+    public synchronized void setContext(CohortIdentifier id, WorkerContext context) 
     throws Exception {
 
         if (Debug.DEBUG_CONTEXT) { 
@@ -564,7 +565,7 @@ public class DistributedCohort implements Cohort, TopCohort {
                     + System.currentTimeMillis() + " from DIST"); 
         }
 
-        System.out.println("DIST -- LOCAL ENQ: " + id + " " + a.getContext() + " " + a.getRank());
+        System.out.println("DIST -- LOCAL ENQ: " + id + " " + a.getContext());
 
         return id;
     }
@@ -576,7 +577,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     /* =========== TopCohort interface ====================================== */
 
-    public synchronized void contextChanged(CohortIdentifier cid, Context c) {
+    public synchronized void contextChanged(CohortIdentifier cid, WorkerContext c) {
 
         // Sanity check
         if (!cid.equals(subCohort.identifier())) { 
@@ -617,7 +618,7 @@ public class DistributedCohort implements Cohort, TopCohort {
             logger.info("D STEAL REQUEST from child " + sr.source + " with context " + sr.context);
         }
 
-        ActivityRecord ar = queue.steal(sr.context, false);
+        ActivityRecord ar = queue.steal(sr.context);
 
         if (ar != null) { 
 

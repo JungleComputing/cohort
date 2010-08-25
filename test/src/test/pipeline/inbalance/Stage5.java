@@ -4,7 +4,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
 
 public class Stage5 extends Activity {
 
@@ -18,7 +18,7 @@ public class Stage5 extends Activity {
  
     public Stage5(ActivityIdentifier parent, long sleep) { 
         
-        super(new UnitContext("A"));
+        super(new UnitActivityContext("A"));
    
         this.parent = parent;
         this.sleep = sleep;

@@ -4,11 +4,10 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
 
 public class DivideAndConquerSpawnTest extends Activity {
 
@@ -35,7 +34,7 @@ public class DivideAndConquerSpawnTest extends Activity {
     private long start;
     
     public DivideAndConquerSpawnTest(ActivityIdentifier parent, boolean spawn) {
-        super(UnitContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT);
         this.parent = parent;
         this.spawn = spawn;
     }

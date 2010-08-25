@@ -1,11 +1,12 @@
 package ibis.cohort.impl.distributed.single;
 
 import ibis.cohort.Activity;
+import ibis.cohort.ActivityContext;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
+import ibis.cohort.WorkerContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
@@ -78,7 +79,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             new HashMap<CohortIdentifier, LookupRequest>();
         
         
-        Context newContext;
+        WorkerContext newContext;
         
         boolean cancelAll = false;
         
@@ -133,7 +134,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private volatile boolean havePendingRequests = false;
     
-    public SingleThreadedBottomCohort(TopCohort parent, Properties p, Context c) throws Exception {
+    public SingleThreadedBottomCohort(TopCohort parent, Properties p, WorkerContext c) throws Exception {
 
         super();
         
@@ -237,7 +238,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     /* ===================== BottomCohort Interface ==========================*/
     
-    public void setContext(CohortIdentifier id, Context c) throws Exception { 
+    public void setContext(CohortIdentifier id, WorkerContext c) throws Exception { 
 
      //   System.out.println("Setting context of " + id + " to " + c);
         
@@ -248,7 +249,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         postContextChange(c);
     }
 
-    public Context getContext() { 
+    public WorkerContext getContext() { 
         // NOTE: this context may lag behind the value provided in setContext!
         return sequential.getContext();
     }
@@ -316,7 +317,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         return parent.getActivityIdentifierFactory(identifier);
     }
     
-    protected void contextChanged(Context c) { 
+    protected void contextChanged(WorkerContext c) { 
         logger.fixme("UNIMPLEMENTED contextChanged");
     } 
         
@@ -324,19 +325,19 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         return false;
     }
   
-    protected boolean deregister(String name, Context scope) {
+    protected boolean deregister(String name, ActivityContext scope) {
         // TODO Auto-generated method stub
         logger.fixme("UNIMPLEMENTED deregister");
         return false;
     }
 
-    protected ActivityIdentifier lookup(String name, Context scope) {
+    protected ActivityIdentifier lookup(String name, ActivityContext scope) {
         // TODO Auto-generated method stub
         logger.fixme("UNIMPLEMENTED lookup");
         return null;
     }
 
-    protected boolean register(String name, ActivityIdentifier id, Context scope) {
+    protected boolean register(String name, ActivityIdentifier id, ActivityContext scope) {
         // TODO Auto-generated method stub
         logger.fixme("UNIMPLEMENTED register");
         return false;
@@ -393,7 +394,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         signal();
     }
     
-    private void postContextChange(Context c) { 
+    private void postContextChange(WorkerContext c) { 
         synchronized (incoming) { 
             incoming.newContext = c;
         }
@@ -1195,7 +1196,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         return new CohortIdentifier [] { identifier };
     }   
      
-    public void setContext(Context context) {
+    public void setContext(WorkerContext context) {
         
       //  System.out.println("Setting context of ST to " + context);
         

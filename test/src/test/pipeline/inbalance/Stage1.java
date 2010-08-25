@@ -2,7 +2,7 @@ package test.pipeline.inbalance;
 
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.SimpleActivity;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
 
 public class Stage1 extends SimpleActivity {
 
@@ -13,7 +13,7 @@ public class Stage1 extends SimpleActivity {
     
     public Stage1(ActivityIdentifier parent, long sleep, Data data) { 
         
-        super(parent, new UnitContext("A"));
+        super(parent, new UnitActivityContext("A"));
         
         this.sleep = sleep;
         this.data = data;

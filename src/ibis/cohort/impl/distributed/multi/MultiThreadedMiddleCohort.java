@@ -4,9 +4,9 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
-import ibis.cohort.context.OrContext;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.WorkerContext;
+import ibis.cohort.context.OrWorkerContext;
+import ibis.cohort.context.UnitWorkerContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
@@ -27,6 +27,7 @@ import ibis.cohort.impl.distributed.UndeliverableEvent;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.Random;
 
@@ -54,8 +55,8 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     private boolean active = false;
 
-    private Context [] contexts;
-    private Context myContext;
+    private WorkerContext [] contexts;
+    private WorkerContext myContext;
     private boolean myContextChanged = false;
 
    // private ActivityRecordQueue myActivities = new ActivityRecordQueue();
@@ -282,9 +283,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         
          incomingWorkers = new ArrayList<BottomCohort>();
         //     localSteals = new StealState[count];
-        contexts    = new Context[count];
+        contexts    = new WorkerContext[count];
 
-        myContext = UnitContext.DEFAULT;
+        myContext = UnitWorkerContext.DEFAULT;
         myContextChanged = false;
 
         lookup = new LookupThread();
@@ -419,8 +420,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     /* ================= TopCohort interface =================================*/
 
-    public synchronized void contextChanged(CohortIdentifier cid,
-            Context newContext) {
+    public synchronized void contextChanged(CohortIdentifier cid, WorkerContext newContext) {
 
         for (int i=0;i<workerCount;i++) { 
 
@@ -582,7 +582,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                     + sr.context);
         }
 
-        ActivityRecord tmp = myActivities.steal(sr.context, false);
+        ActivityRecord tmp = myActivities.steal(sr.context);
 
         if (tmp != null) { 
 
@@ -668,8 +668,8 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         return tmp.toArray(new CohortIdentifier[tmp.size()]);
     }
 
-    public synchronized void setContext(CohortIdentifier id, Context context) 
-    throws Exception {
+    public synchronized void setContext(CohortIdentifier id, WorkerContext context) 
+    	throws Exception {
 
         if (Debug.DEBUG_CONTEXT) { 
             logger.info("Setting context of " + id + " to " + context);
@@ -684,19 +684,55 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         b.setContext(id, context);
     }
 
-    public synchronized Context getContext() {
+    public synchronized WorkerContext getContext() {
 
         if (!myContextChanged) { 
             return myContext;
         } else { 
                 
-            Context [] tmp = new Context[workerCount];
-                
+            
+        	// We should now combine all contexts of our workers into one
+            HashMap<String, UnitWorkerContext> map = 
+            	new HashMap<String, UnitWorkerContext>();
+            
             for (int i=0;i<workerCount;i++) {
-                tmp[i] = workers[i].getContext();
+
+            	WorkerContext tmp = workers[i].getContext();
+            	
+            	if (tmp.isUnit()) { 
+            		
+            		UnitWorkerContext u = (UnitWorkerContext) tmp;
+            		
+            		String tag = u.uniqueTag();
+            		
+            		if (!map.containsKey(tag)) { 
+            			map.put(tag, u);
+            		}
+            	} else if (tmp.isOr()) { 
+            		OrWorkerContext o = (OrWorkerContext) tmp;
+            		
+            		for (int j=0;j<o.size();j++) { 
+            			UnitWorkerContext u = o.get(i);
+            			
+            			String tag = u.uniqueTag();
+                		
+                		if (!map.containsKey(tag)) { 
+                			map.put(tag, u);
+                		}
+            		}
+            	}
             }
 
-            myContext = OrContext.merge(tmp);
+            if (map.size() == 0) { 
+            	// FIXME should not happen ?
+            	myContext = UnitWorkerContext.DEFAULT;
+            } else if (map.size() == 1) { 
+            	myContext = contexts[1];
+            } else { 
+                UnitWorkerContext [] contexts = map.values().toArray(new UnitWorkerContext[map.size()]);                
+                myContext = new OrWorkerContext(contexts, false); 
+            }
+
             myContextChanged = false;
             return myContext;
         } 
@@ -812,7 +848,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                     + " context " + sr.context);
         }
 
-        ActivityRecord [] tmp = myActivities.steal(sr.context, 10, true);
+        ActivityRecord [] tmp = myActivities.steal(sr.context, 10);
     
         if (tmp != null && tmp.length > 0) { 
 

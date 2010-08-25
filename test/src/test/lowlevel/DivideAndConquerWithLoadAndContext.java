@@ -1,14 +1,15 @@
 package test.lowlevel;
 
 import ibis.cohort.Activity;
+import ibis.cohort.ActivityContext;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
+import ibis.cohort.context.UnitWorkerContext;
 
 public class DivideAndConquerWithLoadAndContext extends Activity {
 
@@ -30,7 +31,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
     private long took = 0;
     
     public DivideAndConquerWithLoadAndContext(ActivityIdentifier parent, 
-            int branch, int depth, int load, Context c) {
+            int branch, int depth, int load, ActivityContext c) {
         super(c);
        
       //  System.out.println("Creating job with Context " + c);
@@ -60,11 +61,11 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
 
             finish();
         } else {
-            Context even = new UnitContext("Even");
-            Context odd = new UnitContext("Odd");
+            ActivityContext even = new UnitActivityContext("Even");
+            ActivityContext odd = new UnitActivityContext("Odd");
             
             for (int i=0;i<branch;i++) { 
-                Context tmp = (i % 2) == 0 ? even : odd;
+                ActivityContext tmp = (i % 2) == 0 ? even : odd;
                 cohort.submit(new DivideAndConquerWithLoadAndContext(
                         identifier(), branch, depth-1, load, tmp));
             }
@@ -124,12 +125,12 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
                 // even
                 System.out.println("Setting context to Even");
                 
-                cohort.setContext(new UnitContext("Even"));
+                cohort.setContext(new UnitWorkerContext("Even"));
             } else { 
                 // odd
                 System.out.println("Setting context to Odd");
                 
-                cohort.setContext(new UnitContext("Odd"));
+                cohort.setContext(new UnitWorkerContext("Odd"));
             }
     
             cohort.activate();
@@ -156,7 +157,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
                 cohort.submit(a);
                 cohort.submit(new DivideAndConquerWithLoadAndContext(
                         a.identifier(), branch, depth, load, 
-                        new UnitContext("Even")));
+                        new UnitActivityContext("Even")));
 
                 long result = ((MessageEvent<Long>)a.waitForEvent()).message;
 

@@ -3,12 +3,11 @@ package test.lowlevel;
 import ibis.cohort.Activity;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
 
 public class DivideAndConquerWithSleep extends Activity {
 
@@ -31,7 +30,7 @@ public class DivideAndConquerWithSleep extends Activity {
 
     public DivideAndConquerWithSleep(ActivityIdentifier parent, int branch, 
             int depth, int load) {
-        super(UnitContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;

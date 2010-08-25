@@ -6,13 +6,14 @@ import java.io.PrintStream;
 import java.util.Properties;
 
 import ibis.cohort.Activity;
+import ibis.cohort.ActivityContext;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.WorkerContext;
+import ibis.cohort.context.UnitWorkerContext;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Log;
@@ -33,21 +34,21 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
     
     private final CohortIdentifier identifier = new CohortIdentifier(0);
     
-    private Context myContext;
+    private WorkerContext myContext;
     
     private BaseCohort sequential;
     
     private PrintStream out; 
     private CohortLogger logger;
         
-    public SingleThreadedTopCohort(Properties p, Context context) {
+    public SingleThreadedTopCohort(Properties p, WorkerContext context) {
         
         super("SingleThreadedCohort CID: 0x0");
         
         System.out.println("Starting SingleThreadedCohort " + identifier);
       
         if (context == null) { 
-            myContext = UnitContext.DEFAULT;
+            myContext = UnitWorkerContext.DEFAULT;
         } else { 
             myContext = context;
         }
@@ -83,7 +84,7 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
         
     }
 
-    public boolean deregister(String name, Context scope) {
+    public boolean deregister(String name, WorkerContext scope) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -93,7 +94,7 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
         
     }
 
-    public Context getContext() {
+    public WorkerContext getContext() {
         // TODO Auto-generated method stub
         return null;
     }
@@ -113,12 +114,12 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
         return false;
     }
 
-    public ActivityIdentifier lookup(String name, Context scope) {
+    public ActivityIdentifier lookup(String name, ActivityContext scope) {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public boolean register(String name, ActivityIdentifier id, Context scope) {
+    public boolean register(String name, ActivityIdentifier id, ActivityContext scope) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -133,12 +134,12 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
         
     }
 
-    public void setContext(Context context) throws Exception {
+    public void setContext(WorkerContext context) throws Exception {
         // TODO Auto-generated method stub
         
     }
 
-    public void setContext(CohortIdentifier id, Context context) throws Exception {
+    public void setContext(CohortIdentifier id, WorkerContext context) throws Exception {
         // TODO Auto-generated method stub
         
     }
@@ -148,7 +149,7 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
         return null;
     }
 
-    public void contextChanged(CohortIdentifier cid, Context newContext) {
+    public void contextChanged(CohortIdentifier cid, WorkerContext newContext) {
         // TODO Auto-generated method stub
         
     }
@@ -205,5 +206,11 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
     public void register(BottomCohort cohort) throws Exception {
         throw new Exception("No registration possible");
     }
+
+	@Override
+	public boolean deregister(String name, ActivityContext scope) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

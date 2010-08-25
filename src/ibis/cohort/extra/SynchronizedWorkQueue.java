@@ -1,6 +1,6 @@
 package ibis.cohort.extra;
 
-import ibis.cohort.Context;
+import ibis.cohort.WorkerContext;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
 public class SynchronizedWorkQueue extends WorkQueue {
@@ -28,8 +28,8 @@ public class SynchronizedWorkQueue extends WorkQueue {
     }
 
     @Override
-    public synchronized ActivityRecord steal(Context c, boolean head) {
-        return queue.steal(c, head);
+    public synchronized ActivityRecord steal(WorkerContext c) {
+        return queue.steal(c);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class SynchronizedWorkQueue extends WorkQueue {
     }
     
     @Override
-    public synchronized ActivityRecord [] steal(Context c, int count, boolean head) {
-        return queue.steal(c, count, head);
+    public synchronized ActivityRecord [] steal(WorkerContext c, int count) {
+        return queue.steal(c, count);
     }
 }

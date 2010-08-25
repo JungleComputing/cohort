@@ -1,6 +1,6 @@
 package ibis.cohort.extra;
 
-import ibis.cohort.Context;
+import ibis.cohort.WorkerContext;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
 public abstract class WorkQueue {
@@ -13,7 +13,7 @@ public abstract class WorkQueue {
     
     public abstract void enqueue(ActivityRecord a);
     public abstract ActivityRecord dequeue(boolean head);
-    public abstract ActivityRecord steal(Context c, boolean head); 
+    public abstract ActivityRecord steal(WorkerContext c); 
     public abstract int size(); 
     
     protected ActivityRecord [] trim(ActivityRecord [] a, int count) { 
@@ -44,12 +44,12 @@ public abstract class WorkQueue {
         return tmp;
     }
     
-    public ActivityRecord [] steal(Context c, int count, boolean head) {
+    public ActivityRecord [] steal(WorkerContext c, int count) {
         
         ActivityRecord [] tmp = new ActivityRecord[count];
         
         for (int i=0;i<count;i++) { 
-            tmp[i] = steal(c, head);
+            tmp[i] = steal(c);
             
             if (tmp[i] == null) { 
                 return trim(tmp, i);

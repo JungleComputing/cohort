@@ -2,7 +2,7 @@ package test.pipeline.simple;
 
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.SimpleActivity;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
 
 public class Pipeline extends SimpleActivity {
 
@@ -16,7 +16,7 @@ public class Pipeline extends SimpleActivity {
     
     public Pipeline(ActivityIdentifier parent, int index, int current, int last, long sleep, Object data) { 
         
-        super(parent, new UnitContext("c" + current));
+        super(parent, new UnitActivityContext("c" + current));
         
         this.index = index;
         this.current = current;

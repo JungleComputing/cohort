@@ -1,6 +1,6 @@
 package ibis.cohort;
 
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.UnitActivityContext;
 
 public class MultiEventCollector extends Activity {
 
@@ -9,14 +9,14 @@ public class MultiEventCollector extends Activity {
     private final Event [] events;
     private int count;
     
-    public MultiEventCollector(Context c, int events) {
+    public MultiEventCollector(ActivityContext c, int events) {
         super(c, true);
         this.events = new Event[events];
     }
     
     
     public MultiEventCollector(int events) {
-        this(UnitContext.DEFAULT, events);
+        this(UnitActivityContext.DEFAULT, events);
     }
     
     @Override

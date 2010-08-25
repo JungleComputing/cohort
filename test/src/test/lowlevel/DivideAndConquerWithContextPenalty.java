@@ -1,15 +1,17 @@
 package test.lowlevel;
 
 import ibis.cohort.Activity;
+import ibis.cohort.ActivityContext;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.MessageEvent;
 import ibis.cohort.SingleEventCollector;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.WorkerContext;
+import ibis.cohort.context.UnitActivityContext;
+import ibis.cohort.context.UnitWorkerContext;
 
 public class DivideAndConquerWithContextPenalty extends Activity {
 
@@ -32,7 +34,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
     private long took = 0;
     
     public DivideAndConquerWithContextPenalty(ActivityIdentifier parent, 
-            int branch, int depth, int sleep, int penalty, Context c) {
+            int branch, int depth, int sleep, int penalty, ActivityContext c) {
       
         super(c);
        
@@ -52,15 +54,15 @@ public class DivideAndConquerWithContextPenalty extends Activity {
 
             long time = sleep;
             
-            Context machineContext = getCohort().getContext();
-            Context activitycontext = getContext();
+            WorkerContext machineContext = getCohort().getContext();
+            ActivityContext activitycontext = getContext();
             
-            if (machineContext == null || machineContext.equals(UnitContext.DEFAULT)) { 
+            if (machineContext == null || machineContext.equals(UnitWorkerContext.DEFAULT)) { 
             
                 // Check if context stored in LocalData is same as activity 
                 // context. If not, add penalty to time.
           
-                machineContext = (Context) LocalData.getLocalData().get("context");
+                machineContext = (WorkerContext) LocalData.getLocalData().get("context");
                 
                 if (!activitycontext.equals(machineContext)) { 
                     time = time * penalty;
@@ -75,11 +77,11 @@ public class DivideAndConquerWithContextPenalty extends Activity {
             
             finish();
         } else {
-            Context even = new UnitContext("Even");
-            Context odd = new UnitContext("Odd");
+            ActivityContext even = new UnitActivityContext("Even");
+            ActivityContext odd = new UnitActivityContext("Odd");
             
             for (int i=0;i<branch;i++) { 
-                Context tmp = (i % 2) == 0 ? even : odd;
+                ActivityContext tmp = (i % 2) == 0 ? even : odd;
                 cohort.submit(new DivideAndConquerWithContextPenalty(
                         identifier(), branch, depth-1, sleep, penalty, tmp));
             }
@@ -162,14 +164,14 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                     
                     CohortIdentifier [] leafs = cohort.getLeafIDs();
                     
-                    UnitContext c = new UnitContext("Even");
+                    UnitWorkerContext c = new UnitWorkerContext("Even");
                     
                     for (CohortIdentifier id : leafs) { 
                         cohort.setContext(id, c);
                     }
                 } else { 
                     System.out.println("LocalData context set to Even");
-                    LocalData.getLocalData().put("context", new UnitContext("Even"));
+                    LocalData.getLocalData().put("context", new UnitWorkerContext("Even"));
                 }
             } else { 
                 // odd
@@ -180,7 +182,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                     
                     CohortIdentifier [] leafs = cohort.getLeafIDs();
                     
-                    UnitContext c = new UnitContext("Odd");
+                    UnitWorkerContext c = new UnitWorkerContext("Odd");
                     
                     for (CohortIdentifier id : leafs) { 
                         cohort.setContext(id, c);
@@ -188,7 +190,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                 
                 } else { 
                     System.out.println("LocalData context set to Odd");
-                    LocalData.getLocalData().put("context", new UnitContext("Odd"));
+                    LocalData.getLocalData().put("context", new UnitWorkerContext("Odd"));
                 }   
             } 
             
@@ -218,7 +220,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                 cohort.submit(a);
                 cohort.submit(new DivideAndConquerWithContextPenalty(
                         a.identifier(), branch, depth, sleep, penalty,
-                        new UnitContext("Even")));
+                        new UnitActivityContext("Even")));
 
                 long result = ((MessageEvent<Long>)a.waitForEvent()).message;
 

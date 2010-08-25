@@ -3,7 +3,7 @@ package ibis.cohort.impl.distributed;
 import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
+import ibis.cohort.WorkerContext;
 
 public interface BottomCohort {
 
@@ -15,8 +15,8 @@ public interface BottomCohort {
     /* synchronous methods - immediately produce a result or effect */ 
    
     CohortIdentifier [] getLeafIDs();
-    void setContext(CohortIdentifier id, Context context) throws Exception;
-    Context getContext();
+    void setContext(CohortIdentifier id, WorkerContext context) throws Exception;
+    WorkerContext getContext();
     CohortIdentifier identifier();
     boolean activate();
     void done();

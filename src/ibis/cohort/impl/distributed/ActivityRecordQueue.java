@@ -1,38 +1,35 @@
 package ibis.cohort.impl.distributed;
 
+import ibis.cohort.ActivityContext;
 import ibis.cohort.ActivityIdentifier;
-import ibis.cohort.Context;
-import ibis.cohort.context.AndContext;
-import ibis.cohort.context.OrContext;
+import ibis.cohort.WorkerContext;
+import ibis.cohort.context.OrActivityContext;
+import ibis.cohort.context.OrWorkerContext;
 
 import java.util.HashMap;
 import java.util.Iterator;
 
 public class ActivityRecordQueue {
     
+	// UNUSED ?
+	/*
     private final HashMap<ActivityIdentifier, ActivityRecord> map = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
     
-    private final HashMap<Context, HashMap<ActivityIdentifier, ActivityRecord>> 
-        contextMap = new HashMap<Context, HashMap<ActivityIdentifier, ActivityRecord>>();
+    private final HashMap<ActivityContext, HashMap<ActivityIdentifier, ActivityRecord>> 
+        contextMap = new HashMap<ActivityContext, HashMap<ActivityIdentifier, ActivityRecord>>();
     
     public ActivityRecordQueue() { 
     }
     
-    /*
-    public synchronized boolean contains(ActivityIdentifier id) { 
-        return map.containsKey(id);
-    }
-     */
-    
-    private Context [] flatten(Context c) { 
+    private ActivityContext [] flatten(ActivityContext c) { 
         
         if (c == null) { 
-            return new Context[0];
+            return new ActivityContext[0];
         } else if (c.isOr()) { 
-            return ((OrContext) c).getContexts();
+            return ((OrActivityContext) c).getContexts();
         } else { 
-            return new Context [] { c };
+            return new ActivityContext [] { c };
         }
      }
     
@@ -43,9 +40,9 @@ public class ActivityRecordQueue {
         
         if (tmp != null) { 
             
-            Context [] c = flatten(tmp.activity.getContext());
+            ActivityContext [] c = flatten(tmp.activity.getContext());
             
-            for (Context t : c) { 
+            for (ActivityContext t : c) { 
                 HashMap<ActivityIdentifier, ActivityRecord> m = contextMap.get(t);
                 m.remove(id);
             }
@@ -75,9 +72,9 @@ public class ActivityRecordQueue {
         
         map.put(a.identifier(), a);
    
-        Context [] c = flatten(a.activity.getContext());
+        ActivityContext [] c = flatten(a.activity.getContext());
         
-        for (Context t : c) { 
+        for (ActivityContext t : c) { 
             HashMap<ActivityIdentifier, ActivityRecord> m = contextMap.get(t);
                
             if (m == null) { 
@@ -93,11 +90,12 @@ public class ActivityRecordQueue {
         return map.get(id);
     }
     
-    private ActivityIdentifier selectForSteal(Context [] as) { 
+    
+    private ActivityIdentifier selectForSteal(WorkerContext [] wc) { 
         
-        for (Context a : as) { 
+        for (WorkerContext w : wc) { 
             
-            HashMap<ActivityIdentifier, ActivityRecord> m = contextMap.get(a);
+            HashMap<ActivityIdentifier, ActivityRecord> m = contextMap.get(w);
     
             if (m != null && m.size() > 0) { 
                 // Man this is expensive!
@@ -109,33 +107,20 @@ public class ActivityRecordQueue {
         return null;
     } 
         
-    private ActivityIdentifier sortAndSelectForSteal(AndContext [] as) { 
-        
-        if (as.length > 1) { 
-            // TODO: sort such that the longest and is tested first.
-        }
-        
-        return selectForSteal(as);
-    }  
-    
-    public synchronized ActivityRecord steal(Context c) { 
+    public synchronized ActivityRecord steal(WorkerContext c) { 
        
         ActivityIdentifier id = null;
         
         if (c.isOr()) { 
             
-            OrContext s = (OrContext) c;
+            OrWorkerContext s = (OrWorkerContext) c;
            
-            if (s.countAndContexts() > 0) { 
-                id = sortAndSelectForSteal(s.andContexts());
-            }  
-         
-            if (id == null && s.countUnitContexts() > 0) { 
-                id = selectForSteal(s.unitContexts());
+            if (c.size() > 0) { 
+                id = selectForSteal(s.getContexts());
             }
        
         } else { 
-            id = selectForSteal(new Context[] { c });
+            id = selectForSteal(new WorkerContext[] { c });
         } 
     
         if (id == null) { 
@@ -144,6 +129,6 @@ public class ActivityRecordQueue {
         } 
         
         return remove(id);
-    }
+    }*/
     
 }

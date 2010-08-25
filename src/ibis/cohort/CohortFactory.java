@@ -1,8 +1,7 @@
 package ibis.cohort;
 
-import ibis.cohort.context.AndContext;
-import ibis.cohort.context.OrContext;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.context.OrWorkerContext;
+import ibis.cohort.context.UnitWorkerContext;
 import ibis.cohort.impl.distributed.BottomCohort;
 import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.dist.DistributedCohort;
@@ -23,7 +22,7 @@ public class CohortFactory {
         return createCohort(System.getProperties());                
     }
     
-    private static TopCohort createTop(String name, Properties p, Context context) throws Exception { 
+    private static TopCohort createTop(String name, Properties p, WorkerContext context) throws Exception { 
         
         if (name == null) { 
             // fall through                
@@ -39,50 +38,25 @@ public class CohortFactory {
                     + "\" selected");
     }
     
-    private static Context parseOr(String c) {
+    private static WorkerContext parseOr(String c) {
         
         StringTokenizer tok = new StringTokenizer(c, "^");
         
-        ArrayList<UnitContext> unit = new ArrayList<UnitContext>();
-        ArrayList<AndContext> and = new ArrayList<AndContext>();
+        ArrayList<UnitWorkerContext> unit = new ArrayList<UnitWorkerContext>();
           
         while (tok.hasMoreTokens()) { 
-            
-            String t = tok.nextToken();
-            
-            if (t.contains("*")) {
-                and.add(parseAnd(t));
-            } else {
-                unit.add(new UnitContext(t));
-            }
+            unit.add(new UnitWorkerContext(tok.nextToken()));
         }
         
-        UnitContext [] u = unit.toArray(new UnitContext[unit.size()]);
-        AndContext [] a = and.toArray(new AndContext[and.size()]);
+        UnitWorkerContext [] u = unit.toArray(new UnitWorkerContext[unit.size()]);
         
-        return new OrContext(u, a);
+        return new OrWorkerContext(u, true);
     }
-    
-    private static AndContext parseAnd(String c) {
         
-        ArrayList<UnitContext> unit = new ArrayList<UnitContext>();
-        
-        StringTokenizer tok = new StringTokenizer(c, "*");
-        
-        while (tok.hasMoreTokens()) { 
-            unit.add(new UnitContext(tok.nextToken()));
-        }
-        
-        UnitContext [] u = unit.toArray(new UnitContext[unit.size()]);
-
-        return new AndContext(u);
-    }
-    
-    
     private static BottomCohort createBottomCohort(String name, 
             TopCohort parent, Properties p) throws Exception {
 
-        Context context = UnitContext.DEFAULT;
+        WorkerContext context = UnitWorkerContext.DEFAULT;
         
         if (name.contains(":")) { 
             String c = name.substring(name.indexOf(":")+1);
@@ -90,17 +64,15 @@ public class CohortFactory {
    
             if (c.contains("^")) { 
                 context = parseOr(c);
-            } else if (c.contains("*")) { 
-                context = parseAnd(c);
             } else { 
-                context = new UnitContext(c);
+                context = new UnitWorkerContext(c);
             }
         }
         
         if (name.equals("st") || name.equals("singlethreaded")) { 
             return new SingleThreadedBottomCohort(parent, p, context);                
         } else if (name.equals("mt") || name.equals("multithreaded")) { 
-            if (context != UnitContext.DEFAULT) { 
+            if (context != UnitWorkerContext.DEFAULT) { 
                 throw new Exception("Setting context for multithreaded cohort has no effect");
             }
             return new MultiThreadedMiddleCohort(parent, p);                
@@ -118,7 +90,7 @@ public class CohortFactory {
         int tokens = st.countTokens();
         
         String name = st.nextToken();
-        Context context = UnitContext.DEFAULT;
+        WorkerContext context = UnitWorkerContext.DEFAULT;
         
         if (name.contains(":")) { 
             String c = name.substring(name.indexOf(":")+1);

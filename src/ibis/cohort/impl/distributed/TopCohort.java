@@ -2,7 +2,7 @@ package ibis.cohort.impl.distributed;
 
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
+import ibis.cohort.WorkerContext;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
@@ -13,7 +13,7 @@ public interface TopCohort {
      */
     
     /* synchronous methods - immediately produce a result or effect */ 
-    void contextChanged(CohortIdentifier cid, Context newContext);
+    void contextChanged(CohortIdentifier cid, WorkerContext newContext);
     
     ActivityIdentifierFactory getActivityIdentifierFactory(CohortIdentifier cid);
     CohortIdentifierFactory getCohortIdentifierFactory(CohortIdentifier cid);

@@ -1,16 +1,17 @@
 package ibis.cohort.impl.distributed.multi;
 
 import ibis.cohort.Activity;
+import ibis.cohort.ActivityContext;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CancelEvent;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
-import ibis.cohort.context.OrContext;
-import ibis.cohort.context.UnitContext;
+import ibis.cohort.WorkerContext;
+import ibis.cohort.context.OrWorkerContext;
+import ibis.cohort.context.UnitWorkerContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.CohortIdentifierFactory;
@@ -29,6 +30,7 @@ import ibis.cohort.impl.distributed.UndeliverableEvent;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.Random;
 
@@ -52,8 +54,8 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
 
     private boolean active = false;
 
-    private Context [] contexts;
-    private Context myContext;
+    private WorkerContext [] contexts;
+    private WorkerContext myContext;
     private boolean myContextChanged = false;
 
     private CircularBuffer myActivities = new CircularBuffer(16);
@@ -272,7 +274,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         //     localSteals = new StealState[count];
         // contexts    = new Context[count];
 
-        myContext = UnitContext.DEFAULT;
+        myContext = UnitWorkerContext.DEFAULT;
         myContextChanged = false;
 
         logger.warn("Starting MultiThreadedTopCohort " + identifier + " / " + myContext);
@@ -322,7 +324,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         lookup.add(m);
     }
 
-    private ActivityRecord getStoredActivity(Context c) {
+    private ActivityRecord getStoredActivity(WorkerContext c) {
 
         // TODO: improve performance ? 
 
@@ -335,7 +337,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             if (myActivities.size() > 0) { 
                 for (int i=0;i<myActivities.size();i++) { 
                     ActivityRecord r = (ActivityRecord) myActivities.get(i); 
-                    Context tmp = r.activity.getContext();
+                    ActivityContext tmp = r.activity.getContext();
 
                     if (tmp.satisfiedBy(c)) { 
                         myActivities.remove(i);
@@ -612,7 +614,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
     /* ================= TopCohort interface =================================*/
 
     public synchronized void contextChanged(CohortIdentifier cid,
-            Context newContext) {
+            WorkerContext newContext) {
 
         for (int i=0;i<workerCount;i++) { 
 
@@ -875,22 +877,57 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
         enqueueMessage(m);
     }
 
-    public synchronized Context getContext() {
+    public synchronized WorkerContext getContext() {
 
         if (!myContextChanged) { 
             return myContext;
-        } else { 
-            
-            Context [] tmp = new Context[workerCount];
-            
-            for (int i=0;i<workerCount;i++) {
-                tmp[i] = workers[i].getContext();
-            }
+        }
+        
+        
+        // We should now combine all contexts of our workers into one
+        HashMap<String, UnitWorkerContext> map = 
+        	new HashMap<String, UnitWorkerContext>();
 
-            myContext = OrContext.merge(tmp);
-            myContextChanged = false;
-            return myContext;
-        } 
+        for (int i=0;i<workerCount;i++) {
+
+        	WorkerContext tmp = workers[i].getContext();
+
+        	if (tmp.isUnit()) { 
+
+        		UnitWorkerContext u = (UnitWorkerContext) tmp;
+
+        		String tag = u.uniqueTag();
+
+        		if (!map.containsKey(tag)) { 
+        			map.put(tag, u);
+        		}
+        	} else if (tmp.isOr()) { 
+        		OrWorkerContext o = (OrWorkerContext) tmp;
+
+        		for (int j=0;j<o.size();j++) { 
+        			UnitWorkerContext u = o.get(i);
+
+        			String tag = u.uniqueTag();
+
+        			if (!map.containsKey(tag)) { 
+        				map.put(tag, u);
+        			}
+        		}
+        	}
+        }
+
+        if (map.size() == 0) { 
+        	// FIXME should not happen ?
+        			myContext = UnitWorkerContext.DEFAULT;
+        } else if (map.size() == 1) { 
+        	myContext = contexts[1];
+        } else { 
+        	UnitWorkerContext [] contexts = map.values().toArray(new UnitWorkerContext[map.size()]);                
+        	myContext = new OrWorkerContext(contexts, false); 
+        }
+
+        myContextChanged = false;
+        return myContext;
     }
 
     public Cohort[] getSubCohorts() {
@@ -909,7 +946,7 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
             workerCount = incomingWorkers.size();
             workers = incomingWorkers.toArray(new BottomCohort[workerCount]);
 
-            contexts = new Context[workerCount];
+            contexts = new WorkerContext[workerCount];
 
             for (int i=0;i<workerCount;i++) { 
                 contexts[i] = workers[i].getContext();
@@ -933,26 +970,26 @@ public class MultiThreadedTopCohort implements Cohort, TopCohort {
     }
 
 
-    public boolean deregister(String name, Context scope) {
+    public boolean deregister(String name, ActivityContext scope) {
         // TODO Auto-generated method stub
         return false;
     }
 
-    public ActivityIdentifier lookup(String name, Context scope) {
+    public ActivityIdentifier lookup(String name, ActivityContext scope) {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public boolean register(String name, ActivityIdentifier id, Context scope) {
+    public boolean register(String name, ActivityIdentifier id, ActivityContext scope) {
         // TODO Auto-generated method stub
         return false;
     }
 
-    public void setContext(Context context) throws Exception {
+    public void setContext(WorkerContext context) throws Exception {
         throw new Exception("Cannot set context of this Cohort!");
     }
 
-    public synchronized void setContext(CohortIdentifier id, Context context) 
+    public synchronized void setContext(CohortIdentifier id, WorkerContext context) 
     throws Exception {
 
         BottomCohort b = getWorker(id);

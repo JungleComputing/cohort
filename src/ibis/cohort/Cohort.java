@@ -15,19 +15,18 @@ public interface Cohort {
 
     public void send(Event e);    
     
-    public boolean register(String name, ActivityIdentifier id, Context scope);
+    public boolean register(String name, ActivityIdentifier id, ActivityContext scope);
 
-    public ActivityIdentifier lookup(String name, Context scope);
+    public ActivityIdentifier lookup(String name,  ActivityContext scope);
     
-    public boolean deregister(String name, Context scope);
-
+    public boolean deregister(String name,  ActivityContext scope);
     
     public void done();
     
-    public Context getContext();
+    public WorkerContext getContext();
     
-    public void setContext(Context context) throws Exception;
-    public void setContext(CohortIdentifier id, Context context) throws Exception;
+    public void setContext(WorkerContext context) throws Exception;
+    public void setContext(CohortIdentifier id, WorkerContext context) throws Exception;
     
   //  public void addContext(Context ... contexts);
     

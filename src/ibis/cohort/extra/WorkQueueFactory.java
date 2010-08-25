@@ -11,13 +11,7 @@ public class WorkQueueFactory {
         WorkQueue result = null;
         
         if (type.equals("smartsorted")) { 
-            result = new SmartSortedWorkQueue(id, new ActivitySizeComparator());
-        } else if (type.equals("smart")) { 
-            result = new SmartWorkQueue(id);
-        } else if (type.equals("simple")) { 
-            result = new SimpleWorkQueue(id);
-        } else if (type.equals("optsimple")) { 
-            result = new OptimizedSimpleWorkQueue(id);
+            result = new SmartSortedWorkQueue(id);
         } else {
             throw new Exception("Unknown workqueue type: " + type);
         }

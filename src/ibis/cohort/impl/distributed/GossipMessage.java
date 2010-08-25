@@ -3,7 +3,6 @@ package ibis.cohort.impl.distributed;
 import java.io.Serializable;
 
 import ibis.cohort.CohortIdentifier;
-import ibis.cohort.Context;
 
 public class GossipMessage extends Message {
 

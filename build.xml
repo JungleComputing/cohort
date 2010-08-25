@@ -1,6 +1,6 @@
 <project name="Cohort" default="build" basedir=".">
 
-	<property name="version" value="0.4.0" />
+	<property name="version" value="0.5.0" />
 	<property name="jar" value="cohort-${version}.jar" />
 	<property name="zip" value="cohort-${version}.zip" />
 	<property name="src-zip" value="cohort-${version}-src.zip" />
@@ -24,7 +24,8 @@
 		<mkdir dir="${distdir}" />
 		<mkdir dir="${builddir}" />
 
-		<javac destdir="${builddir}" srcdir="${srcdir}" target="1.6" debug="true" includes="**/*.java" classpathref="default.classpath" />
+		<javac destdir="${builddir}" srcdir="${srcdir}" target="1.6" debug="true" 
+                                        includeantruntime="false" includes="**/*.java" classpathref="default.classpath" />
 
 		<jar jarfile="${distdir}/${jar}" basedir="${builddir}" includes="**">
 			<manifest>
