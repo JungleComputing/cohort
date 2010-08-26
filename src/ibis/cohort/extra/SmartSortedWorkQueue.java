@@ -68,7 +68,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
         SortedList tmp = unit.get(c.name);
 
         if (tmp == null) { 
-        	System.out.println(id + "   GetUnit " + c.name + " empty! " + unit.size() + " " + unit.keySet());
+        //	System.out.println(id + "   GetUnit " + c.name + " empty! " + unit.size() + " " + unit.keySet());
             return null;
         }
 
@@ -90,7 +90,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
         	break;
         }
         
-        System.out.println(id + "   GetUnit " + c.name + " succeeded!");
+       // System.out.println(id + "   GetUnit " + c.name + " succeeded!");
         
         if (tmp.size() == 0) { 
             unit.remove(c.name);
@@ -147,11 +147,11 @@ public class SmartSortedWorkQueue extends WorkQueue {
         SortedList tmp = or.get(c.name);
 
         if (tmp == null) {
-        	System.out.println(id + "   GetOR empty!");            		
+        //	System.out.println(id + "   GetOR empty!");            		
             return null;
         }
 
-    	System.out.println(id + "   GetOR NOT empty!");            		
+    //	System.out.println(id + "   GetOR NOT empty!");            		
         
         ActivityRecord a = null;
         
@@ -219,7 +219,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
     private void enqueueUnit(UnitActivityContext c, ActivityRecord a) {
 
-    	System.out.println(id + "    ENQUEUE UNIT: " + c);
+    	//System.out.println(id + "    ENQUEUE UNIT: " + c);
     	
         SortedList tmp = unit.get(c.name);
 
@@ -234,7 +234,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
     private void enqueueOr(OrActivityContext c, ActivityRecord a) {
 
-    	System.out.println(id + "    ENQUEUE OR: " + c);
+    	//System.out.println(id + "    ENQUEUE OR: " + c);
     	
         for (int i=0;i<c.size();i++) { 
             
@@ -249,7 +249,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
             tmp.insert(a, uc.rank);
             
-            System.out.println(id + "    ENQUEUE " + uc.name);
+       //     System.out.println(id + "    ENQUEUE " + uc.name);
         }
 
         size++;
@@ -261,7 +261,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
     	ActivityContext c = a.activity.getContext();
 
-    	System.out.println(id + "   1 ENQUEUE " + c);
+    //	System.out.println(id + "   1 ENQUEUE " + c);
     	
         if (c.isUnit()) {
             enqueueUnit((UnitActivityContext) c, a);
@@ -279,7 +279,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
     @Override
     public ActivityRecord steal(WorkerContext c) {
 
-    	System.out.println(id + "   STEAL: " + c);
+    	//System.out.println(id + "   STEAL: " + c);
     	
     	if (c.isUnit()) { 
 
@@ -296,7 +296,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         if (c.isOr()) { 
 
-        	System.out.println(id + "  STEAL is OR");
+        //	System.out.println(id + "  STEAL is OR");
         	
         	OrWorkerContext o = (OrWorkerContext) c;
         	
@@ -304,7 +304,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
             	
             	UnitWorkerContext ctx = o.get(i);
 
-            	System.out.println(id + "   STEAL attempt from unit with " + ctx);            		
+          //  	System.out.println(id + "   STEAL attempt from unit with " + ctx);            		
             	
             	ActivityRecord a = getUnit(ctx); 
 
@@ -312,7 +312,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
             		return a;
             	} 
 
-            	System.out.println(id + "   STEAL attempt from or with " + ctx);            		
+           // 	System.out.println(id + "   STEAL attempt from or with " + ctx);            		
             	
             	a = getOr(ctx);
 
