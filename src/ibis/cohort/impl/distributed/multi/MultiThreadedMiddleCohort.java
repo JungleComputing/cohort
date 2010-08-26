@@ -546,9 +546,20 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             // Should never happen ?
             if (!m.isEmpty()) { 
                 logger.warning("Saving work before dropping StealReply");
+                
+                ActivityRecord [] ar = m.getWork();
+                
+                // Sanity check
+                for (int i=0;i<ar.length;i++) { 
+                	if (ar[i].isRestrictedToLocal()) { 
+                		System.out.println("INTERNAL ERROR: Saving RESTRICTED work to queue!");
+                   		logger.warn("INTERNAL ERROR: Saving RESTRICTED work to queue!");
+                   }
+                }
+                
                 queue.enqueue(m.getWork());
             } else { 
-                logger.warning("Dropping empty StealReply");            
+                logger.warn("Dropping empty StealReply");            
             }
         }
     }
@@ -871,7 +882,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (tmp != null && tmp.length > 0) { 
 
             if (Debug.DEBUG_STEAL) { 
-                logger.info("M SUCCESFULL REMOTE STEAL REQUEST from child " + sr.source 
+                logger.info("M SUCCESFUL REMOTE STEAL REQUEST from child " + sr.source 
                         + " context " + sr.context);
             }
             parent.handleStealReply(new StealReply(identifier, sr.source, tmp));

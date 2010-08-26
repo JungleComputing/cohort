@@ -10,7 +10,6 @@ import ibis.cohort.WorkerContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
-import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.impl.distributed.ActivityRecord;
 import ibis.cohort.impl.distributed.ApplicationMessage;
 import ibis.cohort.impl.distributed.BottomCohort;
