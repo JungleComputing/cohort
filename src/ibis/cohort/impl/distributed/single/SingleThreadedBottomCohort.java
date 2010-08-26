@@ -403,13 +403,17 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }
     
     private void postLookupRequest(LookupRequest s) {
+        
+        System.out.println("Received lookup request for " + s.missing 
+                + " from " + s.source); 
+        
         synchronized (incoming) { 
 
             LookupRequest tmp = incoming.lookupRequests.get(s.source);
             
             if (tmp != null) { 
-                logger.warn("FIXME: overriding lookup request! " + s.source 
-                        + " " + s.missing);
+                logger.warn("FIXME: overriding lookup request! Source " 
+                        + s.source + " lookup for " + s.missing);
             }
             
             incoming.lookupRequests.put(s.source, s);

@@ -41,14 +41,14 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 //  determineRemoteStealPolicy(REMOTE_STEAL_RANDOM);
 
     private static boolean PUSHDOWN_SUBMITS = false;
-    
+
     private final TopCohort parent;
 
     private ArrayList<BottomCohort> incomingWorkers;
 
     private BottomCohort [] workers;
     private int workerCount;
-    
+
     private final CohortIdentifier identifier;
 
     private final Random random = new Random();
@@ -59,16 +59,17 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     private WorkerContext myContext;
     private boolean myContextChanged = false;
 
-   // private ActivityRecordQueue myActivities = new ActivityRecordQueue();
+    // private ActivityRecordQueue myActivities = new ActivityRecordQueue();
 
-    private final WorkQueue myActivities;
+    private final WorkQueue queue;
+    private final WorkQueue restrictedQueue;
     
     private LocationCache locationCache = new LocationCache();
 
     private final CohortIdentifierFactory cidFactory;
 
     private ActivityIdentifierFactory aidFactory;
-    
+
     private int nextSubmit = 0;
 
     private final LookupThread lookup;
@@ -128,9 +129,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                     (ApplicationMessage) oldMessages.removeFirst();
 
                 if (!attemptDelivery(m)) { 
-                    
+
                     System.out.println("Trying to deliver to " + m.targetActivity());
-                    
+
                     triggerLookup(m.targetActivity());
                     oldMessages.insertLast(m);
                 }
@@ -162,7 +163,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             } catch (InterruptedException e) {
                 // ignored
             }                
-            
+
             return done;
         }
 
@@ -173,7 +174,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         public void run() { 
 
             boolean done = false;
-            
+
             while (!done) {
                 int oldM = processOldMessages();                    
                 int newM = addNewMessages();
@@ -184,7 +185,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                                 + oldMessages.size());
                     }
                 }
-            
+
                 done = waitForTimeout();
             }
 
@@ -256,13 +257,13 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     public MultiThreadedMiddleCohort(TopCohort parent, Properties p) throws Exception {
 
         int count = 0;
-        
+
         this.parent = parent;
 
         cidFactory = parent.getCohortIdentifierFactory(null);
         identifier = cidFactory.generateCohortIdentifier();
         aidFactory = getActivityIdentifierFactory(identifier);        
-        
+
         String tmp = p.getProperty("ibis.cohort.submit.pushdown");
 
         if (tmp != null) {
@@ -274,14 +275,15 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                         "ibis.cohort.submits.pushdown: " + tmp);
             }
         }
-        
+
         tmp = p.getProperty("ibis.cohort.workqueue");
 
-        myActivities = WorkQueueFactory.createQueue(tmp, true, "M(" + identifier + ")");
+        queue = WorkQueueFactory.createQueue(tmp, true, "M(" + identifier + ")");
+        restrictedQueue = WorkQueueFactory.createQueue(tmp, true, "M(" + identifier + "-RESTRICTED)");
         
         this.logger = CohortLogger.getLogger(MultiThreadedMiddleCohort.class, identifier);
-        
-         incomingWorkers = new ArrayList<BottomCohort>();
+
+        incomingWorkers = new ArrayList<BottomCohort>();
         //     localSteals = new StealState[count];
         contexts    = new WorkerContext[count];
 
@@ -351,7 +353,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     private void triggerLookup(ActivityIdentifier id) {
 
         System.out.println("Sending lookuprequest for " + id);
-        
+
         // Send a lookup request to parent and all children, regardless of 
         // whether anything is cached... 
         LookupRequest lr = new LookupRequest(identifier, id);
@@ -371,9 +373,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     }
 
     private void enqueueMessage(ApplicationMessage m) { 
-        
+
         System.out.println("Queued message for" + m.targetActivity() + " from " + m.source);
-        
+
         triggerLookup(m.targetActivity());
         lookup.add(m);
     }
@@ -435,7 +437,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     }
 
     public synchronized ActivityIdentifierFactory 
-            getActivityIdentifierFactory(CohortIdentifier cid) {
+    getActivityIdentifierFactory(CohortIdentifier cid) {
         return parent.getActivityIdentifierFactory(cid);
     }
 
@@ -524,27 +526,27 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     public void handleStealReply(StealReply m) { 
 
         logger.warn("MT handling STEAL REPLY " + m.isTargetSet() + " " + m.isEmpty());
-       
+
         if (m.isTargetSet()) { 
 
             BottomCohort b = getWorker(m.target);
 
             if (b != null) { 
-                
+
                 logger.warn("MT handling STEAL REPLY target is local! " + m.target);
-                
+
                 b.deliverStealReply(m);
                 return;
             }
 
             logger.warn("MT handling STEAL REPLY target is remote! " + m.target);
-            
+
             parent.handleStealReply(m);
         } else {
             // Should never happen ?
             if (!m.isEmpty()) { 
                 logger.warning("Saving work before dropping StealReply");
-                myActivities.enqueue(m.getWork());
+                queue.enqueue(m.getWork());
             } else { 
                 logger.warning("Dropping empty StealReply");            
             }
@@ -575,14 +577,27 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
-      //  System.out.println("MT STEAL");
-        
+        //  System.out.println("MT STEAL");
+
         if (Debug.DEBUG_STEAL) { 
             logger.info("M STEAL REQUEST from child " + sr.source + " with context " 
                     + sr.context);
         }
 
-        ActivityRecord tmp = myActivities.steal(sr.context);
+        // Try the restricted queue first 
+        ActivityRecord tmp = restrictedQueue.steal(sr.context);
+
+        if (tmp != null) { 
+
+            if (Debug.DEBUG_STEAL) { 
+                logger.info("M STEAL REPLY (LOCAL-RESTRICTED) " + tmp.identifier() 
+                        + " for child " + sr.source);
+            }
+            return tmp;
+        }
+        
+        // Try the normal queue first 
+        tmp = queue.steal(sr.context);
 
         if (tmp != null) { 
 
@@ -626,7 +641,12 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     }
 
     public void handleWrongContext(ActivityRecord ar) {
-        myActivities.enqueue(ar);
+        
+        if (ar.isRestrictedToLocal()) { 
+            restrictedQueue.enqueue(ar);
+        } else { 
+            queue.enqueue(ar);
+        }
     }
 
     public CohortIdentifierFactory getCohortIdentifierFactory(
@@ -638,13 +658,13 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
         if (active) { 
             throw new Exception("Cannot register new BottomCohort while " +
-                        "TopCohort is active!");
+            "TopCohort is active!");
         }
-        
+
         incomingWorkers.add(cohort);
     }
 
-    
+
     /* ================= End of TopCohort interface ==========================*/
 
 
@@ -669,7 +689,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     }
 
     public synchronized void setContext(CohortIdentifier id, WorkerContext context) 
-    	throws Exception {
+    throws Exception {
 
         if (Debug.DEBUG_CONTEXT) { 
             logger.info("Setting context of " + id + " to " + context);
@@ -689,53 +709,53 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (!myContextChanged) { 
             return myContext;
         } 
- 
+
         // We should now combine all contexts of our workers into one
         HashMap<String, UnitWorkerContext> map = 
-        	new HashMap<String, UnitWorkerContext>();
+            new HashMap<String, UnitWorkerContext>();
 
         for (int i=0;i<workerCount;i++) {
 
-        	WorkerContext tmp = workers[i].getContext();
+            WorkerContext tmp = workers[i].getContext();
 
-        	if (tmp.isUnit()) { 
+            if (tmp.isUnit()) { 
 
-        		UnitWorkerContext u = (UnitWorkerContext) tmp;
+                UnitWorkerContext u = (UnitWorkerContext) tmp;
 
-        		String tag = u.uniqueTag();
+                String tag = u.uniqueTag();
 
-        		if (!map.containsKey(tag)) { 
-        			map.put(tag, u);
-        		}
-        	} else if (tmp.isOr()) { 
-        		OrWorkerContext o = (OrWorkerContext) tmp;
+                if (!map.containsKey(tag)) { 
+                    map.put(tag, u);
+                }
+            } else if (tmp.isOr()) { 
+                OrWorkerContext o = (OrWorkerContext) tmp;
 
-        		for (int j=0;j<o.size();j++) { 
-        			UnitWorkerContext u = o.get(i);
+                for (int j=0;j<o.size();j++) { 
+                    UnitWorkerContext u = o.get(i);
 
-        			String tag = u.uniqueTag();
+                    String tag = u.uniqueTag();
 
-        			if (!map.containsKey(tag)) { 
-        				map.put(tag, u);
-        			}
-        		}
-        	}
+                    if (!map.containsKey(tag)) { 
+                        map.put(tag, u);
+                    }
+                }
+            }
         }
 
         if (map.size() == 0) { 
-        	// FIXME should not happen ?
-        			myContext = UnitWorkerContext.DEFAULT;
+            // FIXME should not happen ?
+            myContext = UnitWorkerContext.DEFAULT;
         } else if (map.size() == 1) { 
-        	myContext = contexts[1];
+            myContext = contexts[1];
         } else { 
-        	UnitWorkerContext [] contexts = map.values().toArray(new UnitWorkerContext[map.size()]);                
-        	myContext = new OrWorkerContext(contexts, false); 
+            UnitWorkerContext [] contexts = map.values().toArray(new UnitWorkerContext[map.size()]);                
+            myContext = new OrWorkerContext(contexts, false); 
         }
 
         myContextChanged = false;
         return myContext;
     }
-    
+
     public CohortIdentifier identifier() {
         return identifier;
     }
@@ -750,7 +770,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             active = true;
             workerCount = incomingWorkers.size();
             workers = incomingWorkers.toArray(new BottomCohort[workerCount]);
-            
+
             // No workers may be added after this point
             incomingWorkers = null;
         }
@@ -766,9 +786,9 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
     public void done() {
 
         logger.warn("done");
-        
+
         lookup.done();
-        
+
         if (active) { 
             for (BottomCohort u : workers) {
                 u.done();
@@ -821,7 +841,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
             return workers[nextSubmit++].deliverSubmit(a);
         }
-        
+
         if (Debug.DEBUG_SUBMIT) { 
             logger.info("M LOCAL SUBMIT activity with context " + a.getContext());
         }
@@ -833,21 +853,21 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             logger.info("created " + id + " at " 
                     + System.currentTimeMillis() + " from DIST"); 
         }
-     
+
         return id;
     }
 
     public void deliverStealRequest(StealRequest sr) {
 
         // FIXME: hardcodes steal size!
-    
+
         if (Debug.DEBUG_STEAL) { 
             logger.info("M REMOTE STEAL REQUEST from child " + sr.source 
                     + " context " + sr.context);
         }
 
-        ActivityRecord [] tmp = myActivities.steal(sr.context, 10);
-    
+        ActivityRecord [] tmp = queue.steal(sr.context, 10);
+
         if (tmp != null && tmp.length > 0) { 
 
             if (Debug.DEBUG_STEAL) { 
@@ -862,12 +882,12 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         BottomCohort b = null;
 
         if (cid != null) { 
-            
+
             if (Debug.DEBUG_STEAL) { 
                 logger.info("M RECEIVED REMOTE STEAL REQUEST with TARGET " + 
                         cid + " context " + sr.context);
             }
-            
+
             b = getWorker(cid);
         } 
 
@@ -878,11 +898,11 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         // request, and try to find a job until some deadline runs out.
 
         if (b == null) { 
-            
+
             int rnd = selectTargetWorker(); 
-    
+
             b = workers[rnd];
-            
+
             if (Debug.DEBUG_STEAL) { 
                 logger.info("M SELECT worker " + rnd + " " + b.identifier() +
                         "for STEAL with context " + sr.context);
@@ -897,15 +917,15 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (Debug.DEBUG_LOOKUP) { 
             logger.info("M REMOTE LOOKUP REQUEST from " + lr.source);
         }
-        
+
         LocationCache.Entry tmp = locationCache.lookupEntry(lr.missing);
 
         if (tmp != null) { 
-    
+
             if (Debug.DEBUG_LOOKUP) { 
                 logger.info("M sending LOOKUP reply to " + lr.source);
             }
-            
+
             parent.handleLookupReply(new LookupReply(identifier, lr.source, 
                     lr.missing, tmp.id, tmp.count));
             return;
@@ -914,11 +934,11 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         CohortIdentifier cid = lr.target;
 
         if (lr.target != null) { 
-        
+
             if (Debug.DEBUG_LOOKUP) { 
                 logger.info("M forwarding LOOKUP to " + cid);
             }
-            
+
             if (identifier.equals(cid)) { 
                 return;
             }
@@ -934,7 +954,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (Debug.DEBUG_LOOKUP) { 
             logger.info("M forwarding LOOKUP to all children");
         }
-        
+
         for (int i=0;i<workerCount;i++) { 
             workers[i].deliverLookupRequest(lr);
         }
@@ -945,17 +965,17 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (Debug.DEBUG_STEAL) { 
             logger.info("M receive STEAL reply from " + sr.source);
         }
-        
+
         System.err.println("MT STEAL reply: " + Arrays.toString(sr.getWork()));
-        
+
         CohortIdentifier cid = sr.target;
 
         if (cid == null) { 
 
             if (!sr.isEmpty()) { 
                 System.err.println("MT STEAL reply SAVED LOCALLY (1): " + Arrays.toString(sr.getWork()));
-                
-                myActivities.enqueue(sr.getWork());
+
+                queue.enqueue(sr.getWork());
                 logger.warning("DROP StealReply without target after saving work!");
             } else { 
                 logger.warning("DROP empty StealReply without target!");
@@ -965,11 +985,11 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         }
 
         if (identifier.equals(cid)) { 
-           
+
             System.err.println("MT STEAL reply SAVED LOCALLY (2): " + Arrays.toString(sr.getWork()));
-            
+
             if (!sr.isEmpty()) { 
-                myActivities.enqueue(sr.getWork());
+                queue.enqueue(sr.getWork());
             }
             return;
         }
@@ -979,10 +999,10 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (cid == null) { 
 
             if (!sr.isEmpty()) { 
-                
+
                 System.err.println("MT STEAL reply SAVED LOCALLY (3): " + Arrays.toString(sr.getWork()));
-                
-                myActivities.enqueue(sr.getWork());
+
+                queue.enqueue(sr.getWork());
                 logger.warning("DROP StealReply for unknown target after saving work!");
             } else { 
                 logger.warning("DROP empty StealReply for unknown target!");
@@ -999,7 +1019,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         if (Debug.DEBUG_LOOKUP) { 
             logger.info("M received LOOKUP reply from " + lr.source);
         }
-        
+
         // Cache the result!
         locationCache.put(lr.missing, lr.location, lr.count);
 
@@ -1052,7 +1072,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         logger.fixme("DROP UndeliverableEvent", new Exception());
     }
 
-   
+
 
     /*
 

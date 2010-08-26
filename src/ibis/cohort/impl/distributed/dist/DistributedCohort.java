@@ -49,7 +49,8 @@ public class DistributedCohort implements Cohort, TopCohort {
     private BottomCohort subCohort;
 
     private final WorkQueue queue; 
-
+    private final WorkQueue restrictedQueue; 
+    
     private final CohortIdentifier identifier;
 
     private final LocationCache cache = new LocationCache();
@@ -137,6 +138,9 @@ public class DistributedCohort implements Cohort, TopCohort {
         queue = WorkQueueFactory.createQueue(queueName, true, 
                 "D(" + identifier.id + ")");
 
+        restrictedQueue = WorkQueueFactory.createQueue(queueName, true, 
+                "D(" + identifier.id + "-RESTRICTED)");
+        
         aidFactory = getActivityIdentifierFactory(identifier);        
 
         logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
@@ -280,6 +284,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         //   System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
 
+        // NOTE: only allowed to steal from 'normal' queue
         ActivityRecord ar = queue.steal(sr.context);
 
         if (ar != null) { 
@@ -350,7 +355,8 @@ public class DistributedCohort implements Cohort, TopCohort {
         System.err.println("DIST STEAL reply: " + Arrays.toString(sr.getWork()));
 
         if (identifier.equals(sr.target)) { 
-            if (!sr.isEmpty()) { 
+            if (!sr.isEmpty()) {
+                // NOTE: should never get resticted work!
                 queue.enqueue(sr.getWork());
             }
             return;
@@ -558,7 +564,11 @@ public class DistributedCohort implements Cohort, TopCohort {
         ActivityIdentifier id = createActivityID();
         a.initialize(id);
 
-        queue.enqueue(new ActivityRecord(a));
+        if (a.isRestrictedToLocal()) { 
+            restrictedQueue.enqueue(new ActivityRecord(a));
+        } else { 
+            queue.enqueue(new ActivityRecord(a));
+        }
 
         if (Debug.DEBUG_SUBMIT) {
             logger.info("created " + id + " at " 
@@ -618,7 +628,21 @@ public class DistributedCohort implements Cohort, TopCohort {
             logger.info("D STEAL REQUEST from child " + sr.source + " with context " + sr.context);
         }
 
-        ActivityRecord ar = queue.steal(sr.context);
+        // First try the restricted queue
+        ActivityRecord ar = restrictedQueue.steal(sr.context);
+
+        if (ar != null) { 
+
+            if (Debug.DEBUG_STEAL) { 
+                logger.info("D STEAL REPLY (LOCAL RESTRICTED) " + ar.identifier() 
+                        + " for child " + sr.source);
+            }
+
+            return ar;
+        }
+        
+        // Next try the 'normal' queue 
+        ar = queue.steal(sr.context);
 
         if (ar != null) { 
 
@@ -744,7 +768,25 @@ public class DistributedCohort implements Cohort, TopCohort {
             if (!m.isEmpty()) {
                 logger.warning("DROP StealReply to " + m.target 
                         + " after reclaiming work");
-                queue.enqueue(m.getWork());
+                
+                ActivityRecord [] ar = m.getWork();
+                
+                if (ar != null && ar.length > 0) {
+                    
+                    for (int i=0;i<ar.length;i++) { 
+                        ActivityRecord a = ar[i];
+                        
+                        if (a != null) { 
+                            if (ar[i].isRestrictedToLocal()) {
+                                System.out.println("INTERNAL ERROR: Reclaimed RESTRICTED StealReply!!");
+                                logger.warning("INTERNAL ERROR: Reclaimed RESTRICTED StealReply!!");
+                                restrictedQueue.enqueue(ar[i]);
+                            } else { 
+                                queue.enqueue(ar[i]);
+                            }
+                        }
+                    }
+                }
             } else { 
                 logger.warning("DROP Empty StealReply to " + m.target); 
             }
@@ -757,7 +799,11 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public void handleWrongContext(ActivityRecord ar) {
         // Store the 'unusable' activities at this level.
-        queue.enqueue(ar);
+        if (ar.isRestrictedToLocal()) { 
+            restrictedQueue.enqueue(ar);
+        } else { 
+            queue.enqueue(ar);
+        }
     }
 
     public synchronized ActivityIdentifierFactory 
