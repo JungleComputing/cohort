@@ -1071,19 +1071,19 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         CohortIdentifier cid = m.target;
 
         if (cid == null) { 
-            logger.warning("DROP EventMessage without target!");
+            logger.fixme("DROP EventMessage without target!");
             return;
         }
 
         if (identifier.equals(cid)) { 
-            logger.warning("DROP unexpected EventMessage for " + cid);
+            logger.fixme("DROP unexpected EventMessage for " + cid);
             return;
         }
 
         BottomCohort b = getWorker(cid);
 
         if (cid == null) { 
-            logger.warning("DROP EventMessage for unknown target " + cid);
+            logger.fixme("DROP EventMessage for unknown target " + cid);
             return;
         }
 

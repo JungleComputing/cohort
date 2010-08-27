@@ -22,8 +22,8 @@ public class SmartSortedWorkQueue extends WorkQueue {
     // 'OR' jobs have more suitable locations, but their context matching may be 
     //     more expensive
 
-	protected final HashSet<ActivityIdentifier> ids = 
-		new HashSet<ActivityIdentifier>(); 
+	protected final HashMap<ActivityIdentifier, ActivityRecord> ids = 
+		new HashMap<ActivityIdentifier, ActivityRecord>(); 
 	
     protected final HashMap<String, SortedList> unit = 
         new HashMap<String, SortedList>();
@@ -245,7 +245,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         tmp.insert(a, c.rank);              
         size++;
-        ids.add(a.identifier());        
+        ids.put(a.identifier(), a);        
     }
 
     private void enqueueOr(OrActivityContext c, ActivityRecord a) {
@@ -269,7 +269,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
         }
 
         size++;
-        ids.add(a.identifier());        
+        ids.put(a.identifier(), a);        
     }
 
 
@@ -344,7 +344,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	@Override
 	public boolean contains(ActivityIdentifier id) {
-		return ids.contains(id);
+		return ids.containsKey(id);
+	}
+	
+	@Override
+	public ActivityRecord lookup(ActivityIdentifier id) {
+		return ids.get(id);
 	}
 }
 

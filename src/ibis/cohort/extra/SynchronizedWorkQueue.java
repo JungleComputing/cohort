@@ -52,4 +52,9 @@ public class SynchronizedWorkQueue extends WorkQueue {
 	public boolean contains(ActivityIdentifier id) {
 		return queue.contains(id);
 	}
+	
+	@Override
+	public ActivityRecord lookup(ActivityIdentifier id) {
+		return queue.lookup(id);
+	}
 }

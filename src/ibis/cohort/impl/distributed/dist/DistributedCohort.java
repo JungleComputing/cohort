@@ -390,10 +390,23 @@ public class DistributedCohort implements Cohort, TopCohort {
         // block for a long period of time or communicate!
 
         if (identifier.equals(re.target)) { 
-            logger.warning("DROP unexpected EventMessage " + re.event);
-            return;
+        	
+        	// The message is targeted at me, so the activity should be in one of my queues!
+        	ActivityIdentifier id = re.event.target;
+        	
+        	ActivityRecord a = restrictedQueue.lookup(id);
+        	
+        	if (a == null) { 
+        		a = queue.lookup(id);
+        	}
+        	
+        	if (a != null) {
+        		// Since we are in an unfinished upcall, there should only be 1 of these at a time!
+        		a.enqueue(re.event);            		
+        		return;
+        	}
         } 
-
+               
         subCohort.deliverEventMessage(re);
     }
 
@@ -721,7 +734,7 @@ public class DistributedCohort implements Cohort, TopCohort {
     }
 
     public void handleApplicationMessage(ApplicationMessage m) { 
-
+    	
         // This is triggered as a result of a (sub)cohort sending a message 
         // (bottom up). We therefore assume the message will leave this machine. 
 
