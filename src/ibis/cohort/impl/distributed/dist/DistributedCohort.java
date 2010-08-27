@@ -339,6 +339,11 @@ public class DistributedCohort implements Cohort, TopCohort {
                 // Ignore reply of forward. We don't care if it fails!
                 return;
             }
+
+            // Check if the activity is in my queue 
+            if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
+            	pool.forward(new LookupReply(identifier, lr.source, lr.missing, identifier, 0));            
+            }
         }
 
         if (Debug.DEBUG_LOOKUP) {
@@ -612,6 +617,11 @@ public class DistributedCohort implements Cohort, TopCohort {
             return new LookupReply(identifier, lr.source, lr.missing, tmp.id, tmp.count);
         }
 
+        // The missing activity could be in my queue ? 
+        if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
+        	return new LookupReply(identifier, lr.source, lr.missing, identifier, 0);            
+        }
+        
         logger.fixme("BROADCAST LOOKUP: " + lr.missing);
 
         pool.broadcast(lr);

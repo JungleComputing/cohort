@@ -1,6 +1,7 @@
 package ibis.cohort.extra;
 
 import ibis.cohort.ActivityContext;
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.WorkerContext;
 import ibis.cohort.context.OrActivityContext;
 import ibis.cohort.context.UnitActivityContext;
@@ -9,6 +10,7 @@ import ibis.cohort.context.OrWorkerContext;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class SmartSortedWorkQueue extends WorkQueue {
 
@@ -20,6 +22,9 @@ public class SmartSortedWorkQueue extends WorkQueue {
     // 'OR' jobs have more suitable locations, but their context matching may be 
     //     more expensive
 
+	protected final HashSet<ActivityIdentifier> ids = 
+		new HashSet<ActivityIdentifier>(); 
+	
     protected final HashMap<String, SortedList> unit = 
         new HashMap<String, SortedList>();
 
@@ -58,6 +63,8 @@ public class SmartSortedWorkQueue extends WorkQueue {
         }
         
         size--;
+        
+        ids.remove(a.identifier());
         
         return a;
     }
@@ -98,6 +105,8 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         size--;
 
+        ids.remove(a.identifier());
+        
         return a;
     }
     
@@ -139,6 +148,9 @@ public class SmartSortedWorkQueue extends WorkQueue {
         }
 
         size--;
+        
+        ids.remove(a.identifier());
+        
         return a;
     } 
     	
@@ -195,6 +207,9 @@ public class SmartSortedWorkQueue extends WorkQueue {
         }
 
         size--;
+        
+        ids.remove(a.identifier());
+        
         return a;
     }
 
@@ -228,8 +243,9 @@ public class SmartSortedWorkQueue extends WorkQueue {
             unit.put(c.name, tmp);
         }
 
-        tmp.insert(a, c.rank);
+        tmp.insert(a, c.rank);              
         size++;
+        ids.add(a.identifier());        
     }
 
     private void enqueueOr(OrActivityContext c, ActivityRecord a) {
@@ -253,6 +269,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
         }
 
         size++;
+        ids.add(a.identifier());        
     }
 
 
@@ -324,6 +341,11 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         return null;
     }
+
+	@Override
+	public boolean contains(ActivityIdentifier id) {
+		return ids.contains(id);
+	}
 }
 
 

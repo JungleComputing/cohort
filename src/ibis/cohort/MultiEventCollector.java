@@ -27,6 +27,9 @@ public class MultiEventCollector extends Activity {
     @Override
     public synchronized void process(Event e) throws Exception {
 
+    	System.out.println("MultiEventCollector: received event " 
+    			+ count + " of " + events.length);
+    	
         events[count++] = e;
         
         if (count == events.length) { 

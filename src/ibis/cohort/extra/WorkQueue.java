@@ -1,5 +1,6 @@
 package ibis.cohort.extra;
 
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.WorkerContext;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
@@ -14,15 +15,15 @@ public abstract class WorkQueue {
     public abstract void enqueue(ActivityRecord a);
     public abstract ActivityRecord dequeue(boolean head);
     public abstract ActivityRecord steal(WorkerContext c); 
-    public abstract int size(); 
-    
+    public abstract int size();     
+    public abstract boolean contains(ActivityIdentifier id);
+        
     protected ActivityRecord [] trim(ActivityRecord [] a, int count) { 
         ActivityRecord [] result = new ActivityRecord[count];
         System.arraycopy(a, 0, result, 0, count);
         return result;
     }
-    
-    
+        
     public void enqueue(ActivityRecord [] a) { 
         for (int i=0;i<a.length;i++) { 
             enqueue(a[i]);

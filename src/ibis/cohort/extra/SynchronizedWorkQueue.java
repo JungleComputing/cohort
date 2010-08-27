@@ -1,5 +1,6 @@
 package ibis.cohort.extra;
 
+import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.WorkerContext;
 import ibis.cohort.impl.distributed.ActivityRecord;
 
@@ -46,4 +47,9 @@ public class SynchronizedWorkQueue extends WorkQueue {
     public synchronized ActivityRecord [] steal(WorkerContext c, int count) {
         return queue.steal(c, count);
     }
+
+	@Override
+	public boolean contains(ActivityIdentifier id) {
+		return queue.contains(id);
+	}
 }

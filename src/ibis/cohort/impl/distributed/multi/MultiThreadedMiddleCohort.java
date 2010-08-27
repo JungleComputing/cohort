@@ -450,6 +450,11 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             return new LookupReply(identifier, lr.source, lr.missing, e.id, e.count);
         }
 
+        // Check if the activity is in my queue 
+        if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
+        	return new LookupReply(identifier, lr.source, lr.missing, identifier, 0);            
+        }
+        
         // Check if the parent has cached the location         
         LookupReply tmp = parent.handleLookup(lr);
 
@@ -941,7 +946,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                     lr.missing, tmp.id, tmp.count));
             return;
         }
-
+        
         CohortIdentifier cid = lr.target;
 
         if (lr.target != null) { 
@@ -962,6 +967,12 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             }
         }
 
+        // Check if the activity is in my queue 
+        if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
+        	parent.handleLookupReply(new LookupReply(identifier, lr.source, lr.missing, identifier, 0));
+        	return;
+        }
+        
         if (Debug.DEBUG_LOOKUP) { 
             logger.info("M forwarding LOOKUP to all children");
         }

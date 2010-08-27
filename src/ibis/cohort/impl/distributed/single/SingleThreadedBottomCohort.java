@@ -343,11 +343,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }
     
     protected void forwardEvent(Event e) {
-        
-        // TODO: is this correct ? The target activity may be in one of the 
-        // local queues...
-        ApplicationMessage m = new ApplicationMessage(sequential.identifier(), e);
-        parent.handleApplicationMessage(m);
+        parent.handleApplicationMessage(new ApplicationMessage(sequential.identifier(), e));
     }
 
     
@@ -664,7 +660,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                                 + " to " + s.source);
                     }
                 
-                    System.out.println("Sending lookup reply for " + s.missing 
+                    System.out.println("(FOUND) Sending lookup reply for " + s.missing 
                             + " to " + s.source);
                     
                     LookupReply tmp = new LookupReply(sequential.identifier(), 

@@ -695,6 +695,8 @@ public class BaseCohort implements Cohort {
 
         long start, end;
 
+        System.out.println("PROCESSING: " + tmp.identifier());
+        
         tmp.activity.setCohort(this);
 
         current = tmp;
