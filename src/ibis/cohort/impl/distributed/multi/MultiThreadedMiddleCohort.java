@@ -1082,7 +1082,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
         BottomCohort b = getWorker(cid);
 
-        if (cid == null) { 
+        if (b == null) { 
             logger.fixme("DROP EventMessage for unknown target " + cid);
             return;
         }

@@ -413,8 +413,9 @@ public class DistributedCohort implements Cohort, TopCohort {
         	if (!deliverEventToLocalActivity(re.event)) {
         		// FIXME: This is a BUG!
         		logger.fixme("DROP application message from " + re.event.source + " to " + re.event.target);
-        		return;
         	}
+        	
+        	return;
         } 
                
         subCohort.deliverEventMessage(re);
@@ -758,10 +759,12 @@ public class DistributedCohort implements Cohort, TopCohort {
         	if (identifier.equals(m.target)) { 
         		
         		// The message is headed for one of the queued activities
-        		if (!deliverEventToLocalActivity(m.event)) { 
-            		// FIXME: This is a likely BUG!
-            		logger.fixme("FAILED TO DELIVER application message from " + m.event.source + " to " + m.event.target);
+        		if (deliverEventToLocalActivity(m.event)) {
+        			return;
         		}
+            	
+        		// FIXME: This is a likely BUG!
+        		logger.fixme("FAILED TO DELIVER application message from " + m.event.source + " to " + m.event.target);
         	} else if (pool.forward(m)) { 
                 return;
             } else { 
