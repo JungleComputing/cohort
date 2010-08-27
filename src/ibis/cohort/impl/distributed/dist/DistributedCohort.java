@@ -384,25 +384,35 @@ public class DistributedCohort implements Cohort, TopCohort {
         subCohort.deliverLookupReply(lr);
     }
 
+    private boolean deliverEventToLocalActivity(Event e) { 
+    	
+    	ActivityIdentifier id = e.target;
+    	
+    	ActivityRecord a = restrictedQueue.lookup(id);
+    	
+    	if (a == null) { 
+    		a = queue.lookup(id);
+    	}
+    	
+    	if (a != null) {
+    		synchronized (a) { 
+    			a.enqueue(e);
+    		}
+    		return true;
+    	}
+    	
+    	return false;
+    }
 
     protected void deliverRemoteEvent(ApplicationMessage re) { 
         // This method is called from an unfinished upcall. It may NOT 
         // block for a long period of time or communicate!
 
         if (identifier.equals(re.target)) { 
-        	
-        	// The message is targeted at me, so the activity should be in one of my queues!
-        	ActivityIdentifier id = re.event.target;
-        	
-        	ActivityRecord a = restrictedQueue.lookup(id);
-        	
-        	if (a == null) { 
-        		a = queue.lookup(id);
-        	}
-        	
-        	if (a != null) {
-        		// Since we are in an unfinished upcall, there should only be 1 of these at a time!
-        		a.enqueue(re.event);            		
+
+        	if (!deliverEventToLocalActivity(re.event)) {
+        		// FIXME: This is a BUG!
+        		logger.fixme("DROP application message from " + re.event.source + " to " + re.event.target);
         		return;
         	}
         } 
@@ -736,15 +746,23 @@ public class DistributedCohort implements Cohort, TopCohort {
     public void handleApplicationMessage(ApplicationMessage m) { 
     	
         // This is triggered as a result of a (sub)cohort sending a message 
-        // (bottom up). We therefore assume the message will leave this machine. 
+        // (bottom up). 
 
         if (!m.isTargetSet()) {
             // Try to set the target cohort. 
             m.setTarget(cache.lookup(m.targetActivity())); 
         } 
 
-        if (m.isTargetSet()) { 
-            if (pool.forward(m)) { 
+        if (m.isTargetSet()) {
+        	
+        	if (identifier.equals(m.target)) { 
+        		
+        		// The message is headed for one of the queued activities
+        		if (!deliverEventToLocalActivity(m.event)) { 
+            		// FIXME: This is a likely BUG!
+            		logger.fixme("FAILED TO DELIVER application message from " + m.event.source + " to " + m.event.target);
+        		}
+        	} else if (pool.forward(m)) { 
                 return;
             } else { 
                 // Failed to send message. Assume the target is invalid, reset
