@@ -809,7 +809,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public void handleStealReply(StealReply m) {
 
-        logger.warn("D handling steal reply for " + m.target);
+      //  logger.warn("D handling steal reply for " + m.target);
 
         if (pool.forward(m)) { 
             // Succesfully send the reply. Cache new location of the activities
