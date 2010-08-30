@@ -530,7 +530,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     public void handleStealReply(StealReply m) { 
 
-        logger.warn("MT handling STEAL REPLY " + m.isTargetSet() + " " + m.isEmpty());
+       // logger.warn("MT handling STEAL REPLY " + m.isTargetSet() + " " + m.isEmpty());
 
         if (m.isTargetSet()) { 
 
@@ -538,13 +538,13 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
             if (b != null) { 
 
-                logger.warn("MT handling STEAL REPLY target is local! " + m.target);
+            //    logger.warn("MT handling STEAL REPLY target is local! " + m.target);
 
                 b.deliverStealReply(m);
                 return;
             }
 
-            logger.warn("MT handling STEAL REPLY target is remote! " + m.target);
+           // logger.warn("MT handling STEAL REPLY target is remote! " + m.target);
 
             parent.handleStealReply(m);
         } else {
@@ -988,7 +988,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             logger.info("M receive STEAL reply from " + sr.source);
         }
 
-        System.err.println("MT STEAL reply: " + Arrays.toString(sr.getWork()));
+      //  System.err.println("MT STEAL reply: " + Arrays.toString(sr.getWork()));
 
         CohortIdentifier cid = sr.target;
 

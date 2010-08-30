@@ -290,7 +290,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     public void deliverStealReply(StealReply sr) {
   
-        System.err.println("ST STEAL reply: " + Arrays.toString(sr.getWork()));
+      //  System.err.println("ST STEAL reply: " + Arrays.toString(sr.getWork()));
         
         if (!sr.isEmpty()) { 
             postActivityRecord(sr.getWork());
@@ -407,8 +407,10 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             LookupRequest tmp = incoming.lookupRequests.get(s.source);
             
             if (tmp != null) { 
-                logger.warn("FIXME: overriding lookup request! Source " 
-                        + s.source + " lookup for " + s.missing);
+            	if (Debug.DEBUG_LOOKUP) { 
+            		logger.warn("FIXME: overriding lookup request! Source " 
+            				+ s.source + " lookup for " + s.missing);
+            	}
             }
             
             incoming.lookupRequests.put(s.source, s);
@@ -904,9 +906,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
                     if (Debug.DEBUG_STEAL) { 
                         logger.info("GENERATING STEAL REQUEST at " + identifier + " with context " + getContext());
-                    } else { 
-                    	logger.info("STEAL");
-                    }
+                    } 
+                    
                  //   System.out.println("ST STEAL");
                
                     StealRequest sr = new StealRequest(identifier, getContext());
