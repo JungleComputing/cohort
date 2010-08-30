@@ -522,6 +522,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
  
         Message m = (Message) rm.readObject();
        
+        // FIXME: EXPENSIVE!
         synchronized (this) {
             received++;
             

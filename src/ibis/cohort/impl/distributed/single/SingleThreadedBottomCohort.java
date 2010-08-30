@@ -33,7 +33,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     private static final boolean PROFILE = true;
     private static final boolean THROTTLE_STEALS = true;
     private static final int DEFAULT_STEAL_DELAY = 500;
-    private static final boolean DEFAULT_IGNORE_EMPTY_STEAL_REPLIES = true;
+    private static final boolean DEFAULT_IGNORE_EMPTY_STEAL_REPLIES = false;
     
     private final TopCohort parent;
 
@@ -615,7 +615,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                
                 if (a != null || !ignoreEmptyStealReplies) { 
                 
-                    logger.warn("SENDING STEAL REPLY: " + s.source + " /" + s.context + " " + (a==null ? "0" : a.length));
+                   // logger.warn("SENDING STEAL REPLY: " + s.source + " /" + s.context + " " + (a==null ? "0" : a.length));
                     
                     // We either have a result, or we always send a reply
                     parent.handleStealReply(
@@ -623,7 +623,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                             s.source, a));              
                 } else { 
                     // No result, and we're not supposed to tell anyone  
-                    logger.warn("IGNORING empty steal reply");
+                    if (Debug.DEBUG_STEAL) { 
+                    	logger.info("IGNORING empty steal reply");
+                    } 
                 }
                     
                 //    if (!parent.forwardStealReply(s, a)) { 
@@ -737,9 +739,9 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
             while (!wake) { 
                 
-                String tmp = sequential.printState();
+            //    String tmp = sequential.printState();
                 
-                logger.warn("Cohort sleeping(" + pauseTime +")");
+           //     logger.warn("Cohort sleeping(" + pauseTime +")");
                 
                 /* EEP: print this caused an occasional ConcurrentMod.Exception 
                        because the ArrayLists in the datastructs may be changed 
@@ -888,7 +890,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                 out.println("ACTIVE from " + (t2-start) + " to " 
                         + (t3-start) + " total " + (t3-t2) + " jobs " + jobs);
             
-                System.out.flush();
+                out.flush();
             }
             
             while (!more && !havePendingRequests) {

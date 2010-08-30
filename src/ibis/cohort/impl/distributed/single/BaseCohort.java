@@ -229,17 +229,17 @@ public class BaseCohort implements Cohort {
             
             if (ar.isRestrictedToLocal()) { 
                 restricted.enqueue(ar);
-                System.out.println("BASE: LOCAL Work inserted in RESTRICTED " + c);      
+                System.out.println("BASE: LOCAL Work inserted in RESTRICTED " + c + " " + a.identifier());      
             } else { 
                 fresh.enqueue(ar);
-                System.out.println("BASE: LOCAL Work inserted in FRESH " + c);      
+                System.out.println("BASE: LOCAL Work inserted in FRESH " + c + " " + a.identifier());      
             }
   
         } else {
 
-            System.out.println("BASE: LOCAL Work inserted in WRONG " + c);      
+            System.out.println("BASE: LOCAL Work inserted in WRONG " + c + " " + a.identifier());      
             
-            logger.info("submitted " + a.identifier() + " with WRONG CONTEXT " + c);
+            //logger.info("submitted " + a.identifier() + " with WRONG CONTEXT " + c);
 
             parent.push(ar);
             
@@ -462,7 +462,7 @@ public class BaseCohort implements Cohort {
 
     ActivityRecord [] steal(WorkerContext context, boolean allowRestricted, int count) {
 
-        logger.warn("In STEAL on BASE " + context + " " + count);
+       // logger.warn("In STEAL on BASE " + context + " " + count);
 
         steals++;
 
@@ -472,7 +472,7 @@ public class BaseCohort implements Cohort {
             result[i] = doSteal(context, allowRestricted);
 
             if (result[i] == null) { 
-                logger.warn("STEAL(" + count + ") only produced " + i + " results");
+        //        logger.warn("STEAL(" + count + ") only produced " + i + " results");
 
                 if (i == 0) { 
                     return null;
@@ -484,7 +484,7 @@ public class BaseCohort implements Cohort {
             }
         }
 
-        logger.warn("STEAL(" + count + ") only produced ALL results");
+      //  logger.warn("STEAL(" + count + ") only produced ALL results");
 
         stolenJobs += count;
         stealSuccess++;                    

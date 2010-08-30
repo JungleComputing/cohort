@@ -882,7 +882,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
                     + " context " + sr.context);
         }
 
-        ActivityRecord [] tmp = queue.steal(sr.context, 10);
+        ActivityRecord [] tmp = queue.steal(sr.context, 1);
 
         if (tmp != null && tmp.length > 0) { 
 

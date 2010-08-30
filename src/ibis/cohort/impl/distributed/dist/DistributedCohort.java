@@ -40,7 +40,11 @@ public class DistributedCohort implements Cohort, TopCohort {
     private static final boolean PROFILE = true;
 
     private static boolean REMOTE_STEAL_THROTTLE = true;
-    private static long REMOTE_STEAL_TIMEOUT = 100;
+   
+    // FIXME setting this to low at startup causes load imbalance!
+    //    machines keep hammering the master for work, and (after a while) 
+    //    get a flood of replies. 
+    private static long REMOTE_STEAL_TIMEOUT = 60000;
 
     private static boolean PUSHDOWN_SUBMITS = false;
 
@@ -73,6 +77,8 @@ public class DistributedCohort implements Cohort, TopCohort {
     private boolean pendingSteal = false;
 
     private final int stealing; 
+    
+    private final long start;
 
     public DistributedCohort(Properties p) throws Exception {         
 
@@ -145,13 +151,16 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
 
+        start = System.currentTimeMillis();
+        
         if (true) { 
             System.out.println("DistributeCohort : " + identifier.id);
             System.out.println("        throttle : " + REMOTE_STEAL_THROTTLE);
             System.out.println("  throttle delay : " + REMOTE_STEAL_TIMEOUT);
             System.out.println("        pushdown : " + PUSHDOWN_SUBMITS);
             System.out.println("           queue : " + queueName);     
-            System.out.println("        stealing : " + stealName);     
+            System.out.println("        stealing : " + stealName);
+            System.out.println("           start : " + start);
         }
 
         logger.warn("Starting DistributedCohort " + identifier + " / " + myContext);
@@ -209,7 +218,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         long time = System.currentTimeMillis();
 
         // When we are changing the value from false to true, we also
-        // need to set te deadline.
+        // need to set the deadline.
         if (!pendingSteal) { 
             pendingSteal = true;
             stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
@@ -278,7 +287,7 @@ public class DistributedCohort implements Cohort, TopCohort {
         // may block for a long period of time or communicate.
 
         if (Debug.DEBUG_STEAL) { 
-            logger.info("D REMOTE STEAL REQUEST from child " + sr.source 
+            logger.info("D REMOTE STEAL REQUEST from cohort " + sr.source 
                     + " context " + sr.context);
         }
 
@@ -293,10 +302,15 @@ public class DistributedCohort implements Cohort, TopCohort {
             //            + ar.activity.getContext() + " " + ar.identifier());     
 
             if (Debug.DEBUG_STEAL) {
-                logger.info("D LOCAL REPLY for STEAL REQUEST from child " 
-                        + sr.source + " context " + sr.context);
+                logger.info("D REMOTE REPLY for STEAL REQUEST from cohort " 
+                        + sr.source + " context " + sr.context + " " 
+                        + ar.identifier() + " " + ar.activity.getContext());
             }
 
+            System.out.println((System.currentTimeMillis()-start) + " D REMOTE REPLY for STEAL REQUEST from cohort " 
+                    + sr.source + " context " + sr.context + " " 
+                    + ar.identifier() + " " + ar.activity.getContext()); 
+            
             if (!pool.forward(new StealReply(identifier, sr.source, ar))) { 
                 logger.warning("DROP StealReply to " + sr.source);
                 queue.enqueue(ar);
@@ -308,6 +322,10 @@ public class DistributedCohort implements Cohort, TopCohort {
                 logger.info("D No local reply for STEAL REQUEST from child " 
                         + sr.source + " context " + sr.context);
             }
+            
+            System.out.println((System.currentTimeMillis()-start) + " D NO REPLY for STEAL REQUEST from cohort " 
+                    + sr.source + " context " + sr.context); 
+            
         }
 
         subCohort.deliverStealRequest(sr);
@@ -357,11 +375,13 @@ public class DistributedCohort implements Cohort, TopCohort {
         // This method is called from an unfinished upcall. It may NOT 
         // block for a long period of time or communicate!
 
+    	setPendingSteal(false);
+        
         System.err.println("DIST STEAL reply: " + Arrays.toString(sr.getWork()));
 
         if (identifier.equals(sr.target)) { 
             if (!sr.isEmpty()) {
-                // NOTE: should never get resticted work!
+                // NOTE: should never get restricted work!
                 queue.enqueue(sr.getWork());
             }
             return;
