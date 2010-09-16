@@ -7,7 +7,9 @@ import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
+import ibis.cohort.Executor;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.StealPool;
 import ibis.cohort.WorkerContext;
 import ibis.cohort.context.UnitWorkerContext;
 import ibis.cohort.extra.CircularBuffer;
@@ -20,7 +22,7 @@ import ibis.cohort.impl.distributed.ActivityRecord;
 import java.util.HashMap;
 import java.util.Properties;
 
-public class BaseCohort implements Cohort {
+public class ExecutorWrapper implements Cohort {
 
     private static final boolean PROFILE = true;
 
@@ -31,30 +33,26 @@ public class BaseCohort implements Cohort {
     // private PrintStream out;
     private final CohortLogger logger;
 
-    // Default context is ANY
-    private WorkerContext myContext = new UnitWorkerContext("EMPTY"); 
-
+    private final Executor executor;
+    
+    // Default context is DEFAULT
+    private WorkerContext myContext = UnitWorkerContext.DEFAULT; 
+    private boolean contextChange = false;
+    
     private HashMap<String, ActivityIdentifier> registry = 
         new HashMap<String, ActivityIdentifier>();
 
     private HashMap<ActivityIdentifier, ActivityRecord> lookup = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
-    
-    //  private CircularBuffer wrongContext = new CircularBuffer(1);
-//    private WorkQueue wrongContext = new SmartWorkQueue();
-
-    // private CircularBuffer fresh = new CircularBuffer(1);
-   
+       
     private WorkQueue restricted;
     private WorkQueue fresh;
-   
-    //private CircularBuffer local = new CircularBuffer(1);
-    
     
     private CircularBuffer runnable = new CircularBuffer(1);
+    private CircularBuffer stolen = new CircularBuffer(1);
 
     private ActivityIdentifierFactory generator;
-
+    
     private long computationTime;
 
     private long activitiesSubmitted;
@@ -77,18 +75,21 @@ public class BaseCohort implements Cohort {
 
     private ActivityRecord current;
 
-    BaseCohort(SingleThreadedBottomCohort parent, Properties p, 
-            CohortIdentifier identifier, CohortLogger logger, WorkerContext context) {
+    ExecutorWrapper(SingleThreadedBottomCohort parent, Executor executor, Properties p, 
+            CohortIdentifier identifier, CohortLogger logger) throws Exception {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getActivityIdentifierFactory(identifier);
         this.logger = logger;
-        this.myContext = context;
-   
+        this.executor = executor;
+
         restricted = new SmartSortedWorkQueue("Br(" + identifier + ")");
         fresh = new SmartSortedWorkQueue("Bf(" + identifier + ")");
+         
+        executor.connect(this);
     }
 
+    /*
     public BaseCohort(Properties p, WorkerContext context) {
         this.parent = null;
 
@@ -102,7 +103,8 @@ public class BaseCohort implements Cohort {
         this.generator = new ActivityIdentifierFactory(0, 0, Long.MAX_VALUE);
         this.logger = CohortLogger.getLogger(BaseCohort.class, identifier);
     }        
-
+     */
+    
     public void cancel(ActivityIdentifier id) {
 
         ActivityRecord ar = lookup.remove(id);
@@ -127,9 +129,25 @@ public class BaseCohort implements Cohort {
   //      return wrongContext;
   //  }
 
+    private void cleanQueues() {
+    	System.err.println("TODO: implement cleanQueues() after context change!");
+    	logger.error("TODO: implement cleanQueues() after context change !");
+    	contextChange = false;
+    }
+    
     private ActivityRecord dequeue() {
 
-        int size = runnable.size();
+    	if (contextChange) { 
+    		cleanQueues();
+    	}
+
+    	int size = stolen.size();
+
+        if (size > 0) {
+            return (ActivityRecord) stolen.removeFirst();
+        }
+    	
+        size = runnable.size();
 
         if (size > 0) {
             return (ActivityRecord) runnable.removeFirst();
@@ -141,29 +159,12 @@ public class BaseCohort implements Cohort {
             return restricted.dequeue(false);
         }
         
-        /*
-        size = local.size();
-        
-        if (size > 0) { 
-            return (ActivityRecord) local.removeLast();
-        }
-        */
-        
         size = fresh.size();
         
         if (size > 0) { 
             return fresh.dequeue(false);
         }
         
-/*                
-        if (!fresh.empty()) {
-            return (ActivityRecord) fresh.removeLast();
-        }
-*/
-
-        //logger.warn("NO SUITABLE JOBS QUEUED! My context " + getContext() + " " 
-        //        +  wrongContext);
-
         return null;
     }
 
@@ -229,10 +230,10 @@ public class BaseCohort implements Cohort {
             
             if (ar.isRestrictedToLocal()) { 
                 restricted.enqueue(ar);
-                System.out.println("BASE: LOCAL Work inserted in RESTRICTED " + c + " " + a.identifier());      
+           //     System.out.println("BASE: LOCAL Work inserted in RESTRICTED " + c + " " + a.identifier());      
             } else { 
                 fresh.enqueue(ar);
-                System.out.println("BASE: LOCAL Work inserted in FRESH " + c + " " + a.identifier());      
+          //      System.out.println("BASE: LOCAL Work inserted in FRESH " + c + " " + a.identifier());      
             }
   
         } else {
@@ -270,29 +271,24 @@ public class BaseCohort implements Cohort {
         activitiesAdded++;
 
         ActivityContext c = a.activity.getContext();
-
-   /*     if (c.isLocal()) { 
-        
-            local.insertLast(a);
-
-            System.out.println("BASE: got REMOTE work in LOCAL " + c);      
-            
-        } else */
         
         if (c.satisfiedBy(myContext)) { 
-
+        	
             lookup.put(a.identifier(), a);
 
-            if (a.isFresh()) {
+            // Always true ?
+            if (a.isStolen()) { 
+            	stolen.insertLast(a);
+            } else if (a.isFresh()) {
                 if (a.isRestrictedToLocal()) {
-                    System.out.println("BASE: got REMOTE work in RESTRICTED " + c + " " + a.identifier());      
+                    System.out.println(identifier + " BASE: got REMOTE work in RESTRICTED " + c + " " + a.identifier());      
                     restricted.enqueue(a);
                 } else { 
-                    System.out.println("BASE: got REMOTE work in FRESH " + c + " " + a.identifier());      
+                    System.out.println(identifier + " BASE: got REMOTE work in FRESH " + c + " " + a.identifier());      
                     fresh.enqueue(a);
                 }
             } else {
-                System.out.println("BASE: got REMOTE work in RUNNABLE " + c + " " + a.identifier());      
+                System.out.println(identifier + " BASE: got REMOTE work in RUNNABLE " + c + " " + a.identifier());      
                 runnable.insertLast(a);
             }
 
@@ -456,6 +452,7 @@ public class BaseCohort implements Cohort {
         return true;
     }
 
+    // UNUSED ?
     int available() { 
         return fresh.size();
     }
@@ -648,7 +645,9 @@ public class BaseCohort implements Cohort {
 
             if (r.isStolen()) { 
                 // TODO: fix this!
-                logger.warning("MAJOR EEP!: return stolen job " 
+            	System.err.println("XX MAJOR EEP!: return stolen job " 
+                        + identifier);
+            	logger.warning("MAJOR EEP!: return stolen job " 
                         + identifier);
             }   
 
@@ -695,9 +694,9 @@ public class BaseCohort implements Cohort {
 
         long start, end;
 
-        System.out.println("PROCESSING: " + tmp.identifier());
+     //   System.out.println("PROCESSING: " + tmp.identifier());
         
-        tmp.activity.setCohort(this);
+        tmp.activity.setExecutor(executor);
 
         current = tmp;
 
@@ -742,7 +741,7 @@ public class BaseCohort implements Cohort {
 
         ActivityRecord tmp = dequeue();
 
-        // NOTE: the queue is garanteed to only contain activities that we can 
+        // NOTE: the queue is guaranteed to only contain activities that we can 
         //       run. Whenever new activities are added or the the context of 
         //       this cohort changes we filter out all activities that do not 
         //       match. 
@@ -891,4 +890,33 @@ public class BaseCohort implements Cohort {
     public CohortIdentifier[] getLeafIDs() {
         return new CohortIdentifier [] { identifier };
     }
+    
+    // NEW INTERFACE!
+    public void registerContext(Executor executor, WorkerContext c) {
+    	myContext = c;
+    	contextChange = true;
+    }
+
+	public void registerPool(Executor executor, StealPool myPool,
+			boolean poolIsFixed) {
+		parent.registerPool(executor, myPool, poolIsFixed);
+	}
+
+	public void registerStealPool(Executor executor, StealPool stealsFrom,
+			boolean stealIsFixed) {
+		parent.registerStealPool(executor, stealsFrom, stealIsFixed);
+	}
+
+	public boolean processActitivies() {
+		return parent.processActivities();
+	}
+
+	public void runExecutor() {
+		
+		try { 
+			executor.run();
+		} catch (Exception e) {
+			logger.error("Executor terminated unexpectedly!", e);
+		}		
+	}
 }
