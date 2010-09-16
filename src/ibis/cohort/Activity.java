@@ -10,7 +10,7 @@ public abstract class Activity implements Serializable {
     private static final byte REQUEST_SUSPEND = 1;
     private static final byte REQUEST_FINISH  = 2;
     
-    protected transient Cohort cohort;
+    protected transient Executor executor;
     
     private ActivityIdentifier identifier;
     private final ActivityContext context; 
@@ -32,8 +32,8 @@ public abstract class Activity implements Serializable {
         this.identifier = id;
     }
     
-    public void setCohort(Cohort cohort) { 
-        this.cohort = cohort;
+    public void setExecutor(Executor executor) { 
+        this.executor = executor;
     }
     
     public ActivityIdentifier identifier() {
@@ -45,13 +45,13 @@ public abstract class Activity implements Serializable {
         return identifier;
     }
 
-    public Cohort getCohort() {
+    public Executor getExecutor() {
         
-        if (cohort == null) { 
+        if (executor == null) { 
             throw new IllegalStateException("Activity is not initialized yet"); 
         }
         
-        return cohort;
+        return executor;
     }
     
     public ActivityContext getContext() { 

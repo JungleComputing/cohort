@@ -9,6 +9,7 @@ import ibis.cohort.Cohort;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.StealPool;
 import ibis.cohort.WorkerContext;
 import ibis.cohort.context.UnitWorkerContext;
 import ibis.cohort.extra.CohortIdentifierFactory;
@@ -26,6 +27,7 @@ import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
 import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.UndeliverableEvent;
+import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -893,6 +895,24 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         subCohort = cohort;
     }
+
+
+	@Override
+	public void registerPool(
+			SingleThreadedBottomCohort singleThreadedBottomCohort,
+			StealPool oldPool, StealPool newPool) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void registerStealPool(
+			SingleThreadedBottomCohort singleThreadedBottomCohort,
+			StealPool oldPool, StealPool newPool) {
+		// TODO Auto-generated method stub
+		
+	}
 
     /* =========== End of TopCohort interface =============================== */
 }

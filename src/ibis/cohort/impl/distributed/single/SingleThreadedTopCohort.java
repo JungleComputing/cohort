@@ -36,7 +36,7 @@ public class SingleThreadedTopCohort extends Thread implements Cohort, TopCohort
     
     private WorkerContext myContext;
     
-    private BaseCohort sequential;
+    private ExecutorWrapper sequential;
     
     private PrintStream out; 
     private CohortLogger logger;

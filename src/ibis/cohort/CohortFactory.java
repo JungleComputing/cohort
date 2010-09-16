@@ -1,21 +1,13 @@
 package ibis.cohort;
 
-import ibis.cohort.context.OrWorkerContext;
-import ibis.cohort.context.UnitWorkerContext;
-import ibis.cohort.impl.distributed.BottomCohort;
-import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.dist.DistributedCohort;
 import ibis.cohort.impl.distributed.multi.MultiThreadedMiddleCohort;
-import ibis.cohort.impl.distributed.multi.MultiThreadedTopCohort;
 import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
-import ibis.cohort.impl.distributed.single.SingleThreadedTopCohort;
 
-import java.util.ArrayList;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 public class CohortFactory {
-
+/*
     public static String SEPARATOR = "+";
     
     public static Cohort createCohort() throws Exception{ 
@@ -200,6 +192,35 @@ public class CohortFactory {
         
         throw new Exception("No Cohort implementation selected");        
     }
-
+*/
+	
+	public static Cohort createColony(Executor e) throws Exception { 
+		return createColony(System.getProperties(), e);
+	}
+	
+	public static Cohort createColony(Properties p, Executor e) throws Exception { 
+		return createColony(p, new Executor [] { e });
+	}
+	
+	public static Cohort createColony(Executor ... e) throws Exception { 
+		return createColony(System.getProperties(), e);
+	}
+		
+    public static Cohort createColony(Properties p, Executor ... e) throws Exception { 
+    	
+    	if (e == null) { 
+    		throw new IllegalArgumentException("Need at least one executor!");
+    	}
+    	
+    	// TODO: check is we need to create a new dist/mt here!!!
+        DistributedCohort d = new DistributedCohort(p);
+        MultiThreadedMiddleCohort m = new MultiThreadedMiddleCohort(d, p);                
+          	
+    	for (int i=0;i<e.length;i++) { 
+    	    new SingleThreadedBottomCohort(m, e[i], p);          
+    	}
+    	
+    	return d;
+    }
 
 }

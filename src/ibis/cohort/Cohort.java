@@ -10,16 +10,21 @@ public interface Cohort {
     
     public void cancel(ActivityIdentifier activity);
     
-    
     public void send(ActivityIdentifier source, ActivityIdentifier target, Object o);    
 
     public void send(Event e);    
     
-    public boolean register(String name, ActivityIdentifier id, ActivityContext scope);
-
-    public ActivityIdentifier lookup(String name,  ActivityContext scope);
     
+    // TODO: change this to use Pool as scope instead of Context!
+    public boolean register(String name, ActivityIdentifier id, ActivityContext scope);
+    public ActivityIdentifier lookup(String name,  ActivityContext scope);
     public boolean deregister(String name,  ActivityContext scope);
+    
+    /*
+    public boolean register(String name, ActivityIdentifier id, StealPool scope);
+    public ActivityIdentifier lookup(String name,  StealPool scope);
+    public boolean deregister(String name,  StealPool scope);
+    */
     
     public void done();
     
@@ -38,9 +43,6 @@ public interface Cohort {
     
     public CohortIdentifier [] getLeafIDs();
     
-    
     public boolean activate();
-    
-    
     
 }

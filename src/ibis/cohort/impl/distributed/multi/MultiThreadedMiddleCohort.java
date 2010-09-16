@@ -4,6 +4,7 @@ import ibis.cohort.Activity;
 import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
+import ibis.cohort.StealPool;
 import ibis.cohort.WorkerContext;
 import ibis.cohort.context.OrWorkerContext;
 import ibis.cohort.context.UnitWorkerContext;
@@ -23,6 +24,7 @@ import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
 import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.UndeliverableEvent;
+import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -1094,30 +1096,27 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         logger.fixme("DROP UndeliverableEvent", new Exception());
     }
 
+	@Override
+	public void registerPool(
+			SingleThreadedBottomCohort singleThreadedBottomCohort,
+			StealPool oldPool, StealPool newPool) {
 
+		// TODO: We should maintain a list here of all pools we know (and their participants).
+	}
 
-    /*
+	@Override
+	public void registerStealPool(
+			SingleThreadedBottomCohort singleThreadedBottomCohort,
+			StealPool oldPool, StealPool newPool) {
+		
+		// Do we need this one ? Shouldn't we just let the STCohort tell us which pool it 
+		// wants to steal from ? Also, when throttling steal request, we should do this on a 
+		// per pool basis ?
+		
+		// TODO Auto-generated method stub
+		
+	}
 
-    public void deliverMessage(Message m) {
-
-        CohortIdentifier cid = m.target;
-
-        if (cid == null) { 
-            System.out.println("ERROR: received message without target!");
-            return;
-        }
-
-        BottomCohort b = getWorker(cid);
-
-        if (cid == null) { 
-            System.out.println("ERROR: received for unknown target " + cid);
-            return;
-        }
-
-        b.deliverMessage(m);
-    }
-
-     */
     /* ================= End of BottomCohort interface =======================*/
 
 

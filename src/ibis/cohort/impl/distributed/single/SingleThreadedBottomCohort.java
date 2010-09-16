@@ -6,6 +6,8 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
 import ibis.cohort.Event;
+import ibis.cohort.Executor;
+import ibis.cohort.StealPool;
 import ibis.cohort.WorkerContext;
 import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortLogger;
@@ -24,7 +26,6 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -37,7 +38,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private final TopCohort parent;
 
-    private final BaseCohort sequential;
+    private final ExecutorWrapper sequential;
 
     private final CohortIdentifier identifier;
     
@@ -46,6 +47,12 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private final Thread thread;
     
+    private StealPool myPool;
+    private StealPool stealPool;
+    
+    private boolean poolIsFixed;
+    private boolean stealIsFixed;
+
     private static class PendingRequests {
         
         // These are the new submits 
@@ -133,7 +140,11 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private volatile boolean havePendingRequests = false;
     
-    public SingleThreadedBottomCohort(TopCohort parent, Properties p, WorkerContext c) throws Exception {
+    
+    
+    
+    public SingleThreadedBottomCohort(TopCohort parent, Executor executor, Properties p) 
+    	throws Exception {
 
         super();
         
@@ -162,7 +173,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
         this.logger = CohortLogger.getLogger(SingleThreadedBottomCohort.class, identifier);
         
-        logger.warn("Starting SingleThreadedBottomCohort: " + identifier + " / " + c);
+        logger.warn("Starting SingleThreadedBottomCohort: " + identifier);
         
         String tmp = p.getProperty("ibis.cohort.steal.delay");
         
@@ -224,7 +235,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             }*/
         }
 
-        sequential = new BaseCohort(this, p, identifier, logger, c);
+        sequential = new ExecutorWrapper(this, executor, p, identifier, logger);
    
         parent.register(this);
     }
@@ -818,12 +829,115 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         wrongContext.insertLast(a);
     }
     
+    protected void processActivity() { 
+    	
+    }
+
+    private long start;
+    private long idlestart;
+    
+    protected boolean processActivities() { 
+
+    	long t1 = System.currentTimeMillis();
+        	
+    	if (havePendingRequests) { 
+    		processEvents();
+    	}
+
+    	while (wrongContext.size() > 0) { 
+    		parent.handleWrongContext(
+    				(ActivityRecord) wrongContext.removeLast());
+    	}
+            
+    	long t2 = System.currentTimeMillis();
+            
+    	// NOTE: one problem here is that we cannot tell if we did any work 
+    	// or not. We would like to know, since this allows us to reset
+    	// several variables (e.g., sleepIndex)
+
+    	int jobs = 0;
+
+    	boolean more = sequential.process();
+
+    	if (more) {
+    		jobs++;
+    	}
+
+    	while (more && !havePendingRequests) {
+    		more = sequential.process();
+
+    		if (more) {
+    			jobs++;
+    		}
+    	}
+
+    	long t3 = System.currentTimeMillis();
+
+    	if (jobs > 0) { 
+    		if (t2-idlestart > 0) { 
+    			out.println("IDLE from " + (idlestart-start) + " to " + (t2-start) + " total " + (t2-idlestart));
+    		}
+
+    		idlestart = t3;
+
+    		out.println("ACTIVE from " + (t2-start) + " to " 
+    				+ (t3-start) + " total " + (t3-t2) + " jobs " + jobs);
+
+    		out.flush();
+    	}
+
+    	while (!more && !havePendingRequests) {
+
+    		long nextDeadline = stealAllowed();
+
+    		if (nextDeadline == 0) { 
+
+    			if (Debug.DEBUG_STEAL) { 
+    				logger.info("GENERATING STEAL REQUEST at " + identifier + " with context " + getContext());
+    			} 
+
+    			StealRequest sr = new StealRequest(identifier, getContext());
+    			ActivityRecord ar = parent.handleStealRequest(sr);
+
+    			if (ar != null) { 
+    				sequential.addActivityRecord(ar);
+    				more = true;
+    			}
+    		} else { 
+    			more = pauseUntil(nextDeadline);
+    		}
+    	}
+
+    	long t4 = System.currentTimeMillis();
+
+    	eventTime   += t2 - t1;
+    	activeTime  += t3 - t2;
+    	idleTime    += t4 - t3;
+    	
+    	return getDone();
+    }
+        
+    public void run() { 
+    	
+    	start = System.currentTimeMillis();
+    	idlestart = start;
+    
+    	sequential.runExecutor();
+    	
+    	long time = System.currentTimeMillis() - start;
+
+        printStatistics(time);
+    }
+    
+    
+    
+    /*
     public void run() {
 
         // NOTE: For D&C applications it seems to be most efficient to
         // process a single command (i.e., a submit or an event) and then
         // process all changes that occurred in the activities.
-
+    	
         //WorkQueue wrongContext = sequential.getWrongContextQueue();
         
         long start = System.currentTimeMillis();
@@ -868,17 +982,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
                     jobs++;
                 }
             }
-            
-            /*
-            if (wrongContext.size() > 0) { 
-              
-                
-                
-                ActivityRecord a = sequential.removeWrongContext();
-                parent.handleWrongContext(a);
-            }
-            */
-            
+                   
             long t3 = System.currentTimeMillis();
             
             if (jobs > 0) { 
@@ -940,6 +1044,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
         printStatistics(time);
     }
+    */
 
 //    private ActivityRecord idle() { 
 //        
@@ -1244,6 +1349,41 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         
     }
    */ 
+    
+	public void registerPool(Executor executor, StealPool myPool,
+			boolean poolIsFixed) {
+	
+		if (this.poolIsFixed) { 
+			throw new IllegalStateException("Pool already set and fixed!");
+		}
+		
+		StealPool old = myPool;
+		
+		this.myPool = myPool;
+		this.poolIsFixed = poolIsFixed;
+
+		if (parent != null) { 
+			parent.registerPool(this, old, myPool);
+		}
+	}
+
+	public void registerStealPool(Executor executor, StealPool stealsFrom,
+			boolean stealIsFixed) {
+
+		if (this.stealIsFixed) { 
+			throw new IllegalStateException("Pool already set and fixed!");
+		}
+		
+		StealPool old = stealsFrom;
+		
+		this.stealPool = stealsFrom;
+		this.stealIsFixed = stealIsFixed;
+
+		if (parent != null) { 
+			parent.registerStealPool(this, old, stealsFrom);
+		}
+	}
+
     
 }
 

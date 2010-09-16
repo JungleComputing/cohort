@@ -2,6 +2,7 @@ package ibis.cohort.impl.distributed;
 
 import ibis.cohort.ActivityIdentifierFactory;
 import ibis.cohort.CohortIdentifier;
+import ibis.cohort.StealPool;
 import ibis.cohort.WorkerContext;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
@@ -42,5 +43,12 @@ public interface TopCohort {
     
     /* callback method - used to register new cohorts */
     void register(BottomCohort cohort) throws Exception;
+
+	void registerPool(SingleThreadedBottomCohort singleThreadedBottomCohort,
+			StealPool oldPool, StealPool newPool);
+
+	void registerStealPool(
+			SingleThreadedBottomCohort singleThreadedBottomCohort,
+			StealPool oldPool, StealPool newPool);
 }
 

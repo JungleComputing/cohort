@@ -5,9 +5,12 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
 import ibis.cohort.Event;
+import ibis.cohort.Executor;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.SimpleExecutor;
 import ibis.cohort.SingleEventCollector;
 import ibis.cohort.context.UnitActivityContext;
+import ibis.cohort.context.UnitWorkerContext;
 
 public class Fibonacci extends Activity {
 
@@ -20,7 +23,7 @@ public class Fibonacci extends Activity {
     private int merged = 0;
 
     public Fibonacci(ActivityIdentifier parent, int input) {
-        super(UnitActivityContext.DEFAULT);
+        super(new UnitActivityContext("DEFAULT", input));
         this.parent = parent;
         this.input = input;
     }
@@ -32,8 +35,8 @@ public class Fibonacci extends Activity {
             output = input;
             finish();
         } else { 
-            cohort.submit(new Fibonacci(identifier(), input-1));
-            cohort.submit(new Fibonacci(identifier(), input-2));
+            executor.submit(new Fibonacci(identifier(), input-1));
+            executor.submit(new Fibonacci(identifier(), input-2));
             suspend();
         } 
     }
@@ -58,7 +61,7 @@ public class Fibonacci extends Activity {
     @Override
     public void cleanup() throws Exception {
         if (parent != null) {
-            cohort.send(identifier(), parent, output);
+            executor.send(identifier(), parent, output);
         } 
     }
     
@@ -69,8 +72,12 @@ public class Fibonacci extends Activity {
     public static void main(String [] args) throws Exception { 
 
         long start = System.currentTimeMillis();
+
+        // Hmmm... this is not what we want. We want small jobs locally, and big jobs remote....
+        Executor e1 = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
+        Executor e2 = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
         
-        Cohort cohort = CohortFactory.createCohort();
+        Cohort cohort = CohortFactory.createColony(e1, e2);
         cohort.activate();
         
         int index = 0;
