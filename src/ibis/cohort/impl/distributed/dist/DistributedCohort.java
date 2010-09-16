@@ -38,11 +38,12 @@ public class DistributedCohort implements Cohort, TopCohort {
     private static final int STEAL_RANDOM = 1; 
     private static final int STEAL_MASTER = 2;
     private static final int STEAL_NONE   = 3;
-    
+    private static final int STEAL_POOL   = 4; 
+
     private static final boolean PROFILE = true;
 
     private static boolean REMOTE_STEAL_THROTTLE = true;
-   
+
     // FIXME setting this to low at startup causes load imbalance!
     //    machines keep hammering the master for work, and (after a while) 
     //    get a flood of replies. 
@@ -56,7 +57,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     private final WorkQueue queue; 
     private final WorkQueue restrictedQueue; 
-    
+
     private final CohortIdentifier identifier;
 
     private final LocationCache cache = new LocationCache();
@@ -79,7 +80,7 @@ public class DistributedCohort implements Cohort, TopCohort {
     private boolean pendingSteal = false;
 
     private final int stealing; 
-    
+
     private final long start;
 
     public DistributedCohort(Properties p) throws Exception {         
@@ -148,13 +149,13 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         restrictedQueue = WorkQueueFactory.createQueue(queueName, true, 
                 "D(" + identifier.id + "-RESTRICTED)");
-        
+
         aidFactory = getActivityIdentifierFactory(identifier);        
 
         logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
 
         start = System.currentTimeMillis();
-        
+
         if (true) { 
             System.out.println("DistributeCohort : " + identifier.id);
             System.out.println("        throttle : " + REMOTE_STEAL_THROTTLE);
@@ -312,7 +313,7 @@ public class DistributedCohort implements Cohort, TopCohort {
             System.out.println((System.currentTimeMillis()-start) + " D REMOTE REPLY for STEAL REQUEST from cohort " 
                     + sr.source + " context " + sr.context + " " 
                     + ar.identifier() + " " + ar.activity.getContext()); 
-            
+
             if (!pool.forward(new StealReply(identifier, sr.source, ar))) { 
                 logger.warning("DROP StealReply to " + sr.source);
                 queue.enqueue(ar);
@@ -324,10 +325,10 @@ public class DistributedCohort implements Cohort, TopCohort {
                 logger.info("D No local reply for STEAL REQUEST from child " 
                         + sr.source + " context " + sr.context);
             }
-            
+
             System.out.println((System.currentTimeMillis()-start) + " D NO REPLY for STEAL REQUEST from cohort " 
                     + sr.source + " context " + sr.context); 
-            
+
         }
 
         subCohort.deliverStealRequest(sr);
@@ -362,7 +363,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
             // Check if the activity is in my queue 
             if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
-            	pool.forward(new LookupReply(identifier, lr.source, lr.missing, identifier, 0));            
+                pool.forward(new LookupReply(identifier, lr.source, lr.missing, identifier, 0));            
             }
         }
 
@@ -377,8 +378,8 @@ public class DistributedCohort implements Cohort, TopCohort {
         // This method is called from an unfinished upcall. It may NOT 
         // block for a long period of time or communicate!
 
-    	setPendingSteal(false);
-        
+        setPendingSteal(false);
+
         System.err.println("DIST STEAL reply: " + Arrays.toString(sr.getWork()));
 
         if (identifier.equals(sr.target)) { 
@@ -407,23 +408,23 @@ public class DistributedCohort implements Cohort, TopCohort {
     }
 
     private boolean deliverEventToLocalActivity(Event e) { 
-    	
-    	ActivityIdentifier id = e.target;
-    	
-    	ActivityRecord a = restrictedQueue.lookup(id);
-    	
-    	if (a == null) { 
-    		a = queue.lookup(id);
-    	}
-    	
-    	if (a != null) {
-    		synchronized (a) { 
-    			a.enqueue(e);
-    		}
-    		return true;
-    	}
-    	
-    	return false;
+
+        ActivityIdentifier id = e.target;
+
+        ActivityRecord a = restrictedQueue.lookup(id);
+
+        if (a == null) { 
+            a = queue.lookup(id);
+        }
+
+        if (a != null) {
+            synchronized (a) { 
+                a.enqueue(e);
+            }
+            return true;
+        }
+
+        return false;
     }
 
     protected void deliverRemoteEvent(ApplicationMessage re) { 
@@ -432,14 +433,14 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         if (identifier.equals(re.target)) { 
 
-        	if (!deliverEventToLocalActivity(re.event)) {
-        		// FIXME: This is a BUG!
-        		logger.fixme("DROP application message from " + re.event.source + " to " + re.event.target);
-        	}
-        	
-        	return;
+            if (!deliverEventToLocalActivity(re.event)) {
+                // FIXME: This is a BUG!
+                logger.fixme("DROP application message from " + re.event.source + " to " + re.event.target);
+            }
+
+            return;
         } 
-               
+
         subCohort.deliverEventMessage(re);
     }
 
@@ -665,9 +666,9 @@ public class DistributedCohort implements Cohort, TopCohort {
 
         // The missing activity could be in my queue ? 
         if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
-        	return new LookupReply(identifier, lr.source, lr.missing, identifier, 0);            
+            return new LookupReply(identifier, lr.source, lr.missing, identifier, 0);            
         }
-        
+
         logger.fixme("BROADCAST LOOKUP: " + lr.missing);
 
         pool.broadcast(lr);
@@ -696,7 +697,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
             return ar;
         }
-        
+
         // Next try the 'normal' queue 
         ar = queue.steal(sr.context);
 
@@ -710,6 +711,7 @@ public class DistributedCohort implements Cohort, TopCohort {
             return ar;
         }
 
+        // TODO: make throttling pool aware ? 
         if (REMOTE_STEAL_THROTTLE) { 
 
             boolean pending = setPendingSteal(true);
@@ -730,35 +732,64 @@ public class DistributedCohort implements Cohort, TopCohort {
                     logger.info("D RANDOM FORWARD steal request from child " 
                             + sr.source);
                 }
-
-                return null;
             }
+
+            return null;
 
         } else if (stealing == STEAL_MASTER) {
 
-        	if (pool.isMaster()) {
-        		// Master does not steal from itself!
-        		return null;
-        	}
-        		
-        	
+            if (pool.isMaster()) {
+                // Master does not steal from itself!
+                return null;
+            }
+
             if (pool.forwardToMaster(sr)) { 
 
                 if (Debug.DEBUG_STEAL) { 
                     logger.info("D MASTER FORWARD steal request from child " 
                             + sr.source);
                 }
+            }
+
+            return null;
+
+        } else if (stealing == STEAL_POOL) { 
+                        
+            if (sr.pool == null || sr.pool.isWorld()) { 
+
+                // This defaults to normal random stealing
+                if (pool.randomForward(sr)) { 
+
+                    if (Debug.DEBUG_STEAL) { 
+                        logger.info("D RANDOM FORWARD steal request from child " 
+                                + sr.source);
+                    }
+                }
+                
+                return null;
+            }  
+
+            if (sr.pool.isNone()) { 
+                
+                // Stealing from nobody is easy!
+                
+                if (REMOTE_STEAL_THROTTLE) { 
+                    setPendingSteal(false);
+                }     
 
                 return null;
             }
+            
+            
+
 
         } else if (stealing == STEAL_NONE) {
             logger.debug("D STEAL REQUEST swizzled from " + sr.source);
             return null;
         }
-        
+
         logger.fixme("D STEAL REQUEST unknown stealing strategy " + stealing);
-        
+
         return null;
     }
 
@@ -767,7 +798,7 @@ public class DistributedCohort implements Cohort, TopCohort {
     }
 
     public void handleApplicationMessage(ApplicationMessage m) { 
-    	
+
         // This is triggered as a result of a (sub)cohort sending a message 
         // (bottom up). 
 
@@ -777,17 +808,17 @@ public class DistributedCohort implements Cohort, TopCohort {
         } 
 
         if (m.isTargetSet()) {
-        	
-        	if (identifier.equals(m.target)) { 
-        		
-        		// The message is headed for one of the queued activities
-        		if (deliverEventToLocalActivity(m.event)) {
-        			return;
-        		}
-            	
-        		// FIXME: This is a likely BUG!
-        		logger.fixme("FAILED TO DELIVER application message from " + m.event.source + " to " + m.event.target);
-        	} else if (pool.forward(m)) { 
+
+            if (identifier.equals(m.target)) { 
+
+                // The message is headed for one of the queued activities
+                if (deliverEventToLocalActivity(m.event)) {
+                    return;
+                }
+
+                // FIXME: This is a likely BUG!
+                logger.fixme("FAILED TO DELIVER application message from " + m.event.source + " to " + m.event.target);
+            } else if (pool.forward(m)) { 
                 return;
             } else { 
                 // Failed to send message. Assume the target is invalid, reset
@@ -811,7 +842,7 @@ public class DistributedCohort implements Cohort, TopCohort {
 
     public void handleStealReply(StealReply m) {
 
-      //  logger.warn("D handling steal reply for " + m.target);
+        //  logger.warn("D handling steal reply for " + m.target);
 
         if (pool.forward(m)) { 
             // Succesfully send the reply. Cache new location of the activities
@@ -834,14 +865,14 @@ public class DistributedCohort implements Cohort, TopCohort {
             if (!m.isEmpty()) {
                 logger.warning("DROP StealReply to " + m.target 
                         + " after reclaiming work");
-                
+
                 ActivityRecord [] ar = m.getWork();
-                
+
                 if (ar != null && ar.length > 0) {
-                    
+
                     for (int i=0;i<ar.length;i++) { 
                         ActivityRecord a = ar[i];
-                        
+
                         if (a != null) { 
                             if (ar[i].isRestrictedToLocal()) {
                                 System.out.println("INTERNAL ERROR: Reclaimed RESTRICTED StealReply!!");
@@ -897,22 +928,22 @@ public class DistributedCohort implements Cohort, TopCohort {
     }
 
 
-	@Override
-	public void registerPool(
-			SingleThreadedBottomCohort singleThreadedBottomCohort,
-			StealPool oldPool, StealPool newPool) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void registerPool(
+            SingleThreadedBottomCohort singleThreadedBottomCohort,
+            StealPool oldPool, StealPool newPool) {
+        // TODO Auto-generated method stub
+
+    }
 
 
-	@Override
-	public void registerStealPool(
-			SingleThreadedBottomCohort singleThreadedBottomCohort,
-			StealPool oldPool, StealPool newPool) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void registerStealPool(
+            SingleThreadedBottomCohort singleThreadedBottomCohort,
+            StealPool oldPool, StealPool newPool) {
+        // TODO Auto-generated method stub
+
+    }
 
     /* =========== End of TopCohort interface =============================== */
 }

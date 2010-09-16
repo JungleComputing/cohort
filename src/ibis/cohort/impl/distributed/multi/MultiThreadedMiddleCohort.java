@@ -12,6 +12,7 @@ import ibis.cohort.extra.CircularBuffer;
 import ibis.cohort.extra.CohortIdentifierFactory;
 import ibis.cohort.extra.CohortLogger;
 import ibis.cohort.extra.Debug;
+import ibis.cohort.extra.StealPoolInfo;
 import ibis.cohort.extra.WorkQueue;
 import ibis.cohort.extra.WorkQueueFactory;
 import ibis.cohort.impl.distributed.ActivityRecord;
@@ -78,6 +79,8 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     private final CohortLogger logger;
 
+    private final StealPoolInfo poolInfo = new StealPoolInfo();
+    
     private class LookupThread extends Thread { 
 
         // NOTE: should use exp. backoff here!
