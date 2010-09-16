@@ -754,7 +754,7 @@ public class DistributedCohort implements Cohort, TopCohort {
             return null;
 
         } else if (stealing == STEAL_POOL) { 
-                        
+
             if (sr.pool == null || sr.pool.isWorld()) { 
 
                 // This defaults to normal random stealing
@@ -780,8 +780,15 @@ public class DistributedCohort implements Cohort, TopCohort {
                 return null;
             }
             
-            
+            if (pool.randomForwardToPool(sr)) { 
 
+                if (Debug.DEBUG_STEAL) { 
+                    logger.info("D RANDOM FORWARD steal request from child " 
+                            + sr.source  + " to POOL " + sr.pool.getTag());
+                }
+            }
+            
+            return null;
 
         } else if (stealing == STEAL_NONE) {
             logger.debug("D STEAL REQUEST swizzled from " + sr.source);
