@@ -30,7 +30,7 @@ public class Stage4 extends SimpleActivity {
             }
         }
         
-        cohort.send(identifier(), parent, new Data(data.index, 4, data.data));
+        executor.send(identifier(), parent, new Data(data.index, 4, data.data));
     }
 }
 

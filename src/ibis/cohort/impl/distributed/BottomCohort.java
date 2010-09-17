@@ -43,5 +43,5 @@ public interface BottomCohort {
     void deliverLookupReply(LookupReply lr);
     void deliverEventMessage(ApplicationMessage m);
     void deliverUndeliverableEvent(UndeliverableEvent m);
-   
+    
 }

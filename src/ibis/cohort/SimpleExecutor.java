@@ -7,7 +7,7 @@ public class SimpleExecutor extends Executor {
 	private static final long serialVersionUID = -2498570099898761363L;
 
 	public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c) { 
-		super(pool, true, stealFrom, true, c);
+		super(pool, stealFrom, c);
 	}
 	
 	public SimpleExecutor() { 

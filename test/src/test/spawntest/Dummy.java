@@ -18,7 +18,7 @@ public class Dummy extends Activity {
 
     @Override
     public void initialize() throws Exception {
-        cohort.send(identifier(), parent, null);
+        executor.send(identifier(), parent, null);
         finish();
     }
 

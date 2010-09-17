@@ -36,7 +36,7 @@ public class Series extends Activity {
 
         if (count < length) {
             // Submit the next job in the series
-            cohort.submit(new Series(root, length, count+1));
+            executor.submit(new Series(root, length, count+1));
         } 
         
         finish();
@@ -52,7 +52,7 @@ public class Series extends Activity {
         
         if (count == length) { 
             // Only the last job send a reply!
-            cohort.send(identifier(), root, count);
+            executor.send(identifier(), root, count);
         }
     }
     

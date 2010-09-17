@@ -194,21 +194,22 @@ public class CohortFactory {
     }
 */
 	
-	public static Cohort createColony(Executor e) throws Exception { 
-		return createColony(System.getProperties(), e);
+	public static Cohort createCohort(Executor e) throws Exception { 
+		return createCohort(System.getProperties(), e);
 	}
 	
-	public static Cohort createColony(Properties p, Executor e) throws Exception { 
-		return createColony(p, new Executor [] { e });
+	public static Cohort createCohort(Properties p, Executor e) throws Exception { 
+		return createCohort(p, new Executor [] { e });
 	}
 	
-	public static Cohort createColony(Executor ... e) throws Exception { 
-		return createColony(System.getProperties(), e);
+	public static Cohort createCohort(Executor ... e) throws Exception { 
+		
+		return createCohort(System.getProperties(), e);
 	}
 		
-    public static Cohort createColony(Properties p, Executor ... e) throws Exception { 
+    public static Cohort createCohort(Properties p, Executor ... e) throws Exception { 
     	
-    	if (e == null) { 
+    	if (e == null || e.length == 0) { 
     		throw new IllegalArgumentException("Need at least one executor!");
     	}
     	

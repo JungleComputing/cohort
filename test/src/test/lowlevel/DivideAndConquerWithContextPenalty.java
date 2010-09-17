@@ -54,7 +54,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
 
             long time = sleep;
             
-            WorkerContext machineContext = getCohort().getContext();
+            WorkerContext machineContext = executor.getContext();
             ActivityContext activitycontext = getContext();
             
             if (machineContext == null || machineContext.equals(UnitWorkerContext.DEFAULT)) { 
@@ -82,7 +82,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
             
             for (int i=0;i<branch;i++) { 
                 ActivityContext tmp = (i % 2) == 0 ? even : odd;
-                cohort.submit(new DivideAndConquerWithContextPenalty(
+                executor.submit(new DivideAndConquerWithContextPenalty(
                         identifier(), branch, depth-1, sleep, penalty, tmp));
             }
             suspend();
@@ -106,7 +106,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        cohort.send(identifier(), parent, took);        
+        executor.send(identifier(), parent, took);        
    
         System.out.println("Finished job");
     }

@@ -66,7 +66,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
             
             for (int i=0;i<branch;i++) { 
                 ActivityContext tmp = (i % 2) == 0 ? even : odd;
-                cohort.submit(new DivideAndConquerWithLoadAndContext(
+                executor.submit(new DivideAndConquerWithLoadAndContext(
                         identifier(), branch, depth-1, load, tmp));
             }
             suspend();
@@ -90,7 +90,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        cohort.send(identifier(), parent, took);        
+        executor.send(identifier(), parent, took);        
     }
 
     public String toString() { 

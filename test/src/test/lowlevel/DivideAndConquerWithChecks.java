@@ -57,7 +57,7 @@ public class DivideAndConquerWithChecks extends Activity {
             received = new ActivityIdentifier[branch];
             
             for (int i=0;i<branch;i++) { 
-                children[i] = cohort.submit(new DivideAndConquerWithChecks(identifier(), branch, depth-1));
+                children[i] = executor.submit(new DivideAndConquerWithChecks(identifier(), branch, depth-1));
             }
             suspend();
         } 
@@ -103,7 +103,7 @@ public class DivideAndConquerWithChecks extends Activity {
     public void cleanup() throws Exception {
         
         if (!done) { 
-            cohort.send(identifier(), parent, count);
+            executor.send(identifier(), parent, count);
             done = true;
         } else { 
             System.out.println("EEP! Cleanup called twice!");

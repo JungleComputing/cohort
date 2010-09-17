@@ -21,6 +21,7 @@ import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
 import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.UndeliverableEvent;
+import ibis.cohort.impl.distributed.multi.MultiThreadedMiddleCohort;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -36,7 +37,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     private static final int DEFAULT_STEAL_DELAY = 500;
     private static final boolean DEFAULT_IGNORE_EMPTY_STEAL_REPLIES = false;
     
-    private final TopCohort parent;
+    private final MultiThreadedMiddleCohort parent;
 
     private final ExecutorWrapper sequential;
 
@@ -140,10 +141,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private volatile boolean havePendingRequests = false;
     
-    
-    
-    
-    public SingleThreadedBottomCohort(TopCohort parent, Executor executor, Properties p) 
+    public SingleThreadedBottomCohort(MultiThreadedMiddleCohort parent, Executor executor, Properties p) 
     	throws Exception {
 
         super();
@@ -237,8 +235,23 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
         sequential = new ExecutorWrapper(this, executor, p, identifier, logger);
    
+        myPool = sequential.belongsTo();
+        stealPool = sequential.stealsFrom();
+        
         parent.register(this);
     }
+    
+    public StealPool belongsTo() { 
+    	return myPool;
+    }
+    
+    public StealPool stealsFrom() { 
+    	return stealPool;
+    }
+    
+    
+    
+    
   /*  
     private void warning(String message) { 
         System.err.println(message);
@@ -896,7 +909,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     				logger.info("GENERATING STEAL REQUEST at " + identifier + " with context " + getContext());
     			} 
 
-    			StealRequest sr = new StealRequest(identifier, getContext());
+    			StealRequest sr = new StealRequest(identifier, getContext(), myPool);
     			ActivityRecord ar = parent.handleStealRequest(sr);
 
     			if (ar != null) { 
@@ -1350,6 +1363,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     }
    */ 
     
+    /*
 	public void registerPool(Executor executor, StealPool myPool,
 			boolean poolIsFixed) {
 	
@@ -1383,7 +1397,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 			parent.registerStealPool(this, old, stealsFrom);
 		}
 	}
-
+     */
     
 }
 

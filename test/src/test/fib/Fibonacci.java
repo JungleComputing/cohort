@@ -73,14 +73,19 @@ public class Fibonacci extends Activity {
 
         long start = System.currentTimeMillis();
 
-        // Hmmm... this is not what we want. We want small jobs locally, and big jobs remote....
-        Executor e1 = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
-        Executor e2 = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
-        
-        Cohort cohort = CohortFactory.createColony(e1, e2);
-        cohort.activate();
-        
         int index = 0;
+        
+        int executors = Integer.parseInt(args[index++]);
+       
+        Executor [] e = new Executor[executors];
+        
+        for (int i=0;i<executors;i++) { 
+        	// Hmmm... this is not what we want. We want small jobs locally, and big jobs remote....
+            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
+        }
+        
+        Cohort cohort = CohortFactory.createCohort(e);
+        cohort.activate();
         
         int input = Integer.parseInt(args[index++]);
 

@@ -42,12 +42,12 @@ public class Pipeline extends SimpleActivity {
         
             System.out.println("Sending pipeline reply");
             
-            cohort.send(identifier(), parent, data);
+            executor.send(identifier(), parent, data);
         } else { 
 
             System.out.println("Submitting pipeline stage: " + index + " " + (current+1) + " " + last);
         
-            cohort.submit(new Pipeline(parent, index, current+1, last, sleep, data));
+            executor.submit(new Pipeline(parent, index, current+1, last, sleep, data));
         }        
     }
 }

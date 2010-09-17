@@ -103,7 +103,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         private ArrayList<PoolInfo> updates = new ArrayList<PoolInfo>();
 
         public synchronized void addTag(String tag) {
-            tags.add(tag);            
+         	if (!tags.contains(tag)) {
+        		tags.add(tag);  
+        	}
         }
 
         public synchronized String [] getTags() {
@@ -156,7 +158,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             String [] pools = getTags(); 
 
             for (int i=0;i<pools.length;i++) {
-                requestUpdate(pools[i]);                
+            	requestUpdate(pools[i]);                
             }
         }
 
@@ -785,12 +787,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         
         PoolInfo tmp = null;
         
+        System.err.println("Processing register request " + tag + " from " + id);
+        
         synchronized (pools) {
             tmp = pools.get(tag);
         }
-
+        
         if (tmp == null) { 
             logger.warn("Failed to find pool " + tag + " to register " + id); 
+            System.err.println("Failed to find pool " + tag + " to register " + id); 
             return;
         }
 
@@ -815,33 +820,57 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         
     
     private void requestRegisterWithPool(IbisIdentifier master, String tag) {
-        forward(master, OPCODE_POOL_REGISTER_REQUEST, tag);
+        
+    	System.err.println("Sending register request for pool " + tag + " to " + master);
+       
+    	forward(master, OPCODE_POOL_REGISTER_REQUEST, tag);
     }
     
     private void requestUpdate(IbisIdentifier master, String tag) {
-        forward(master, OPCODE_POOL_UPDATE_REQUEST, tag);
+       
+    	System.err.println("Sending update request for pool " + tag + " to " + master);
+       
+    	forward(master, OPCODE_POOL_UPDATE_REQUEST, tag);
     }
         
     public void registerWithPool(String tag) { 
 
-        // NOTE: race condition between elect and hashmap.add!
+    	// NOTE: We know that tag is not NULL, WORLD or NONE.
+    
+    	// TODO: we currently assume that this function is called once for each tag ?
+    	
+    	try {
+    		// Simple case: we are part of the pool or already known it.
+        	Registry reg = ibis.registry();
+        	
+        	String electTag = "STEALPOOL$" + tag;
+        	
+        	System.err.println("Electing master for POOL " + electTag);
+        	
+        	IbisIdentifier id = reg.elect(electTag);
+        	
+        	// NOTE: there may be a race here between the election and the hashmap!! 
+        	boolean master = id.equals(ibis.identifier()); 
+
+        	System.err.println("Master for POOL " + electTag + " is " + id + " " + master);
+        	
+        	if (master) { 
+        	
+        		synchronized (pools) {
+        			
+        			PoolInfo info = pools.get(tag);
+        			
+        			if (info != null) { 
+        				System.err.println("Hit race in pool registration!");
+        			} else { 
+        				info = new PoolInfo(tag, id, master);
+        				pools.put(tag, info);
+        			}
+        		}
+        	} else { 
+                requestRegisterWithPool(id, tag);
+            }
         
-        try {
-            Registry reg = ibis.registry();
-            IbisIdentifier id = reg.elect("STEALPOOL$" + tag);
-
-            boolean master = id.equals(ibis.identifier()); 
-            PoolInfo info = new PoolInfo(tag, id, master);
-            
-            synchronized (pools) {
-                pools.put(tag, info);
-            }
-            
-            if (!master) {
-                performRegisterWithPool(id, tag);
-                updater.addTag(tag);
-            }
-
         } catch (IOException e) {
             logger.warn("Failed to register pool " + tag, e);
             
@@ -850,6 +879,54 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         }
     }
 
+    public void followPool(String tag) { 
+
+        // NOTE: race condition between elect and hashmap.add!
+        try {
+        	// Simple case: we own the pool or already follow it.
+        	synchronized (pools) {
+        		if (pools.containsKey(tag)) { 
+        			return;
+        		}
+            }
+        	
+        	// Complex case: we are not part of the pool, but interested anyway
+        	Registry reg = ibis.registry();
+            
+        	String electTag = "STEALPOOL$" + tag;
+        	
+        	System.err.println("Searching master for POOL " + electTag);
+        	
+            // NOTE: this may hang or return null ??
+            IbisIdentifier id = reg.getElectionResult(electTag);
+           
+            boolean master = id.equals(ibis.identifier());
+            
+            System.err.println("Found master for POOL " + electTag + " " + id + " " + master);
+        	
+            if (master) { 
+            	// Assuming the pools are static and registered in 
+            	// the right order this should not happen
+            	logger.error("INTERNAL ERROR: election of follow pool returned self!");
+            	return;
+            }
+            
+            PoolInfo info = new PoolInfo(tag, id, false);
+            
+            synchronized (pools) {
+                pools.put(tag, info);
+            }
+            
+            updater.addTag(tag);
+        } catch (IOException e) {
+            logger.warn("Failed to register pool " + tag, e);
+            
+            System.err.println("Failed to register pool " + tag + " " + e);
+            e.printStackTrace(System.err);
+        }
+    }
+
+    
     private void performUpdate(PoolInfo info) { 
         
         synchronized (pools) {
@@ -871,18 +948,20 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
         IbisIdentifier master = null;
         
+        System.err.println("Requesting update for pool " + tag);
+        
         synchronized (pools) {
             PoolInfo tmp = pools.get(tag);
             
             if (tmp == null) { 
-                logger.warn("Received update request for unknown tag " + tag);
-                System.err.println("Received update request for unknown tag " + tag);
+                logger.warn("Cannot request update for " + tag + ": unknown pool!");
+                System.err.println("Cannot request update for " + tag + ": unknown pool!");
                 return;
             }
             
             master = tmp.master;
         }
-    
+        
         requestUpdate(master, tag);
     }
 

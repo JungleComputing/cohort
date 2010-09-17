@@ -53,7 +53,7 @@ public class DivideAndConquerWithSleep extends Activity {
             finish();
         } else {
             for (int i=0;i<branch;i++) { 
-                cohort.submit(new DivideAndConquerWithSleep(identifier(),
+                executor.submit(new DivideAndConquerWithSleep(identifier(),
                         branch, depth-1, load));
             }
             suspend();
@@ -77,7 +77,7 @@ public class DivideAndConquerWithSleep extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        cohort.send(identifier(), parent, count);        
+        executor.send(identifier(), parent, count);        
     }
 
     public String toString() { 

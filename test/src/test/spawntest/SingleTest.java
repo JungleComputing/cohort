@@ -23,7 +23,7 @@ public class SingleTest extends Activity {
     @Override
     public void initialize() throws Exception {
         for (int i=0;i<spawns;i++) { 
-            cohort.submit(new Dummy(identifier()));
+            executor.submit(new Dummy(identifier()));
         }
         
         suspend();
@@ -35,7 +35,7 @@ public class SingleTest extends Activity {
         replies++;
         
         if (replies == spawns) { 
-            cohort.send(identifier(), parent, null);
+            executor.send(identifier(), parent, null);
             finish();
         } else { 
             suspend();

@@ -41,7 +41,7 @@ public class Stage5 extends Activity {
         
         System.out.println("Finished pipeline: " + result.index);
         
-        cohort.send(identifier(), parent, result);
+        executor.send(identifier(), parent, result);
     }
   
     private Data processData() { 

@@ -30,6 +30,6 @@ public class Stage1 extends SimpleActivity {
             }
         }
       
-        cohort.submit(new Stage2(parent, 200, new Data(data.index, 1, data.data)));       
+        executor.submit(new Stage2(parent, 200, new Data(data.index, 1, data.data)));       
     }
 }

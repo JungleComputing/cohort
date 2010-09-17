@@ -25,6 +25,7 @@ import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
 import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.UndeliverableEvent;
+import ibis.cohort.impl.distributed.dist.DistributedCohort;
 import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
@@ -35,23 +36,21 @@ import java.util.Properties;
 import java.util.Random;
 
 //FIXME: crap name!
-public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
-
-//  private static final int REMOTE_STEAL_RANDOM = 0;
-//  private static final int REMOTE_STEAL_ALL    = 1;
-
-//  private static final int REMOTE_STEAL_POLICY = 
-//  determineRemoteStealPolicy(REMOTE_STEAL_RANDOM);
+public class MultiThreadedMiddleCohort implements BottomCohort {
 
     private static boolean PUSHDOWN_SUBMITS = false;
 
-    private final TopCohort parent;
+    private final DistributedCohort parent;
 
-    private ArrayList<BottomCohort> incomingWorkers;
+    private ArrayList<SingleThreadedBottomCohort> incomingWorkers;
 
-    private BottomCohort [] workers;
+    private SingleThreadedBottomCohort [] workers;
+    
+    private StealPool belongsTo;
+    private StealPool stealsFrom;
+    
     private int workerCount;
-
+    
     private final CohortIdentifier identifier;
 
     private final Random random = new Random();
@@ -259,7 +258,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         return def;
     }*/
 
-    public MultiThreadedMiddleCohort(TopCohort parent, Properties p) throws Exception {
+    public MultiThreadedMiddleCohort(DistributedCohort parent, Properties p) throws Exception {
 
         int count = 0;
 
@@ -288,7 +287,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         
         this.logger = CohortLogger.getLogger(MultiThreadedMiddleCohort.class, identifier);
 
-        incomingWorkers = new ArrayList<BottomCohort>();
+        incomingWorkers = new ArrayList<SingleThreadedBottomCohort>();
         //     localSteals = new StealState[count];
         contexts    = new WorkerContext[count];
 
@@ -598,8 +597,8 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
     public ActivityRecord handleStealRequest(StealRequest sr) {
 
-        //  System.out.println("MT STEAL");
-
+    	// TODO: This currently ignores the pool information is the steal request!
+    	
         if (Debug.DEBUG_STEAL) { 
             logger.info("M STEAL REQUEST from child " + sr.source + " with context " 
                     + sr.context);
@@ -643,7 +642,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 
         if (index >= 0) { 
 
-            StealRequest copy = new StealRequest(sr.source, sr.context);
+            StealRequest copy = new StealRequest(sr.source, sr.context, sr.pool);
 
             if (Debug.DEBUG_STEAL) { 
                 logger.info("M FORWARD STEAL from child " + sr.source 
@@ -675,7 +674,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         return parent.getCohortIdentifierFactory(cid);        
     }
 
-    public synchronized void register(BottomCohort cohort) throws Exception {
+    public synchronized void register(SingleThreadedBottomCohort cohort) throws Exception {
 
         if (active) { 
             throw new Exception("Cannot register new BottomCohort while " +
@@ -683,6 +682,7 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         }
 
         incomingWorkers.add(cohort);
+        
     }
 
 
@@ -789,13 +789,33 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
             }
 
             active = true;
+        
             workerCount = incomingWorkers.size();
-            workers = incomingWorkers.toArray(new BottomCohort[workerCount]);
+            workers = incomingWorkers.toArray(new SingleThreadedBottomCohort[workerCount]);
 
+            StealPool [] tmp = new StealPool[workerCount];
+           
+            for (int i = 0; i < workerCount; i++) {
+                tmp[i] = workers[i].belongsTo();
+            }
+            
+            belongsTo = StealPool.merge(tmp);
+            
+            for (int i = 0; i < workerCount; i++) {
+                tmp[i] = workers[i].stealsFrom();
+            }
+            
+            stealsFrom = StealPool.merge(tmp);
+              
             // No workers may be added after this point
             incomingWorkers = null;
+        } 
+         
+        if (parent != null) { 
+        	parent.belongsTo(belongsTo);
+        	parent.stealsFrom(stealsFrom);
         }
-
+        
         for (int i = 0; i < workerCount; i++) {
             logger.info("Activating worker " + i);
             workers[i].activate();
@@ -1099,12 +1119,30 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
         logger.fixme("DROP UndeliverableEvent", new Exception());
     }
 
+    /*
+    
 	@Override
 	public void registerPool(
 			SingleThreadedBottomCohort singleThreadedBottomCohort,
 			StealPool oldPool, StealPool newPool) {
 
 		// TODO: We should maintain a list here of all pools we know (and their participants).
+		
+		// 1) Register locally. 
+		
+		// 2) Create a join of all tags 
+		
+		HashSet<String> tags = 
+		
+		
+		// 2) Register with parent
+		
+		
+		
+		
+		
+		
+		
 	}
 
 	@Override
@@ -1119,7 +1157,8 @@ public class MultiThreadedMiddleCohort implements TopCohort, BottomCohort {
 		// TODO Auto-generated method stub
 		
 	}
-
+*/
+    
     /* ================= End of BottomCohort interface =======================*/
 
 

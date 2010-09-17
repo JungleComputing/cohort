@@ -30,10 +30,10 @@ public class Stage2 extends SimpleActivity {
         }
       
         // Submit stage5 first, as it it used to gather the results from stage3&4 
-        ActivityIdentifier id = cohort.submit(new Stage5(parent, 100));
+        ActivityIdentifier id = executor.submit(new Stage5(parent, 100));
         
-        cohort.submit(new Stage3(id, 1000, data));       
-        cohort.submit(new Stage4(id, 600, data));       
+        executor.submit(new Stage3(id, 1000, data));       
+        executor.submit(new Stage4(id, 600, data));       
         
     }
 }

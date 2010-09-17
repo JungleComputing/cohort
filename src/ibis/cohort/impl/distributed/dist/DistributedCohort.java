@@ -25,162 +25,162 @@ import ibis.cohort.impl.distributed.LookupReply;
 import ibis.cohort.impl.distributed.LookupRequest;
 import ibis.cohort.impl.distributed.StealReply;
 import ibis.cohort.impl.distributed.StealRequest;
-import ibis.cohort.impl.distributed.TopCohort;
 import ibis.cohort.impl.distributed.UndeliverableEvent;
-import ibis.cohort.impl.distributed.single.SingleThreadedBottomCohort;
 
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Properties;
 
-public class DistributedCohort implements Cohort, TopCohort {
+public class DistributedCohort implements Cohort {
 
-    private static final int STEAL_RANDOM = 1; 
-    private static final int STEAL_MASTER = 2;
-    private static final int STEAL_NONE   = 3;
-    private static final int STEAL_POOL   = 4; 
+	private static final int STEAL_RANDOM = 1; 
+	private static final int STEAL_MASTER = 2;
+	private static final int STEAL_NONE   = 3;
+	private static final int STEAL_POOL   = 4; 
 
-    private static final boolean PROFILE = true;
+	private static final boolean PROFILE = true;
 
-    private static boolean REMOTE_STEAL_THROTTLE = true;
+	private static boolean REMOTE_STEAL_THROTTLE = true;
 
-    // FIXME setting this to low at startup causes load imbalance!
-    //    machines keep hammering the master for work, and (after a while) 
-    //    get a flood of replies. 
-    private static long REMOTE_STEAL_TIMEOUT = 60000;
+	// FIXME setting this to low at startup causes load imbalance!
+	//    machines keep hammering the master for work, and (after a while) 
+	//    get a flood of replies. 
+	private static long REMOTE_STEAL_TIMEOUT = 60000;
 
-    private static boolean PUSHDOWN_SUBMITS = false;
+	private static boolean PUSHDOWN_SUBMITS = false;
 
-    private boolean active;
+	private boolean active;
 
-    private BottomCohort subCohort;
+	private BottomCohort subCohort;
 
-    private final WorkQueue queue; 
-    private final WorkQueue restrictedQueue; 
+	private final WorkQueue queue; 
+	private final WorkQueue restrictedQueue; 
 
-    private final CohortIdentifier identifier;
+	private final CohortIdentifier identifier;
 
-    private final LocationCache cache = new LocationCache();
+	private final LocationCache cache = new LocationCache();
 
-    private final Pool pool;
+	private final Pool pool;
 
-    private final DistributedCohortIdentifierFactory cidFactory;
+	private final DistributedCohortIdentifierFactory cidFactory;
 
-    private final CohortLogger logger;
+	private final CohortLogger logger;
 
-    private ActivityIdentifierFactory aidFactory;
+	private ActivityIdentifierFactory aidFactory;
 
-    private WorkerContext myContext;
+	private WorkerContext myContext;
 
-    private long stealReplyDeadLine;
+	private long stealReplyDeadLine;
 
-    private long startID = 0;
-    private long blockSize = 1000000;
+	private long startID = 0;
+	private long blockSize = 1000000;
 
-    private boolean pendingSteal = false;
+	private boolean pendingSteal = false;
 
-    private final int stealing; 
+	private final int stealing; 
 
-    private final long start;
+	private final long start;
 
-    public DistributedCohort(Properties p) throws Exception {         
+	public DistributedCohort(Properties p) throws Exception {         
 
-        String tmp = p.getProperty("ibis.cohort.remotesteal.throttle");
+		String tmp = p.getProperty("ibis.cohort.remotesteal.throttle");
 
-        if (tmp != null) {
+		if (tmp != null) {
 
-            try { 
-                REMOTE_STEAL_THROTTLE = Boolean.parseBoolean(tmp);
-            } catch (Exception e) {
-                System.err.println("Failed to parse " +
-                        "ibis.cohort.remotesteal.throttle: " + tmp);
-            }
-        }
+			try { 
+				REMOTE_STEAL_THROTTLE = Boolean.parseBoolean(tmp);
+			} catch (Exception e) {
+				System.err.println("Failed to parse " +
+						"ibis.cohort.remotesteal.throttle: " + tmp);
+			}
+		}
 
-        tmp = p.getProperty("ibis.cohort.remotesteal.timeout");
+		tmp = p.getProperty("ibis.cohort.remotesteal.timeout");
 
-        if (tmp != null) {
+		if (tmp != null) {
 
-            try { 
-                REMOTE_STEAL_TIMEOUT = Long.parseLong(tmp);
-            } catch (Exception e) {
-                System.err.println("Failed to parse " +
-                        "ibis.cohort.remotesteal.timeout: " + tmp);
-            }
-        }
+			try { 
+				REMOTE_STEAL_TIMEOUT = Long.parseLong(tmp);
+			} catch (Exception e) {
+				System.err.println("Failed to parse " +
+						"ibis.cohort.remotesteal.timeout: " + tmp);
+			}
+		}
 
-        tmp = p.getProperty("ibis.cohort.submit.pushdown");
+		tmp = p.getProperty("ibis.cohort.submit.pushdown");
 
-        if (tmp != null) {
+		if (tmp != null) {
 
-            try { 
-                PUSHDOWN_SUBMITS = Boolean.parseBoolean(tmp);
-            } catch (Exception e) {
-                System.err.println("Failed to parse " +
-                        "ibis.cohort.submits.pushdown: " + tmp);
-            }
-        }
+			try { 
+				PUSHDOWN_SUBMITS = Boolean.parseBoolean(tmp);
+			} catch (Exception e) {
+				System.err.println("Failed to parse " +
+						"ibis.cohort.submits.pushdown: " + tmp);
+			}
+		}
 
-        String stealName = p.getProperty("ibis.cohort.stealing", "random");
+		String stealName = p.getProperty("ibis.cohort.stealing", "pool");
 
-        if (stealName.equalsIgnoreCase("random")) { 
-            stealing = STEAL_RANDOM;
-        } else if (stealName.equalsIgnoreCase("mw")) {
-            stealing = STEAL_MASTER;
-        } else if (stealName.equalsIgnoreCase("none")) {
-            stealing = STEAL_NONE;
-        } else { 
-            System.err.println("Unknown stealing strategy: " + stealName);
-            throw new Exception("Unknown stealing strategy: " + stealName);
-        }
+		if (stealName.equalsIgnoreCase("random")) { 
+			stealing = STEAL_RANDOM;
+		} else if (stealName.equalsIgnoreCase("mw")) {
+			stealing = STEAL_MASTER;
+		} else if (stealName.equalsIgnoreCase("none")) {
+			stealing = STEAL_NONE;
+		} else if (stealName.equalsIgnoreCase("pool")) { 
+			stealing = STEAL_POOL;
+		} else { 
+			System.err.println("Unknown stealing strategy: " + stealName);
+			throw new Exception("Unknown stealing strategy: " + stealName);
+		}
 
-        myContext = UnitWorkerContext.DEFAULT;
+		myContext = UnitWorkerContext.DEFAULT;
 
-        // Init communication here...
-        pool = new Pool(this, p);
+		// Init communication here...
+		pool = new Pool(this, p);
 
-        cidFactory = pool.getCIDFactory();        
-        identifier = cidFactory.generateCohortIdentifier();
+		cidFactory = pool.getCIDFactory();        
+		identifier = cidFactory.generateCohortIdentifier();
 
-        String queueName = p.getProperty("ibis.cohort.workqueue");
+		String queueName = p.getProperty("ibis.cohort.workqueue");
 
-        queue = WorkQueueFactory.createQueue(queueName, true, 
-                "D(" + identifier.id + ")");
+		queue = WorkQueueFactory.createQueue(queueName, true, 
+				"D(" + identifier.id + ")");
 
-        restrictedQueue = WorkQueueFactory.createQueue(queueName, true, 
-                "D(" + identifier.id + "-RESTRICTED)");
+		restrictedQueue = WorkQueueFactory.createQueue(queueName, true, 
+				"D(" + identifier.id + "-RESTRICTED)");
 
-        aidFactory = getActivityIdentifierFactory(identifier);        
+		aidFactory = getActivityIdentifierFactory(identifier);        
 
-        logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
+		logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
 
-        start = System.currentTimeMillis();
+		start = System.currentTimeMillis();
 
-        if (true) { 
-            System.out.println("DistributeCohort : " + identifier.id);
-            System.out.println("        throttle : " + REMOTE_STEAL_THROTTLE);
-            System.out.println("  throttle delay : " + REMOTE_STEAL_TIMEOUT);
-            System.out.println("        pushdown : " + PUSHDOWN_SUBMITS);
-            System.out.println("           queue : " + queueName);     
-            System.out.println("        stealing : " + stealName);
-            System.out.println("           start : " + start);
-        }
+		if (true) { 
+			System.out.println("DistributeCohort : " + identifier.id);
+			System.out.println("        throttle : " + REMOTE_STEAL_THROTTLE);
+			System.out.println("  throttle delay : " + REMOTE_STEAL_TIMEOUT);
+			System.out.println("        pushdown : " + PUSHDOWN_SUBMITS);
+			System.out.println("           queue : " + queueName);     
+			System.out.println("        stealing : " + stealName);
+			System.out.println("           start : " + start);
+		}
 
-        logger.warn("Starting DistributedCohort " + identifier + " / " + myContext);
-    }
-
-
-    public PrintStream getOutput() {
-        return System.out;
-    }
+		logger.warn("Starting DistributedCohort " + identifier + " / " + myContext);
+	}
 
 
-    private void printStatistics() { 
+	public PrintStream getOutput() {
+		return System.out;
+	}
 
-        synchronized (System.out) {
+
+	private void printStatistics() { 
+
+		synchronized (System.out) {
 
 
-            /*
+			/*
             System.out.println("Messages send     : " + messagesSend);
             System.out.println("           Events : " + eventsSend);
             System.out.println("           Steals : " + stealsSend);
@@ -191,9 +191,9 @@ public class DistributedCohort implements Cohort, TopCohort {
             System.out.println("           Steals : " + stealsReceived);
             System.out.println("             Work : " + workReceived);
             System.out.println("          No work : " + no_workReceived);
-             */
-            if (PROFILE) { 
-                /*
+			 */
+			if (PROFILE) { 
+				/*
                 System.out.println("GC beans     : " + gcbeans.size());
 
                 for (GarbageCollectorMXBean gc : gcbeans) { 
@@ -201,49 +201,49 @@ public class DistributedCohort implements Cohort, TopCohort {
                     System.out.println("   count : " + gc.getCollectionCount());
                     System.out.println("   time  : " + gc.getCollectionTime());
                 }
-                 */
-            }
-        }
-    }
+				 */
+			}
+		}
+	}
 
 
-    private synchronized boolean setPendingSteal(boolean value) { 
+	private synchronized boolean setPendingSteal(boolean value) { 
 
-        // When we are setting the value to false, we don't care about 
-        // the deadline. 
-        if (!value) { 
-            boolean tmp = pendingSteal; 
-            pendingSteal = false;
-            stealReplyDeadLine = 0;
-            return tmp;
-        } 
+		// When we are setting the value to false, we don't care about 
+		// the deadline. 
+		if (!value) { 
+			boolean tmp = pendingSteal; 
+			pendingSteal = false;
+			stealReplyDeadLine = 0;
+			return tmp;
+		} 
 
-        long time = System.currentTimeMillis();
+		long time = System.currentTimeMillis();
 
-        // When we are changing the value from false to true, we also
-        // need to set the deadline.
-        if (!pendingSteal) { 
-            pendingSteal = true;
-            stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
-            return false;
-        }
+		// When we are changing the value from false to true, we also
+		// need to set the deadline.
+		if (!pendingSteal) { 
+			pendingSteal = true;
+			stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
+			return false;
+		}
 
-        // When the old value was true but the deadline has passed, we act as 
-        // if the value was false to begin with
-        if (time > stealReplyDeadLine) { 
-            pendingSteal = true;
-            stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
-            return false;
-        }
+		// When the old value was true but the deadline has passed, we act as 
+		// if the value was false to begin with
+		if (time > stealReplyDeadLine) { 
+			pendingSteal = true;
+			stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
+			return false;
+		}
 
-        // Otherwise, we leave the value and deadline unchanged
-        return true;    
-    }
-
-
+		// Otherwise, we leave the value and deadline unchanged
+		return true;    
+	}
 
 
-    /*
+
+
+	/*
     private void queueOutgoingMessage(Message m) { 
 
         if (m.isTargetSet()) { 
@@ -277,680 +277,727 @@ public class DistributedCohort implements Cohort, TopCohort {
     protected void queueIncomingWork(Object o) { 
         incoming.enqueue(o);
     }
-     */
+	 */
 
-    private boolean isLocal(CohortIdentifier id) { 
-        return pool.isLocal(id);
-    }
+	private boolean isLocal(CohortIdentifier id) { 
+		return pool.isLocal(id);
+	}
 
-    /* =========== Callback interface for Pool ============================== */
+	/* =========== Callback interface for Pool ============================== */
 
-    protected void deliverRemoteStealRequest(StealRequest sr) { 
-        // This method is called from an finished upcall. Therefore it 
-        // may block for a long period of time or communicate.
+	protected void deliverRemoteStealRequest(StealRequest sr) { 
+		// This method is called from an finished upcall. Therefore it 
+		// may block for a long period of time or communicate.
 
-        if (Debug.DEBUG_STEAL) { 
-            logger.info("D REMOTE STEAL REQUEST from cohort " + sr.source 
-                    + " context " + sr.context);
-        }
+		if (Debug.DEBUG_STEAL) { 
+			logger.info("D REMOTE STEAL REQUEST from cohort " + sr.source 
+					+ " context " + sr.context);
+		}
 
-        //   System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
+		//   System.out.println("DIST REMOTE STEAL " + sr.context + " from " + sr.source);     
 
-        // NOTE: only allowed to steal from 'normal' queue
-        ActivityRecord ar = queue.steal(sr.context);
+		// NOTE: only allowed to steal from 'normal' queue
+		ActivityRecord ar = queue.steal(sr.context);
 
-        if (ar != null) { 
+		if (ar != null) { 
 
-            //    System.out.println("DIST REMOTE STEAL RESTURNS " 
-            //            + ar.activity.getContext() + " " + ar.identifier());     
+			//    System.out.println("DIST REMOTE STEAL RESTURNS " 
+			//            + ar.activity.getContext() + " " + ar.identifier());     
 
-            if (Debug.DEBUG_STEAL) {
-                logger.info("D REMOTE REPLY for STEAL REQUEST from cohort " 
-                        + sr.source + " context " + sr.context + " " 
-                        + ar.identifier() + " " + ar.activity.getContext());
-            }
+			if (Debug.DEBUG_STEAL) {
+				logger.info("D REMOTE REPLY for STEAL REQUEST from cohort " 
+						+ sr.source + " context " + sr.context + " " 
+						+ ar.identifier() + " " + ar.activity.getContext());
+			}
 
-            System.out.println((System.currentTimeMillis()-start) + " D REMOTE REPLY for STEAL REQUEST from cohort " 
-                    + sr.source + " context " + sr.context + " " 
-                    + ar.identifier() + " " + ar.activity.getContext()); 
+			System.out.println((System.currentTimeMillis()-start) + " D REMOTE REPLY for STEAL REQUEST from cohort " 
+					+ sr.source + " context " + sr.context + " " 
+					+ ar.identifier() + " " + ar.activity.getContext()); 
 
-            if (!pool.forward(new StealReply(identifier, sr.source, ar))) { 
-                logger.warning("DROP StealReply to " + sr.source);
-                queue.enqueue(ar);
-            } 
+			if (!pool.forward(new StealReply(identifier, sr.source, ar))) { 
+				logger.warning("DROP StealReply to " + sr.source);
+				queue.enqueue(ar);
+			} 
 
-            return;
-        } else {
-            if (Debug.DEBUG_STEAL) {
-                logger.info("D No local reply for STEAL REQUEST from child " 
-                        + sr.source + " context " + sr.context);
-            }
+			return;
+		} else {
+			if (Debug.DEBUG_STEAL) {
+				logger.info("D No local reply for STEAL REQUEST from child " 
+						+ sr.source + " context " + sr.context);
+			}
 
-            System.out.println((System.currentTimeMillis()-start) + " D NO REPLY for STEAL REQUEST from cohort " 
-                    + sr.source + " context " + sr.context); 
+			System.out.println((System.currentTimeMillis()-start) + " D NO REPLY for STEAL REQUEST from cohort " 
+					+ sr.source + " context " + sr.context); 
 
-        }
+		}
 
-        subCohort.deliverStealRequest(sr);
-    }
+		subCohort.deliverStealRequest(sr);
+	}
 
-    protected void deliverRemoteLookupRequest(LookupRequest lr) { 
-        // This method is called from an finished upcall. Therefore it 
-        // may block for a long period of time or communicate.
+	protected void deliverRemoteLookupRequest(LookupRequest lr) { 
+		// This method is called from an finished upcall. Therefore it 
+		// may block for a long period of time or communicate.
 
-        if (Debug.DEBUG_LOOKUP) { 
-            logger.warning("RECEIVED LOOKUP REQUEST " + lr.source + " " 
-                    + lr.target + " " + lr.missing);
-        }
+		if (Debug.DEBUG_LOOKUP) { 
+			logger.warning("RECEIVED LOOKUP REQUEST " + lr.source + " " 
+					+ lr.target + " " + lr.missing);
+		}
 
-        if (lr.target == null || identifier.equals(lr.target)) { 
-            // I am the target (including any lower cohorts). This is the normal 
-            // case.
+		if (lr.target == null || identifier.equals(lr.target)) { 
+			// I am the target (including any lower cohorts). This is the normal 
+			// case.
 
-            if (Debug.DEBUG_LOOKUP) { 
-                logger.warning("I AM TARGET");
-            }
+			if (Debug.DEBUG_LOOKUP) { 
+				logger.warning("I AM TARGET");
+			}
 
-            LocationCache.Entry tmp = cache.lookupEntry(lr.missing);
+			LocationCache.Entry tmp = cache.lookupEntry(lr.missing);
 
-            if (tmp != null) { 
-                pool.forward(new LookupReply(identifier, lr.source, lr.missing,
-                        tmp.id, tmp.count));
+			if (tmp != null) { 
+				pool.forward(new LookupReply(identifier, lr.source, lr.missing,
+						tmp.id, tmp.count));
 
-                // Ignore reply of forward. We don't care if it fails!
-                return;
-            }
+				// Ignore reply of forward. We don't care if it fails!
+				return;
+			}
 
-            // Check if the activity is in my queue 
-            if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
-                pool.forward(new LookupReply(identifier, lr.source, lr.missing, identifier, 0));            
-            }
-        }
+			// Check if the activity is in my queue 
+			if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
+				pool.forward(new LookupReply(identifier, lr.source, lr.missing, identifier, 0));            
+			}
+		}
 
-        if (Debug.DEBUG_LOOKUP) {
-            logger.warning("DELIVER TO CHILD");
-        }
+		if (Debug.DEBUG_LOOKUP) {
+			logger.warning("DELIVER TO CHILD");
+		}
 
-        subCohort.deliverLookupRequest(lr);
-    }
+		subCohort.deliverLookupRequest(lr);
+	}
 
-    protected void deliverRemoteStealReply(StealReply sr) { 
-        // This method is called from an unfinished upcall. It may NOT 
-        // block for a long period of time or communicate!
+	protected void deliverRemoteStealReply(StealReply sr) { 
+		// This method is called from an unfinished upcall. It may NOT 
+		// block for a long period of time or communicate!
 
-        setPendingSteal(false);
+		setPendingSteal(false);
 
-        System.err.println("DIST STEAL reply: " + Arrays.toString(sr.getWork()));
+		System.err.println("DIST STEAL reply: " + Arrays.toString(sr.getWork()));
 
-        if (identifier.equals(sr.target)) { 
-            if (!sr.isEmpty()) {
-                // NOTE: should never get restricted work!
-                queue.enqueue(sr.getWork());
-            }
-            return;
-        }
+		if (identifier.equals(sr.target)) { 
+			if (!sr.isEmpty()) {
+				// NOTE: should never get restricted work!
+				queue.enqueue(sr.getWork());
+			}
+			return;
+		}
 
-        subCohort.deliverStealReply(sr);
-    }
+		subCohort.deliverStealReply(sr);
+	}
 
 
-    protected void deliverRemoteLookupReply(LookupReply lr) { 
-        // This method is called from an unfinished upcall. It may NOT 
-        // block for a long period of time or communicate!
+	protected void deliverRemoteLookupReply(LookupReply lr) { 
+		// This method is called from an unfinished upcall. It may NOT 
+		// block for a long period of time or communicate!
 
-        cache.put(lr.missing, lr.location, lr.count);
+		cache.put(lr.missing, lr.location, lr.count);
 
-        if (identifier.equals(lr.target)) { 
-            return;
-        }
+		if (identifier.equals(lr.target)) { 
+			return;
+		}
 
-        subCohort.deliverLookupReply(lr);
-    }
+		subCohort.deliverLookupReply(lr);
+	}
 
-    private boolean deliverEventToLocalActivity(Event e) { 
+	private boolean deliverEventToLocalActivity(Event e) { 
 
-        ActivityIdentifier id = e.target;
+		ActivityIdentifier id = e.target;
 
-        ActivityRecord a = restrictedQueue.lookup(id);
+		ActivityRecord a = restrictedQueue.lookup(id);
 
-        if (a == null) { 
-            a = queue.lookup(id);
-        }
+		if (a == null) { 
+			a = queue.lookup(id);
+		}
 
-        if (a != null) {
-            synchronized (a) { 
-                a.enqueue(e);
-            }
-            return true;
-        }
+		if (a != null) {
+			synchronized (a) { 
+				a.enqueue(e);
+			}
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    protected void deliverRemoteEvent(ApplicationMessage re) { 
-        // This method is called from an unfinished upcall. It may NOT 
-        // block for a long period of time or communicate!
+	protected void deliverRemoteEvent(ApplicationMessage re) { 
+		// This method is called from an unfinished upcall. It may NOT 
+		// block for a long period of time or communicate!
 
-        if (identifier.equals(re.target)) { 
+		if (identifier.equals(re.target)) { 
 
-            if (!deliverEventToLocalActivity(re.event)) {
-                // FIXME: This is a BUG!
-                logger.fixme("DROP application message from " + re.event.source + " to " + re.event.target);
-            }
+			if (!deliverEventToLocalActivity(re.event)) {
+				// FIXME: This is a BUG!
+				logger.fixme("DROP application message from " + re.event.source + " to " + re.event.target);
+			}
 
-            return;
-        } 
+			return;
+		} 
 
-        subCohort.deliverEventMessage(re);
-    }
+		subCohort.deliverEventMessage(re);
+	}
 
-    protected void deliverUndeliverableEvent(UndeliverableEvent ue) { 
-        // This method is called from an unfinished upcall. It may NOT 
-        // block for a long period of time or communicate!
+	protected void deliverUndeliverableEvent(UndeliverableEvent ue) { 
+		// This method is called from an unfinished upcall. It may NOT 
+		// block for a long period of time or communicate!
 
-        if (identifier.equals(ue.target)) { 
-            logger.warning("DROP unexpected UndeliverableEvent " + ue.event);
-            return;
-        } 
+		if (identifier.equals(ue.target)) { 
+			logger.warning("DROP unexpected UndeliverableEvent " + ue.event);
+			return;
+		} 
 
-        subCohort.deliverUndeliverableEvent(ue);
-    }
+		subCohort.deliverUndeliverableEvent(ue);
+	}
 
 
-    /* =========== End of Callback interface for Pool ======================= */
+	/* =========== End of Callback interface for Pool ======================= */
 
 
 
-    /* =========== Cohort interface ========================================= */
+	/* =========== Cohort interface ========================================= */
 
-    public boolean activate() {
+	public boolean activate() {
 
-        synchronized (this) {
-            active = true;
-        }
+		synchronized (this) {
+			active = true;
+		}
 
-        pool.activate();
-        return subCohort.activate();
-    }
+		pool.activate();
+		return subCohort.activate();
+	}
 
-    public void cancel(ActivityIdentifier id) {
-        send(new CancelEvent(id));
-    }
+	public void cancel(ActivityIdentifier id) {
+		send(new CancelEvent(id));
+	}
 
-    public boolean deregister(String name, ActivityContext scope) {
-        // TODO DOES THIS MAKE SENSE ?
-        return false;
-    }
+	public boolean deregister(String name, ActivityContext scope) {
+		// TODO DOES THIS MAKE SENSE ?
+		return false;
+	}
 
-    public void done() {
-        try { 
-            // NOTE: this will proceed directly on the master. On other 
-            // instances, it blocks until the master terminates. 
-            pool.terminate();
-        } catch (Exception e) {
-            logger.warning("Failed to terminate pool!", e);
-        }
+	public void done() {
+		try { 
+			// NOTE: this will proceed directly on the master. On other 
+			// instances, it blocks until the master terminates. 
+			pool.terminate();
+		} catch (Exception e) {
+			logger.warning("Failed to terminate pool!", e);
+		}
 
-        subCohort.done();        
+		subCohort.done();        
 
-        printStatistics();
+		printStatistics();
 
-        pool.cleanup();
-    }
+		pool.cleanup();
+	}
 
-    public Cohort [] getSubCohorts() {
+	public Cohort [] getSubCohorts() {
 
-        if (subCohort instanceof Cohort) {
-            return new Cohort [] { (Cohort)subCohort };
-        } else { 
-            return null;
-        }
-    } 
+		if (subCohort instanceof Cohort) {
+			return new Cohort [] { (Cohort)subCohort };
+		} else { 
+			return null;
+		}
+	} 
 
-    public CohortIdentifier [] getLeafIDs() {
-        return subCohort.getLeafIDs();
-    }
+	public CohortIdentifier [] getLeafIDs() {
+		return subCohort.getLeafIDs();
+	}
 
-    public CohortIdentifier identifier() {
-        return identifier;
-    }
+	public CohortIdentifier identifier() {
+		return identifier;
+	}
 
-    public boolean isMaster() {
-        return pool.isMaster();
-    }
+	public boolean isMaster() {
+		return pool.isMaster();
+	}
 
-    public ActivityIdentifier lookup(String name, ActivityContext scope) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	public ActivityIdentifier lookup(String name, ActivityContext scope) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    public boolean register(String name, ActivityIdentifier id, ActivityContext scope) {
-        // TODO Auto-generated method stub
-        return false;
-    }
+	public boolean register(String name, ActivityIdentifier id, ActivityContext scope) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
-    public void send(ActivityIdentifier source, ActivityIdentifier target, 
-            Object o) {
+	public void send(ActivityIdentifier source, ActivityIdentifier target, 
+			Object o) {
 
-        send(new MessageEvent(source, target, o));
-    }
+		send(new MessageEvent(source, target, o));
+	}
 
-    public void send(Event e) {
+	public void send(Event e) {
 
-        // This is triggered as a result of a user sending a message (top down).
-        // We therefore do not know if the target cohort is local or remote. 
+		// This is triggered as a result of a user sending a message (top down).
+		// We therefore do not know if the target cohort is local or remote. 
 
-        ApplicationMessage tmp = new ApplicationMessage(identifier, e);
-        CohortIdentifier cid = cache.lookup(e.target);
+		ApplicationMessage tmp = new ApplicationMessage(identifier, e);
+		CohortIdentifier cid = cache.lookup(e.target);
 
-        if (cid != null) { 
-            tmp.setTarget(cid);
+		if (cid != null) { 
+			tmp.setTarget(cid);
 
-            if (isLocal(cid)) { 
-                subCohort.deliverEventMessage(tmp);
-            } else { 
-                pool.forward(tmp);
-            }
+			if (isLocal(cid)) { 
+				subCohort.deliverEventMessage(tmp);
+			} else { 
+				pool.forward(tmp);
+			}
 
-            return;
-        }
+			return;
+		}
 
-        enqueue(tmp);
-    }
+		enqueue(tmp);
+	}
 
-    public synchronized WorkerContext getContext() {
-        return myContext;
-    }
+	public synchronized WorkerContext getContext() {
+		return myContext;
+	}
 
 
-    public void setContext(WorkerContext context) throws Exception {
-        setContext(null, context);
-    }
+	public void setContext(WorkerContext context) throws Exception {
+		setContext(null, context);
+	}
 
-    public synchronized void setContext(CohortIdentifier id, WorkerContext context) 
-    throws Exception {
+	public synchronized void setContext(CohortIdentifier id, WorkerContext context) 
+	throws Exception {
 
-        if (Debug.DEBUG_CONTEXT) { 
-            logger.info("Setting context of " + id + " to " + context);
-        }
+		if (Debug.DEBUG_CONTEXT) { 
+			logger.info("Setting context of " + id + " to " + context);
+		}
 
-        if (id == null || id.equals(identifier)) { 
-            throw new Exception("Cannot set Context of a DistributedCohort!");
-        }
+		if (id == null || id.equals(identifier)) { 
+			throw new Exception("Cannot set Context of a DistributedCohort!");
+		}
 
-        subCohort.setContext(id, context);
-    } 
+		subCohort.setContext(id, context);
+	} 
 
-    private synchronized ActivityIdentifier createActivityID() {
+	private synchronized ActivityIdentifier createActivityID() {
 
-        try {
-            return aidFactory.createActivityID();
-        } catch (Exception e) {
-            // Oops, we ran out of IDs. Get some more from our parent!
-            aidFactory = getActivityIdentifierFactory(identifier);
-        }
+		try {
+			return aidFactory.createActivityID();
+		} catch (Exception e) {
+			// Oops, we ran out of IDs. Get some more from our parent!
+			aidFactory = getActivityIdentifierFactory(identifier);
+		}
 
-        try {
-            return aidFactory.createActivityID();
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "INTERNAL ERROR: failed to create new ID block!", e);
-        }
-    }
+		try {
+			return aidFactory.createActivityID();
+		} catch (Exception e) {
+			throw new RuntimeException(
+					"INTERNAL ERROR: failed to create new ID block!", e);
+		}
+	}
 
-    public ActivityIdentifier submit(Activity a) {
+	public ActivityIdentifier submit(Activity a) {
 
-        if (PUSHDOWN_SUBMITS) { 
+		if (PUSHDOWN_SUBMITS) { 
 
-            if (Debug.DEBUG_SUBMIT) { 
-                logger.info("D PUSHDOWN SUBMIT activity with context " + a.getContext());
-            }
+			if (Debug.DEBUG_SUBMIT) { 
+				logger.info("D PUSHDOWN SUBMIT activity with context " + a.getContext());
+			}
 
-            return subCohort.deliverSubmit(a);
-        }
+			return subCohort.deliverSubmit(a);
+		}
 
-        if (Debug.DEBUG_SUBMIT) { 
-            logger.info("D LOCAL SUBMIT activity with context " + a.getContext());
-        }
+		if (Debug.DEBUG_SUBMIT) { 
+			logger.info("D LOCAL SUBMIT activity with context " + a.getContext());
+		}
 
-        ActivityIdentifier id = createActivityID();
-        a.initialize(id);
+		ActivityIdentifier id = createActivityID();
+		a.initialize(id);
 
-        if (a.isRestrictedToLocal()) { 
-            restrictedQueue.enqueue(new ActivityRecord(a));
-        } else { 
-            queue.enqueue(new ActivityRecord(a));
-        }
+		if (a.isRestrictedToLocal()) { 
+			restrictedQueue.enqueue(new ActivityRecord(a));
+		} else { 
+			queue.enqueue(new ActivityRecord(a));
+		}
 
-        if (Debug.DEBUG_SUBMIT) {
-            logger.info("created " + id + " at " 
-                    + System.currentTimeMillis() + " from DIST"); 
-        }
+		if (Debug.DEBUG_SUBMIT) {
+			logger.info("created " + id + " at " 
+					+ System.currentTimeMillis() + " from DIST"); 
+		}
 
-        System.out.println("DIST -- LOCAL ENQ: " + id + " " + a.getContext());
+		System.out.println("DIST -- LOCAL ENQ: " + id + " " + a.getContext());
 
-        return id;
-    }
+		return id;
+	}
 
 
-    /* =========== End of Cohort interface ================================== */
+	/* =========== End of Cohort interface ================================== */
 
 
 
-    /* =========== TopCohort interface ====================================== */
+	/* =========== TopCohort interface ====================================== */
 
-    public synchronized void contextChanged(CohortIdentifier cid, WorkerContext c) {
+	public synchronized void contextChanged(CohortIdentifier cid, WorkerContext c) {
 
-        // Sanity check
-        if (!cid.equals(subCohort.identifier())) { 
-            logger.warning("INTERNAL ERROR: Context changed by unknown" +
-                    " cohort " + cid);
-            return;
-        } 
+		// Sanity check
+		if (!cid.equals(subCohort.identifier())) { 
+			logger.warning("INTERNAL ERROR: Context changed by unknown" +
+					" cohort " + cid);
+			return;
+		} 
 
-        myContext = c;
-    }
+		myContext = c;
+	}
 
-    public LookupReply handleLookup(LookupRequest lr) {
+	public LookupReply handleLookup(LookupRequest lr) {
 
-        LocationCache.Entry tmp = cache.lookupEntry(lr.missing); 
+		LocationCache.Entry tmp = cache.lookupEntry(lr.missing); 
 
-        if (tmp != null) { 
+		if (tmp != null) { 
 
-            if (Debug.DEBUG_LOOKUP) { 
-                logger.info("LOOKUP returns " + tmp.id + " / " + tmp.count);
-            }
+			if (Debug.DEBUG_LOOKUP) { 
+				logger.info("LOOKUP returns " + tmp.id + " / " + tmp.count);
+			}
 
-            return new LookupReply(identifier, lr.source, lr.missing, tmp.id, tmp.count);
-        }
+			return new LookupReply(identifier, lr.source, lr.missing, tmp.id, tmp.count);
+		}
 
-        // The missing activity could be in my queue ? 
-        if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
-            return new LookupReply(identifier, lr.source, lr.missing, identifier, 0);            
-        }
+		// The missing activity could be in my queue ? 
+		if (restrictedQueue.contains(lr.missing) || queue.contains(lr.missing)) { 
+			return new LookupReply(identifier, lr.source, lr.missing, identifier, 0);            
+		}
 
-        logger.fixme("BROADCAST LOOKUP: " + lr.missing);
+		logger.fixme("BROADCAST LOOKUP: " + lr.missing);
 
-        pool.broadcast(lr);
+		pool.broadcast(lr);
 
-        return null;
-    }
+		return null;
+	}
 
-    public ActivityRecord handleStealRequest(StealRequest sr) {
+	public ActivityRecord handleStealRequest(StealRequest sr) {
 
-        // A steal request coming in from the subcohort below. 
+		// A steal request coming in from the subcohort below. 
 
-        // First check if we can satisfy the request locally.
-        if (Debug.DEBUG_STEAL) { 
-            logger.info("D STEAL REQUEST from child " + sr.source + " with context " + sr.context);
-        }
+		// First check if we can satisfy the request locally.
+		if (Debug.DEBUG_STEAL) { 
+			logger.info("D STEAL REQUEST from child " + sr.source + " with context " + sr.context);
+		}
 
-        // First try the restricted queue
-        ActivityRecord ar = restrictedQueue.steal(sr.context);
+		// First try the restricted queue
+		ActivityRecord ar = restrictedQueue.steal(sr.context);
 
-        if (ar != null) { 
+		if (ar != null) { 
 
-            if (Debug.DEBUG_STEAL) { 
-                logger.info("D STEAL REPLY (LOCAL RESTRICTED) " + ar.identifier() 
-                        + " for child " + sr.source);
-            }
+			if (Debug.DEBUG_STEAL) { 
+				logger.info("D STEAL REPLY (LOCAL RESTRICTED) " + ar.identifier() 
+						+ " for child " + sr.source);
+			}
 
-            return ar;
-        }
+			return ar;
+		}
 
-        // Next try the 'normal' queue 
-        ar = queue.steal(sr.context);
+		// Next try the 'normal' queue 
+		ar = queue.steal(sr.context);
 
-        if (ar != null) { 
+		if (ar != null) { 
 
-            if (Debug.DEBUG_STEAL) { 
-                logger.info("D STEAL REPLY (LOCAL) " + ar.identifier() 
-                        + " for child " + sr.source);
-            }
+			if (Debug.DEBUG_STEAL) { 
+				logger.info("D STEAL REPLY (LOCAL) " + ar.identifier() 
+						+ " for child " + sr.source);
+			}
 
-            return ar;
-        }
+			return ar;
+		}
 
-        // TODO: make throttling pool aware ? 
-        if (REMOTE_STEAL_THROTTLE) { 
+		// TODO: make throttling pool aware ? 
+		if (REMOTE_STEAL_THROTTLE) { 
 
-            boolean pending = setPendingSteal(true);
+			boolean pending = setPendingSteal(true);
 
-            if (pending) { 
-                // We have already send out a steal in this slot, so 
-                // we're not allowed to send another one.
-                return null;
-            }
-        }
+			if (pending) { 
+				// We have already send out a steal in this slot, so 
+				// we're not allowed to send another one.
+				return null;
+			}
+		}
 
-        if (stealing == STEAL_RANDOM) { 
+		if (stealing == STEAL_RANDOM) { 
 
-            // Next, select a random cohort to steal a job from.
-            if (pool.randomForward(sr)) { 
+			// Next, select a random cohort to steal a job from.
+			if (pool.randomForward(sr)) { 
 
-                if (Debug.DEBUG_STEAL) { 
-                    logger.info("D RANDOM FORWARD steal request from child " 
-                            + sr.source);
-                }
-            }
+				if (Debug.DEBUG_STEAL) { 
+					logger.info("D RANDOM FORWARD steal request from child " 
+							+ sr.source);
+				}
+			}
 
-            return null;
+			return null;
 
-        } else if (stealing == STEAL_MASTER) {
+		} else if (stealing == STEAL_MASTER) {
 
-            if (pool.isMaster()) {
-                // Master does not steal from itself!
-                return null;
-            }
+			if (pool.isMaster()) {
+				// Master does not steal from itself!
+				return null;
+			}
 
-            if (pool.forwardToMaster(sr)) { 
+			if (pool.forwardToMaster(sr)) { 
 
-                if (Debug.DEBUG_STEAL) { 
-                    logger.info("D MASTER FORWARD steal request from child " 
-                            + sr.source);
-                }
-            }
+				if (Debug.DEBUG_STEAL) { 
+					logger.info("D MASTER FORWARD steal request from child " 
+							+ sr.source);
+				}
+			}
 
-            return null;
+			return null;
 
-        } else if (stealing == STEAL_POOL) { 
+		} else if (stealing == STEAL_POOL) { 
 
-            if (sr.pool == null || sr.pool.isWorld()) { 
+			if (sr.pool == null || sr.pool.containsWorld()) { 
 
-                // This defaults to normal random stealing
-                if (pool.randomForward(sr)) { 
+				// This defaults to normal random stealing
+				if (pool.randomForward(sr)) { 
 
-                    if (Debug.DEBUG_STEAL) { 
-                        logger.info("D RANDOM FORWARD steal request from child " 
-                                + sr.source);
-                    }
-                }
-                
-                return null;
-            }  
+					if (Debug.DEBUG_STEAL) { 
+						logger.info("D RANDOM FORWARD steal request from child " 
+								+ sr.source);
+					}
+				}
 
-            if (sr.pool.isNone()) { 
-                
-                // Stealing from nobody is easy!
-                
-                if (REMOTE_STEAL_THROTTLE) { 
-                    setPendingSteal(false);
-                }     
+				return null;
+			}  
 
-                return null;
-            }
-            
-            if (pool.randomForwardToPool(sr)) { 
+			if (sr.pool.isNone()) { 
 
-                if (Debug.DEBUG_STEAL) { 
-                    logger.info("D RANDOM FORWARD steal request from child " 
-                            + sr.source  + " to POOL " + sr.pool.getTag());
-                }
-            }
-            
-            return null;
+				// Stealing from nobody is easy!
+				if (REMOTE_STEAL_THROTTLE) { 
+					setPendingSteal(false);
+				}     
 
-        } else if (stealing == STEAL_NONE) {
-            logger.debug("D STEAL REQUEST swizzled from " + sr.source);
-            return null;
-        }
+				return null;
+			}
 
-        logger.fixme("D STEAL REQUEST unknown stealing strategy " + stealing);
+			if (pool.randomForwardToPool(sr)) { 
 
-        return null;
-    }
+				if (Debug.DEBUG_STEAL) { 
+					logger.info("D RANDOM FORWARD steal request from child " 
+							+ sr.source  + " to POOL " + sr.pool.getTag());
+				}
+			}
 
-    private void enqueue(ApplicationMessage m) { 
-        logger.fixme("ENQUEUE NOT IMPLEMENTED");
-    }
+			return null;
 
-    public void handleApplicationMessage(ApplicationMessage m) { 
+		} else if (stealing == STEAL_NONE) {
+			logger.debug("D STEAL REQUEST swizzled from " + sr.source);
+			return null;
+		}
 
-        // This is triggered as a result of a (sub)cohort sending a message 
-        // (bottom up). 
+		logger.fixme("D STEAL REQUEST unknown stealing strategy " + stealing);
 
-        if (!m.isTargetSet()) {
-            // Try to set the target cohort. 
-            m.setTarget(cache.lookup(m.targetActivity())); 
-        } 
+		return null;
+	}
 
-        if (m.isTargetSet()) {
+	private void enqueue(ApplicationMessage m) { 
+		logger.fixme("ENQUEUE NOT IMPLEMENTED");
+	}
 
-            if (identifier.equals(m.target)) { 
+	public void handleApplicationMessage(ApplicationMessage m) { 
 
-                // The message is headed for one of the queued activities
-                if (deliverEventToLocalActivity(m.event)) {
-                    return;
-                }
+		// This is triggered as a result of a (sub)cohort sending a message 
+		// (bottom up). 
 
-                // FIXME: This is a likely BUG!
-                logger.fixme("FAILED TO DELIVER application message from " + m.event.source + " to " + m.event.target);
-            } else if (pool.forward(m)) { 
-                return;
-            } else { 
-                // Failed to send message. Assume the target is invalid, reset
-                // it to null, and retry.
-                m.setTarget(null);
-            }
-        }  
+		if (!m.isTargetSet()) {
+			// Try to set the target cohort. 
+			m.setTarget(cache.lookup(m.targetActivity())); 
+		} 
 
-        // Failed to send the message, so queue it. 
-        enqueue(m);
-    }
+		if (m.isTargetSet()) {
 
-    public void handleLookupReply(LookupReply m) { 
+			if (identifier.equals(m.target)) { 
 
-        if (m.location != null) { 
-            cache.put(m.missing, m.location, m.count);
-        }
+				// The message is headed for one of the queued activities
+				if (deliverEventToLocalActivity(m.event)) {
+					return;
+				}
 
-        pool.forward(m);
-    }
+				// FIXME: This is a likely BUG!
+				logger.fixme("FAILED TO DELIVER application message from " + m.event.source + " to " + m.event.target);
+			} else if (pool.forward(m)) { 
+				return;
+			} else { 
+				// Failed to send message. Assume the target is invalid, reset
+				// it to null, and retry.
+				m.setTarget(null);
+			}
+		}  
 
-    public void handleStealReply(StealReply m) {
+		// Failed to send the message, so queue it. 
+		enqueue(m);
+	}
 
-        //  logger.warn("D handling steal reply for " + m.target);
+	public void handleLookupReply(LookupReply m) { 
 
-        if (pool.forward(m)) { 
-            // Succesfully send the reply. Cache new location of the activities
+		if (m.location != null) { 
+			cache.put(m.missing, m.location, m.count);
+		}
 
-            if (!m.isEmpty()) { 
+		pool.forward(m);
+	}
 
-                int size = m.getSize();
+	public void handleStealReply(StealReply m) {
 
-                for (int i=0;i<size;i++) {
-                    ActivityRecord tmp = m.getWork(i);
+		//  logger.warn("D handling steal reply for " + m.target);
 
-                    if (tmp != null) { 
-                        cache.put(tmp.identifier(), m.target, tmp.getHopCount()+1);
-                    }
-                }
-            }
+		if (pool.forward(m)) { 
+			// Succesfully send the reply. Cache new location of the activities
 
-        } else { 
-            // Send failed. Reclaim work
-            if (!m.isEmpty()) {
-                logger.warning("DROP StealReply to " + m.target 
-                        + " after reclaiming work");
+			if (!m.isEmpty()) { 
 
-                ActivityRecord [] ar = m.getWork();
+				int size = m.getSize();
 
-                if (ar != null && ar.length > 0) {
+				for (int i=0;i<size;i++) {
+					ActivityRecord tmp = m.getWork(i);
 
-                    for (int i=0;i<ar.length;i++) { 
-                        ActivityRecord a = ar[i];
+					if (tmp != null) { 
+						cache.put(tmp.identifier(), m.target, tmp.getHopCount()+1);
+					}
+				}
+			}
 
-                        if (a != null) { 
-                            if (ar[i].isRestrictedToLocal()) {
-                                System.out.println("INTERNAL ERROR: Reclaimed RESTRICTED StealReply!!");
-                                logger.warning("INTERNAL ERROR: Reclaimed RESTRICTED StealReply!!");
-                                restrictedQueue.enqueue(ar[i]);
-                            } else { 
-                                queue.enqueue(ar[i]);
-                            }
-                        }
-                    }
-                }
-            } else { 
-                logger.warning("DROP Empty StealReply to " + m.target); 
-            }
-        }        
-    }
+		} else { 
+			// Send failed. Reclaim work
+			if (!m.isEmpty()) {
+				logger.warning("DROP StealReply to " + m.target 
+						+ " after reclaiming work");
 
-    public void handleUndeliverableEvent(UndeliverableEvent m) {
-        logger.fixme("DROP undeliverable event for " + m.event.target);
-    }
+				ActivityRecord [] ar = m.getWork();
 
-    public void handleWrongContext(ActivityRecord ar) {
-        // Store the 'unusable' activities at this level.
-        if (ar.isRestrictedToLocal()) { 
-            restrictedQueue.enqueue(ar);
-        } else { 
-            queue.enqueue(ar);
-        }
-    }
+				if (ar != null && ar.length > 0) {
 
-    public synchronized ActivityIdentifierFactory 
-    getActivityIdentifierFactory(CohortIdentifier cid) {
+					for (int i=0;i<ar.length;i++) { 
+						ActivityRecord a = ar[i];
 
-        ActivityIdentifierFactory tmp = new ActivityIdentifierFactory(
-                cid.id,  startID, startID+blockSize);
+						if (a != null) { 
+							if (ar[i].isRestrictedToLocal()) {
+								System.out.println("INTERNAL ERROR: Reclaimed RESTRICTED StealReply!!");
+								logger.warning("INTERNAL ERROR: Reclaimed RESTRICTED StealReply!!");
+								restrictedQueue.enqueue(ar[i]);
+							} else { 
+								queue.enqueue(ar[i]);
+							}
+						}
+					}
+				}
+			} else { 
+				logger.warning("DROP Empty StealReply to " + m.target); 
+			}
+		}        
+	}
 
-        startID += blockSize;
-        return tmp;
-    }
+	public void handleUndeliverableEvent(UndeliverableEvent m) {
+		logger.fixme("DROP undeliverable event for " + m.event.target);
+	}
 
-    public CohortIdentifierFactory getCohortIdentifierFactory(
-            CohortIdentifier cid) {
-        return cidFactory;
-    }
+	public void handleWrongContext(ActivityRecord ar) {
+		// Store the 'unusable' activities at this level.
+		if (ar.isRestrictedToLocal()) { 
+			restrictedQueue.enqueue(ar);
+		} else { 
+			queue.enqueue(ar);
+		}
+	}
 
-    public synchronized void register(BottomCohort cohort) throws Exception { 
+	public synchronized ActivityIdentifierFactory 
+		getActivityIdentifierFactory(CohortIdentifier cid) {
 
-        if (active || subCohort != null) { 
-            throw new Exception("Cannot register BottomCohort");
-        }
+		ActivityIdentifierFactory tmp = new ActivityIdentifierFactory(
+				cid.id,  startID, startID+blockSize);
 
-        subCohort = cohort;
-    }
+		startID += blockSize;
+		return tmp;
+	}
 
+	public CohortIdentifierFactory getCohortIdentifierFactory(
+			CohortIdentifier cid) {
+		return cidFactory;
+	}
 
-    @Override
-    public void registerPool(
-            SingleThreadedBottomCohort singleThreadedBottomCohort,
-            StealPool oldPool, StealPool newPool) {
-        // TODO Auto-generated method stub
+	public synchronized void register(BottomCohort cohort) throws Exception { 
 
-    }
+		if (active || subCohort != null) { 
+			throw new Exception("Cannot register BottomCohort");
+		}
 
+		subCohort = cohort;
+	}
 
-    @Override
-    public void registerStealPool(
-            SingleThreadedBottomCohort singleThreadedBottomCohort,
-            StealPool oldPool, StealPool newPool) {
-        // TODO Auto-generated method stub
 
-    }
+	//public void registerWithPool(String tag) {
+	//	pool.registerWithPool(tag);
+	//}
 
-    /* =========== End of TopCohort interface =============================== */
+	// TODO: add unreg to pool
+	//public void registerInterestInPool(String tag) {
+	//	pool.followPool(tag);
+	// }
+
+
+	public void belongsTo(StealPool belongsTo) {
+
+		if (belongsTo == null) { 
+			logger.error("Cohort does not belong to any pool!");
+			return;
+		}
+
+		if (belongsTo.isNone()) { 
+			// We don't belong to any pool. As a result, no one can steal from us.  
+			return;
+		}
+
+		if (belongsTo.isSet()) { 
+
+			StealPool [] set = belongsTo.set();
+
+			for (int i=0;i<set.length;i++) { 
+				
+				if (!set[i].isWorld()) { 
+					pool.registerWithPool(set[i].getTag());
+				}
+			}
+
+		} else { 
+			if (!belongsTo.isWorld()) { 
+				pool.registerWithPool(belongsTo.getTag());
+			}
+		}
+	}
+
+	public void stealsFrom(StealPool stealsFrom) {
+
+		if (stealsFrom == null) { 
+			logger.error("Cohort does not steal from to any pool!");
+			return;
+		}
+
+		if (stealsFrom.isNone()) { 
+			// We don't belong to any pool. As a result, no one can steal from us.  
+			return;
+		}
+
+		if (stealsFrom.isSet()) { 
+
+			StealPool [] set = stealsFrom.set();
+
+			for (int i=0;i<set.length;i++) { 
+				pool.followPool(set[i].getTag());
+			}
+
+		} else { 
+			pool.followPool(stealsFrom.getTag());
+		}
+	}
+
+	/* =========== End of TopCohort interface =============================== */
 }

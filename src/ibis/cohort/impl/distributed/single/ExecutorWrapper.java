@@ -87,6 +87,8 @@ public class ExecutorWrapper implements Cohort {
         fresh = new SmartSortedWorkQueue("Bf(" + identifier + ")");
          
         executor.connect(this);
+        
+        myContext = executor.getContext();
     }
 
     /*
@@ -892,6 +894,7 @@ public class ExecutorWrapper implements Cohort {
     }
     
     // NEW INTERFACE!
+/*
     public void registerContext(Executor executor, WorkerContext c) {
     	myContext = c;
     	contextChange = true;
@@ -906,7 +909,8 @@ public class ExecutorWrapper implements Cohort {
 			boolean stealIsFixed) {
 		parent.registerStealPool(executor, stealsFrom, stealIsFixed);
 	}
-
+*/
+    
 	public boolean processActitivies() {
 		return parent.processActivities();
 	}
@@ -918,5 +922,13 @@ public class ExecutorWrapper implements Cohort {
 		} catch (Exception e) {
 			logger.error("Executor terminated unexpectedly!", e);
 		}		
+	}
+
+	public StealPool belongsTo() {
+		return executor.belongsTo();
+	}
+
+	public StealPool stealsFrom() {
+		return executor.stealsFrom();
 	}
 }

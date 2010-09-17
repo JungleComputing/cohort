@@ -41,7 +41,7 @@ public class Streaming extends Activity {
 
         if (index < length) {
             // Submit the next job in the sequence
-            next = cohort.submit(new Streaming(root, length, index+1, totaldata));
+            next = executor.submit(new Streaming(root, length, index+1, totaldata));
         } 
   
         suspend();
@@ -51,7 +51,7 @@ public class Streaming extends Activity {
     public void process(Event e) throws Exception {
 
         if (next != null) { 
-            cohort.send(identifier(), next, ((MessageEvent) e).message);
+            executor.send(identifier(), next, ((MessageEvent) e).message);
         }
         
         dataSeen++;
@@ -68,7 +68,7 @@ public class Streaming extends Activity {
 
         if (next == null) { 
             // only the last replies!
-            cohort.send(identifier(), root, dataSeen);
+            executor.send(identifier(), root, dataSeen);
         }
     }
     

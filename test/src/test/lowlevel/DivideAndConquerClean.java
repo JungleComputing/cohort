@@ -5,9 +5,12 @@ import ibis.cohort.ActivityIdentifier;
 import ibis.cohort.Cohort;
 import ibis.cohort.CohortFactory;
 import ibis.cohort.Event;
+import ibis.cohort.Executor;
 import ibis.cohort.MessageEvent;
+import ibis.cohort.SimpleExecutor;
 import ibis.cohort.SingleEventCollector;
 import ibis.cohort.context.UnitActivityContext;
+import ibis.cohort.context.UnitWorkerContext;
 
 public class DivideAndConquerClean extends Activity {
 
@@ -41,7 +44,7 @@ public class DivideAndConquerClean extends Activity {
             finish();
         } else {
             for (int i=0;i<branch;i++) { 
-                cohort.submit(new DivideAndConquerClean(identifier(), branch, depth-1));
+                executor.submit(new DivideAndConquerClean(identifier(), branch, depth-1));
             }
             suspend();
         } 
@@ -64,7 +67,7 @@ public class DivideAndConquerClean extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        cohort.send(identifier(), parent, count);        
+        executor.send(identifier(), parent, count);        
     }
     
     public String toString() { 
@@ -76,9 +79,18 @@ public class DivideAndConquerClean extends Activity {
 
         long start = System.currentTimeMillis();
 
-        Cohort cohort = CohortFactory.createCohort();
-        
         int index = 0;
+        
+        int executors = Integer.parseInt(args[index++]);
+       
+        Executor [] e = new Executor[executors];
+        
+        for (int i=0;i<executors;i++) { 
+        	// Hmmm... this is not what we want. We want small jobs locally, and big jobs remote....
+            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
+        }
+        
+        Cohort cohort = CohortFactory.createCohort(e);
         
         int branch = Integer.parseInt(args[index++]);
         int depth =  Integer.parseInt(args[index++]);

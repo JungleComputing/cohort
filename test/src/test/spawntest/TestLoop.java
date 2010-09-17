@@ -31,7 +31,7 @@ public class TestLoop extends Activity {
         
         start = System.currentTimeMillis();
         
-        cohort.submit(new SingleTest(identifier(), spawns));
+        executor.submit(new SingleTest(identifier(), spawns));
         suspend();
     }
 
@@ -44,7 +44,7 @@ public class TestLoop extends Activity {
             end = System.currentTimeMillis();            
             finish();
         } else {
-            cohort.submit(new SingleTest(identifier(), spawns));
+            executor.submit(new SingleTest(identifier(), spawns));
             suspend();
         }
     }
@@ -57,7 +57,7 @@ public class TestLoop extends Activity {
                 
         System.out.println("spawn = " + timeSatin + " s, time/spawn = " + cost + " us/spawn" );
         
-        cohort.send(identifier(), parent, null);
+        executor.send(identifier(), parent, null);
     }
 
     @Override

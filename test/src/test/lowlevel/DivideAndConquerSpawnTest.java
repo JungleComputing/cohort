@@ -41,7 +41,7 @@ public class DivideAndConquerSpawnTest extends Activity {
 
     private void spawnAll() { 
         for (int i=0;i<SPAWNS_PER_SYNC;i++) {
-            cohort.submit(new DivideAndConquerSpawnTest(identifier(), false));                
+            executor.submit(new DivideAndConquerSpawnTest(identifier(), false));                
         }
     }
     
@@ -55,7 +55,7 @@ public class DivideAndConquerSpawnTest extends Activity {
             spawnAll();            
             suspend();            
         } else {
-            cohort.send(identifier(), parent, 1);
+            executor.send(identifier(), parent, 1);
             finish();
         }                        
     }

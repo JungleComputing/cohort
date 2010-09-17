@@ -74,7 +74,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             
             if (mode == CONTEXT_WEAK) { 
                 
-                WorkerContext machineContext = getCohort().getContext();
+                WorkerContext machineContext = executor.getContext();
                 ActivityContext activitycontext = getContext();
                     
                 if (machineContext == null || machineContext.equals(UnitWorkerContext.DEFAULT)) { 
@@ -112,7 +112,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 
                 for (int i=0;i<branch;i++) { 
                 	ActivityContext tmp = (i % 2) == 0 ? even : odd;
-                    cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                    executor.submit(new DivideAndConquerWithContextAndPenalty(
                             identifier(), branch, depth-1, sleep, penalty, mode, 
                             type, tmp));
                 }
@@ -124,13 +124,13 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 
                     for (int i=0;i<branch;i++) { 
                     	ActivityContext tmp = (i % 2) == 0 ? even : odd;
-                        cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                        executor.submit(new DivideAndConquerWithContextAndPenalty(
                                 identifier(), branch, depth-1, sleep, penalty, mode, 
                                 type, tmp));
                     }
                 } else { 
                     for (int i=0;i<branch;i++) { 
-                        cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                        executor.submit(new DivideAndConquerWithContextAndPenalty(
                                 identifier(), branch, depth-1, sleep, penalty, mode, 
                                 type, UnitActivityContext.DEFAULT));
                     }
@@ -147,7 +147,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 }
                 
                 for (int i=0;i<branch;i++) { 
-                    cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                    executor.submit(new DivideAndConquerWithContextAndPenalty(
                             identifier(), branch, depth-1, sleep, penalty, mode, 
                             type, tmp));
                 }
@@ -167,7 +167,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                         tmp = odd;
                     }
                     
-                    cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                    executor.submit(new DivideAndConquerWithContextAndPenalty(
                             identifier(), branch, depth-1, sleep, penalty, mode, 
                             type, tmp));
                 }
@@ -188,13 +188,13 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                             tmp = odd;
                         }
                         
-                        cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                        executor.submit(new DivideAndConquerWithContextAndPenalty(
                                 identifier(), branch, depth-1, sleep, penalty, mode, 
                                 type, tmp));
                     }
                 } else { 
                     for (int i=0;i<branch;i++) { 
-                        cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                        executor.submit(new DivideAndConquerWithContextAndPenalty(
                                 identifier(), branch, depth-1, sleep, penalty, mode, 
                                 type, UnitActivityContext.DEFAULT));
                     }
@@ -222,7 +222,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        cohort.send(identifier(), parent, count);        
+        executor.send(identifier(), parent, count);        
     }
 
     @Override

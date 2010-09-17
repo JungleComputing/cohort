@@ -11,22 +11,25 @@ public class StealPool implements Serializable {
     public static StealPool NONE = new StealPool("NONE");
 
     private final String tag;
-    private final boolean isSet;
     private final boolean isWorld;
     private final boolean isNone;
-
+    private final boolean isSet;
+    private final boolean containsWorld;
+   
     private final StealPool [] set;
 
     private StealPool(String tag,  boolean isWorld, boolean isNone) {
         this.tag = tag;
         this.isSet = false;
-        this.isWorld = isWorld;
+        this.isWorld = this.containsWorld = isWorld;
         this.isNone = isNone;
         this.set = null;
     }
     
     public StealPool(StealPool ... set) { 
 
+    	boolean foundWorld = false;
+    	
         if (set == null || set.length == 0) { 
             throw new IllegalArgumentException("StealPool set cannot be empty!");
         }
@@ -43,12 +46,17 @@ public class StealPool implements Serializable {
             }
 
             tmp.add(set[i]);
+       
+            if (set[i].isWorld) { 
+            	foundWorld = true;
+            }
         }
 
         tag = null;
         isSet = true;
         isWorld = isNone = false;
-
+        containsWorld = foundWorld;
+        
         this.set = tmp.toArray(new StealPool[tmp.size()]);
     }
 
@@ -67,6 +75,10 @@ public class StealPool implements Serializable {
     public boolean isWorld() { 
         return isWorld;
     }
+
+	public boolean containsWorld() {
+		return containsWorld;
+	}
 
     public boolean isNone() { 
         return isNone;
@@ -103,7 +115,8 @@ public class StealPool implements Serializable {
 
     public static StealPool merge(StealPool ... pools) { 
 
-        if (pools == null || pools.length == 0) { 
+    	// TODO: we currently see WORLD as just another steal pool ?
+    	if (pools == null || pools.length == 0) { 
             throw new IllegalArgumentException("StealPool list cannot be empty!");
         }
 
@@ -122,15 +135,21 @@ public class StealPool implements Serializable {
                 StealPool [] s2 = s.set();
 
                 for (int j=0;j<s2.length;j++) { 
-                    tmp.add(s2[i]);
+                	
+                	if (!s2[i].isNone()) {
+                		tmp.add(s2[i]);
+                	}
                 }
             } else { 
-                tmp.add(s);
+            	if (!s.isNone()) { 
+            		tmp.add(s);
+            	}
             }
         }
 
-        if (tmp.size() == 0) { 
-            throw new IllegalArgumentException("StealPool list cannot be empty!");
+        if (tmp.size() == 0) {
+        	// May happen if all StealPools are NONE
+        	return StealPool.NONE;
         }
 
         if (tmp.size() == 1) { 

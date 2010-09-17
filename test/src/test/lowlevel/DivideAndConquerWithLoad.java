@@ -57,7 +57,7 @@ public class DivideAndConquerWithLoad extends Activity {
             finish();
         } else {
             for (int i=0;i<branch;i++) { 
-                cohort.submit(new DivideAndConquerWithLoad(identifier(),
+                executor.submit(new DivideAndConquerWithLoad(identifier(),
                         branch, depth-1, load));
             }
             suspend();
@@ -81,7 +81,7 @@ public class DivideAndConquerWithLoad extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        cohort.send(identifier(), parent, took);        
+        executor.send(identifier(), parent, took);        
     }
 
     public String toString() { 
