@@ -88,7 +88,6 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     //private StealPoolInfo poolInfo = new StealPoolInfo();
 
     private LinkedList<Message> pending = new LinkedList<Message>();
-
    
     class PoolUpdater extends Thread { 
 
@@ -519,26 +518,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             return false;
         }
 
-        SendPort s = getSendPort(rnd); 
-
-        if (s == null) { 
-            logger.warning("POOL failed to connect to " + rnd); 
-            return false;
-        }
-
-        try { 
-            WriteMessage wm = s.newMessage();
-            wm.writeObject(m);
-            wm.finish();
-        } catch (Exception e) {
-            logger.warning("POOL lost communication to " + rnd, e); 
-            return false;
-        }
-
-        synchronized (this) {
-            send++;
-        }
-
+        forward(rnd, OPCODE_MESSAGE, m);
+        
         return true;
     }
 
@@ -670,14 +651,14 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         break;
         
         case OPCODE_POOL_REGISTER_REQUEST: {            
-            String tag = rm.readString();
+            String tag = (String) rm.readObject();
             IbisIdentifier source = rm.origin().ibisIdentifier();
             performRegisterWithPool(source, tag);
         }
         break;
         
         case OPCODE_POOL_UPDATE_REQUEST: {
-            String tag = rm.readString();
+            String tag = (String) rm.readObject();
             IbisIdentifier source = rm.origin().ibisIdentifier();
             performRegisterWithPool(source, tag);
             rm.finish();            
@@ -735,25 +716,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             if (tmp == null) { 
                 logger.warning("POOL failed to retrieve Ibis " + i); 
             } else { 
-                SendPort s = getSendPort(tmp); 
-
-                if (s == null) { 
-                    logger.warning("POOL failed to connect to " + tmp); 
-                } else { 
-                    try { 
-                        WriteMessage wm = s.newMessage();
-                        wm.writeObject(m);
-                        wm.finish();
-                    } catch (Exception e) {
-                        logger.warn("POOL lost communication to " + tmp, e); 
-                    }
-                }
+            	forward(tmp, OPCODE_MESSAGE, m);
             }
         }
     }
 
     public boolean randomForwardToPool(StealRequest sr) {
 
+    //	System.out.println("RANDOM FORWARD TO POOL " + sr.pool.getTag());
+    	
         // NOTE: We know the pool is not NULL, WORLD or NONE. 
         StealPool pool = sr.pool;
 
@@ -779,6 +750,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             return false;
         }
 
+        if (id.equals(local)) { 
+        	return false;
+        }
+        
         return forward(id, sr);
     } 
 

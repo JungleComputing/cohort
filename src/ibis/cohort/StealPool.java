@@ -7,8 +7,8 @@ public class StealPool implements Serializable {
 
     private static final long serialVersionUID = 2379118089625564822L;
 
-    public static StealPool WORLD = new StealPool("WORLD");
-    public static StealPool NONE = new StealPool("NONE");
+    public static StealPool WORLD = new StealPool("WORLD", true, false);
+    public static StealPool NONE = new StealPool("NONE", false, true);
 
     private final String tag;
     private final boolean isWorld;

@@ -909,7 +909,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     				logger.info("GENERATING STEAL REQUEST at " + identifier + " with context " + getContext());
     			} 
 
-    			StealRequest sr = new StealRequest(identifier, getContext(), myPool);
+    			StealRequest sr = new StealRequest(identifier, getContext(), stealPool);
     			ActivityRecord ar = parent.handleStealRequest(sr);
 
     			if (ar != null) { 
@@ -1326,6 +1326,10 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     public void clearContext() {
         sequential.clearContext();
     }
+
+	public void addToLookupCache(ActivityIdentifier aid) {
+		parent.addToLookupCache(identifier, aid);
+	}
     
    
 

@@ -667,6 +667,9 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         } else { 
             queue.enqueue(ar);
         }
+        
+        
+        System.out.println("MT has " + restrictedQueue.size() + " + " + queue.size() + " activities queued!");
     }
 
     public CohortIdentifierFactory getCohortIdentifierFactory(
@@ -1118,6 +1121,10 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
     public void deliverUndeliverableEvent(UndeliverableEvent m) {
         logger.fixme("DROP UndeliverableEvent", new Exception());
     }
+
+	public void addToLookupCache(CohortIdentifier cid, ActivityIdentifier aid) {
+		locationCache.put(aid, cid, 0);
+	}
 
     /*
     

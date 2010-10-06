@@ -685,6 +685,8 @@ public class DistributedCohort implements Cohort {
 			logger.info("D STEAL REQUEST from child " + sr.source + " with context " + sr.context);
 		}
 
+		//System.out.println("D STEAL REQUEST from child " + sr.source + " with context " + sr.context + " " + stealing);
+		
 		// First try the restricted queue
 		ActivityRecord ar = restrictedQueue.steal(sr.context);
 
@@ -712,7 +714,7 @@ public class DistributedCohort implements Cohort {
 		}
 
 		// TODO: make throttling pool aware ? 
-		if (REMOTE_STEAL_THROTTLE) { 
+		if (stealing != STEAL_POOL && REMOTE_STEAL_THROTTLE) { 
 
 			boolean pending = setPendingSteal(true);
 
@@ -757,6 +759,19 @@ public class DistributedCohort implements Cohort {
 
 			if (sr.pool == null || sr.pool.containsWorld()) { 
 
+				//System.out.println("POOL steal is random");
+				
+				if (REMOTE_STEAL_THROTTLE) { 
+
+					boolean pending = setPendingSteal(true);
+
+					if (pending) { 
+						// We have already send out a steal in this slot, so 
+						// we're not allowed to send another one.
+						return null;
+					}
+				}
+				
 				// This defaults to normal random stealing
 				if (pool.randomForward(sr)) { 
 
@@ -770,15 +785,32 @@ public class DistributedCohort implements Cohort {
 			}  
 
 			if (sr.pool.isNone()) { 
-
+				
+				//System.out.println("POOL steal isNone");
+				
 				// Stealing from nobody is easy!
-				if (REMOTE_STEAL_THROTTLE) { 
-					setPendingSteal(false);
-				}     
-
 				return null;
 			}
 
+		//	System.out.println("POOL steal is pool");
+			
+			// TODO: make throttling pool aware ? 
+			if (REMOTE_STEAL_THROTTLE) { 
+
+				boolean pending = setPendingSteal(true);
+
+				if (pending) { 
+
+					//System.out.println("POOL steal is already pending");
+					
+					// We have already send out a steal in this slot, so 
+					// we're not allowed to send another one.
+					return null;
+				}
+			}
+			
+			//System.out.println("POOL steal called!");
+			
 			if (pool.randomForwardToPool(sr)) { 
 
 				if (Debug.DEBUG_STEAL) { 

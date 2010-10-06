@@ -26,6 +26,8 @@ public class ExecutorWrapper implements Cohort {
 
     private static final boolean PROFILE = true;
 
+	private static int QUEUED_JOB_LIMIT = 1;
+
     private final SingleThreadedBottomCohort parent;
 
     private final CohortIdentifier identifier;
@@ -83,6 +85,10 @@ public class ExecutorWrapper implements Cohort {
         this.logger = logger;
         this.executor = executor;
 
+        QUEUED_JOB_LIMIT = Integer.parseInt(p.getProperty("ibis.cohort.queue.limit", "100000"));
+
+        System.out.println("Executor set job limit to " + QUEUED_JOB_LIMIT);
+        
         restricted = new SmartSortedWorkQueue("Br(" + identifier + ")");
         fresh = new SmartSortedWorkQueue("Bf(" + identifier + ")");
          
@@ -157,14 +163,16 @@ public class ExecutorWrapper implements Cohort {
 
         size = restricted.size();
         
+        // FIXME: These used to dequeue the tail, now they dequeue the head...
+        
         if (size > 0) { 
-            return restricted.dequeue(false);
+            return restricted.dequeue(true);
         }
         
         size = fresh.size();
         
         if (size > 0) { 
-            return fresh.dequeue(false);
+            return fresh.dequeue(true);
         }
         
         return null;
@@ -223,9 +231,19 @@ public class ExecutorWrapper implements Cohort {
 
             local.insertLast(ar);
         } else*/
+       
+        if (restricted.size() + fresh.size() >= QUEUED_JOB_LIMIT) {
+        	// If we have too much work on our hands we push it to out parent. Added bonus 
+        	// is that others can access it without interrupting me.
+        	
+        	System.out.println("Executor pushing work to parent! " + restricted.size() + " " + fresh.size());
+        	
+            parent.push(ar);
+            return;
+        }
         
         if (c.satisfiedBy(myContext)) { 
-
+        	
             // System.out.println("BASE(" + identifier + ") submit " + a.identifier() + " COMPLETED");
 
             lookup.put(a.identifier(), ar);
@@ -274,6 +292,16 @@ public class ExecutorWrapper implements Cohort {
 
         ActivityContext c = a.activity.getContext();
         
+        if (restricted.size() + fresh.size() >= QUEUED_JOB_LIMIT) {
+        	// If we have too much work on our hands we push it to out parent. Added bonus 
+        	// is that others can access it without interrupting me.
+        	
+        	System.out.println("* Executor pushing work to parent! " + restricted.size() + " " + fresh.size());
+        	
+            parent.push(a);
+            return;
+        }
+        
         if (c.satisfiedBy(myContext)) { 
         	
             lookup.put(a.identifier(), a);
@@ -313,6 +341,12 @@ public class ExecutorWrapper implements Cohort {
 
     public ActivityIdentifier submit(Activity a) {
 
+    	if (current != null) {
+    		// since the current activity performed a submit, we assume someone will 
+    		// be interested in locating it later on.
+    		parent.addToLookupCache(current.activity.identifier());
+    	}
+    	
         ActivityIdentifier id = prepareSubmission(a);
         finishSubmission(a);
         return id;
