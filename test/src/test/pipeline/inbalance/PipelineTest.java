@@ -1,7 +1,7 @@
 package test.pipeline.inbalance;
 
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortFactory;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationFactory;
 import ibis.constellation.MultiEventCollector;
 
 public class PipelineTest {
@@ -16,7 +16,7 @@ public class PipelineTest {
         int rank = Integer.parseInt(args[2]);
         
         try {
-            Cohort cohort = CohortFactory.createCohort();
+            Constellation cohort = ConstellationFactory.createCohort();
             cohort.activate();
   
             if (rank == 0) { 

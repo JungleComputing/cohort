@@ -3,9 +3,9 @@ package test.lowlevel;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortFactory;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationFactory;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SingleEventCollector;
@@ -125,7 +125,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
     public static void main(String [] args) { 
         
         try {        
-            Cohort cohort = CohortFactory.createCohort();
+            Constellation cohort = ConstellationFactory.createCohort();
         
             int branch = Integer.parseInt(args[0]);
             int depth =  Integer.parseInt(args[1]);
@@ -162,11 +162,11 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                 if (forceContext)  {
                     System.out.println("Forcing context to Even");
                     
-                    CohortIdentifier [] leafs = cohort.getLeafIDs();
+                    ConstellationIdentifier [] leafs = cohort.getLeafIDs();
                     
                     UnitWorkerContext c = new UnitWorkerContext("Even");
                     
-                    for (CohortIdentifier id : leafs) { 
+                    for (ConstellationIdentifier id : leafs) { 
                         cohort.setContext(id, c);
                     }
                 } else { 
@@ -180,11 +180,11 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                 if (forceContext)  {
                     System.out.println("Forcing context to Odd");
                     
-                    CohortIdentifier [] leafs = cohort.getLeafIDs();
+                    ConstellationIdentifier [] leafs = cohort.getLeafIDs();
                     
                     UnitWorkerContext c = new UnitWorkerContext("Odd");
                     
-                    for (CohortIdentifier id : leafs) { 
+                    for (ConstellationIdentifier id : leafs) { 
                         cohort.setContext(id, c);
                     }
                 

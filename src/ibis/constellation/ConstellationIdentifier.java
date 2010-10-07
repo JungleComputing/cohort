@@ -2,13 +2,13 @@ package ibis.constellation;
 
 import java.io.Serializable;
 
-public class CohortIdentifier implements Serializable {
+public class ConstellationIdentifier implements Serializable {
 
     private static final long serialVersionUID = -8236873210293335756L;
 
     public final long id; 
     
-    public CohortIdentifier(final long id) { 
+    public ConstellationIdentifier(final long id) { 
         this.id = id;
     }
     
@@ -31,7 +31,7 @@ public class CohortIdentifier implements Serializable {
         if (getClass() != obj.getClass())
             return false;
    
-        final CohortIdentifier other = (CohortIdentifier) obj;
+        final ConstellationIdentifier other = (ConstellationIdentifier) obj;
     
         return (id == other.id);
     }

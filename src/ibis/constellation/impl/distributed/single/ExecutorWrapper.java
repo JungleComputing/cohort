@@ -4,8 +4,8 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
@@ -13,7 +13,7 @@ import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.UnitWorkerContext;
 import ibis.constellation.extra.CircularBuffer;
-import ibis.constellation.extra.CohortLogger;
+import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.SmartSortedWorkQueue;
 import ibis.constellation.extra.WorkQueue;
@@ -22,18 +22,18 @@ import ibis.constellation.impl.distributed.ActivityRecord;
 import java.util.HashMap;
 import java.util.Properties;
 
-public class ExecutorWrapper implements Cohort {
+public class ExecutorWrapper implements Constellation {
 
     private static final boolean PROFILE = true;
 
 	private static int QUEUED_JOB_LIMIT = 1;
 
-    private final SingleThreadedBottomCohort parent;
+    private final SingleThreadedBottomConstellation parent;
 
-    private final CohortIdentifier identifier;
+    private final ConstellationIdentifier identifier;
 
     // private PrintStream out;
-    private final CohortLogger logger;
+    private final ConstellationLogger logger;
 
     private final Executor executor;
     
@@ -77,8 +77,8 @@ public class ExecutorWrapper implements Cohort {
 
     private ActivityRecord current;
 
-    ExecutorWrapper(SingleThreadedBottomCohort parent, Executor executor, Properties p, 
-            CohortIdentifier identifier, CohortLogger logger) throws Exception {
+    ExecutorWrapper(SingleThreadedBottomConstellation parent, Executor executor, Properties p, 
+            ConstellationIdentifier identifier, ConstellationLogger logger) throws Exception {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getActivityIdentifierFactory(identifier);
@@ -859,7 +859,7 @@ public class ExecutorWrapper implements Cohort {
         System.out.println(identifier + ": " + lookup);
     }
 
-    public CohortIdentifier identifier() {
+    public ConstellationIdentifier identifier() {
         return identifier;
     }
 
@@ -889,7 +889,7 @@ public class ExecutorWrapper implements Cohort {
         logger.fixme("CONTEXT CHANGED WITHOUT CHECKING JOBS FIX FIX FIX!", new Exception());
     }
 
-    public void setContext(CohortIdentifier id, WorkerContext context) throws Exception {
+    public void setContext(ConstellationIdentifier id, WorkerContext context) throws Exception {
 
         if (Debug.DEBUG_CONTEXT) { 
             logger.info("Setting context of BASE to " + context);
@@ -908,7 +908,7 @@ public class ExecutorWrapper implements Cohort {
         myContext = UnitWorkerContext.DEFAULT;
     }
 
-    public Cohort[] getSubCohorts() {
+    public Constellation[] getSubCohorts() {
         return null;
     }
 
@@ -923,8 +923,8 @@ public class ExecutorWrapper implements Cohort {
         return false;
     }
 
-    public CohortIdentifier[] getLeafIDs() {
-        return new CohortIdentifier [] { identifier };
+    public ConstellationIdentifier[] getLeafIDs() {
+        return new ConstellationIdentifier [] { identifier };
     }
     
     // NEW INTERFACE!

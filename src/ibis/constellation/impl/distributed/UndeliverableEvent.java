@@ -1,6 +1,6 @@
 package ibis.constellation.impl.distributed;
 
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 
 public class UndeliverableEvent extends Message {
@@ -10,8 +10,8 @@ public class UndeliverableEvent extends Message {
     public final Event event;
     
     public UndeliverableEvent(
-            final CohortIdentifier source, 
-            final CohortIdentifier target, 
+            final ConstellationIdentifier source, 
+            final ConstellationIdentifier target, 
             final Event event) {
         
         super(source, target);

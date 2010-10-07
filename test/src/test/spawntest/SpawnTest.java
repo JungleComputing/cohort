@@ -1,7 +1,7 @@
 package test.spawntest;
 
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortFactory;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationFactory;
 import ibis.constellation.SingleEventCollector;
 
 public class SpawnTest {
@@ -15,7 +15,7 @@ public class SpawnTest {
     public static void main(String [] args) { 
           
           try { 
-              Cohort cohort = CohortFactory.createCohort(); 
+              Constellation cohort = ConstellationFactory.createCohort(); 
 
               for (int i=0;i<REPEAT;i++) { 
                   SingleEventCollector a = new SingleEventCollector();

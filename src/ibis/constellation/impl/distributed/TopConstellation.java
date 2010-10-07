@@ -1,23 +1,23 @@
 package ibis.constellation.impl.distributed;
 
 import ibis.constellation.ActivityIdentifierFactory;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
-import ibis.constellation.extra.CohortIdentifierFactory;
-import ibis.constellation.impl.distributed.single.SingleThreadedBottomCohort;
+import ibis.constellation.extra.ConstellationIdentifierFactory;
+import ibis.constellation.impl.distributed.single.SingleThreadedBottomConstellation;
 
-public interface TopCohort {
+public interface TopConstellation {
     /* 
      * This interface contains all methods a sub cohort will invoke on 
      * it's super cohort. 
      */
     
     /* synchronous methods - immediately produce a result or effect */ 
-    void contextChanged(CohortIdentifier cid, WorkerContext newContext);
+    void contextChanged(ConstellationIdentifier cid, WorkerContext newContext);
     
-    ActivityIdentifierFactory getActivityIdentifierFactory(CohortIdentifier cid);
-    CohortIdentifierFactory getCohortIdentifierFactory(CohortIdentifier cid);
+    ActivityIdentifierFactory getActivityIdentifierFactory(ConstellationIdentifier cid);
+    ConstellationIdentifierFactory getCohortIdentifierFactory(ConstellationIdentifier cid);
     
     void handleWrongContext(ActivityRecord ar);
     
@@ -42,13 +42,13 @@ public interface TopCohort {
 
     
     /* callback method - used to register new cohorts */
-    void register(BottomCohort cohort) throws Exception;
+    void register(BottomConstellation cohort) throws Exception;
 
-	void registerPool(SingleThreadedBottomCohort singleThreadedBottomCohort,
+	void registerPool(SingleThreadedBottomConstellation singleThreadedBottomCohort,
 			StealPool oldPool, StealPool newPool);
 
 	void registerStealPool(
-			SingleThreadedBottomCohort singleThreadedBottomCohort,
+			SingleThreadedBottomConstellation singleThreadedBottomCohort,
 			StealPool oldPool, StealPool newPool);
 }
 

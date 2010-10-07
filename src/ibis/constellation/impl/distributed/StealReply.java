@@ -1,6 +1,6 @@
 package ibis.constellation.impl.distributed;
 
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 
 public class StealReply extends Message {
     
@@ -9,8 +9,8 @@ public class StealReply extends Message {
     private final ActivityRecord [] work;
     
     public StealReply(
-            final CohortIdentifier source, 
-            final CohortIdentifier target, 
+            final ConstellationIdentifier source, 
+            final ConstellationIdentifier target, 
             final ActivityRecord work) { 
         super(source, target);
         
@@ -22,8 +22,8 @@ public class StealReply extends Message {
     }
     
     public StealReply(
-            final CohortIdentifier source, 
-            final CohortIdentifier target, 
+            final ConstellationIdentifier source, 
+            final ConstellationIdentifier target, 
             final ActivityRecord [] work) { 
         super(source, target);
         this.work = work;

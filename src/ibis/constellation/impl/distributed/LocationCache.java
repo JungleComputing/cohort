@@ -3,7 +3,7 @@ package ibis.constellation.impl.distributed;
 import java.util.HashMap;
 
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 
 public class LocationCache {
     
@@ -12,16 +12,16 @@ public class LocationCache {
     
     public final class Entry {
         
-        public final CohortIdentifier id; 
+        public final ConstellationIdentifier id; 
         public final long count;
         
-        Entry(CohortIdentifier id, long count) { 
+        Entry(ConstellationIdentifier id, long count) { 
             this.id = id; 
             this.count = count;
         }
     }
     
-    public synchronized CohortIdentifier lookup(ActivityIdentifier a) {
+    public synchronized ConstellationIdentifier lookup(ActivityIdentifier a) {
         
         final Entry tmp = map.get(a);
         
@@ -36,7 +36,7 @@ public class LocationCache {
         return map.get(a);
     }
     
-    public synchronized CohortIdentifier remove(ActivityIdentifier a) {
+    public synchronized ConstellationIdentifier remove(ActivityIdentifier a) {
         
         final Entry tmp = map.remove(a);
         
@@ -48,7 +48,7 @@ public class LocationCache {
     }
     
     public synchronized void removeIfEqual(ActivityIdentifier a, 
-            CohortIdentifier c) { 
+            ConstellationIdentifier c) { 
 
         final Entry tmp = map.get(a);
         
@@ -62,7 +62,7 @@ public class LocationCache {
     }
     
     public synchronized void put(ActivityIdentifier a, 
-            CohortIdentifier c, long count) {
+            ConstellationIdentifier c, long count) {
 
         // NOTE: we only replace an existing entry if count is larger 
         final Entry tmp = map.get(a);

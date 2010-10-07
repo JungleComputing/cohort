@@ -3,30 +3,30 @@ package ibis.constellation.impl.distributed.multi;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.OrWorkerContext;
 import ibis.constellation.context.UnitWorkerContext;
 import ibis.constellation.extra.CircularBuffer;
-import ibis.constellation.extra.CohortIdentifierFactory;
-import ibis.constellation.extra.CohortLogger;
+import ibis.constellation.extra.ConstellationIdentifierFactory;
+import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.StealPoolInfo;
 import ibis.constellation.extra.WorkQueue;
 import ibis.constellation.extra.WorkQueueFactory;
 import ibis.constellation.impl.distributed.ActivityRecord;
 import ibis.constellation.impl.distributed.ApplicationMessage;
-import ibis.constellation.impl.distributed.BottomCohort;
+import ibis.constellation.impl.distributed.BottomConstellation;
 import ibis.constellation.impl.distributed.LocationCache;
 import ibis.constellation.impl.distributed.LookupReply;
 import ibis.constellation.impl.distributed.LookupRequest;
 import ibis.constellation.impl.distributed.StealReply;
 import ibis.constellation.impl.distributed.StealRequest;
-import ibis.constellation.impl.distributed.TopCohort;
+import ibis.constellation.impl.distributed.TopConstellation;
 import ibis.constellation.impl.distributed.UndeliverableEvent;
-import ibis.constellation.impl.distributed.dist.DistributedCohort;
-import ibis.constellation.impl.distributed.single.SingleThreadedBottomCohort;
+import ibis.constellation.impl.distributed.dist.DistributedConstellation;
+import ibis.constellation.impl.distributed.single.SingleThreadedBottomConstellation;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -36,22 +36,22 @@ import java.util.Properties;
 import java.util.Random;
 
 //FIXME: crap name!
-public class MultiThreadedMiddleCohort implements BottomCohort {
+public class MultiThreadedMiddleConstellation implements BottomConstellation {
 
     private static boolean PUSHDOWN_SUBMITS = false;
 
-    private final DistributedCohort parent;
+    private final DistributedConstellation parent;
 
-    private ArrayList<SingleThreadedBottomCohort> incomingWorkers;
+    private ArrayList<SingleThreadedBottomConstellation> incomingWorkers;
 
-    private SingleThreadedBottomCohort [] workers;
+    private SingleThreadedBottomConstellation [] workers;
     
     private StealPool belongsTo;
     private StealPool stealsFrom;
     
     private int workerCount;
     
-    private final CohortIdentifier identifier;
+    private final ConstellationIdentifier identifier;
 
     private final Random random = new Random();
 
@@ -68,7 +68,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
     
     private LocationCache locationCache = new LocationCache();
 
-    private final CohortIdentifierFactory cidFactory;
+    private final ConstellationIdentifierFactory cidFactory;
 
     private ActivityIdentifierFactory aidFactory;
 
@@ -76,7 +76,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
     private final LookupThread lookup;
 
-    private final CohortLogger logger;
+    private final ConstellationLogger logger;
 
     private final StealPoolInfo poolInfo = new StealPoolInfo();
     
@@ -103,13 +103,13 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
             ActivityIdentifier t = m.targetActivity();
 
-            CohortIdentifier cid = locationCache.lookup(t);
+            ConstellationIdentifier cid = locationCache.lookup(t);
 
             if (cid != null) { 
 
                 m.setTarget(cid);
 
-                BottomCohort b = getWorker(cid);
+                BottomConstellation b = getWorker(cid);
 
                 if (b != null) { 
                     b.deliverEventMessage(m);
@@ -258,7 +258,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         return def;
     }*/
 
-    public MultiThreadedMiddleCohort(DistributedCohort parent, Properties p) throws Exception {
+    public MultiThreadedMiddleConstellation(DistributedConstellation parent, Properties p) throws Exception {
 
         int count = 0;
 
@@ -285,9 +285,9 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         queue = WorkQueueFactory.createQueue(tmp, true, "M(" + identifier + ")");
         restrictedQueue = WorkQueueFactory.createQueue(tmp, true, "M(" + identifier + "-RESTRICTED)");
         
-        this.logger = CohortLogger.getLogger(MultiThreadedMiddleCohort.class, identifier);
+        this.logger = ConstellationLogger.getLogger(MultiThreadedMiddleConstellation.class, identifier);
 
-        incomingWorkers = new ArrayList<SingleThreadedBottomCohort>();
+        incomingWorkers = new ArrayList<SingleThreadedBottomConstellation>();
         //     localSteals = new StealState[count];
         contexts    = new WorkerContext[count];
 
@@ -311,9 +311,9 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         parent.register(this);
     }
 
-    private BottomCohort getWorker(CohortIdentifier cid) { 
+    private BottomConstellation getWorker(ConstellationIdentifier cid) { 
 
-        for (BottomCohort b : workers) { 
+        for (BottomConstellation b : workers) { 
             if (cid.equals(b.identifier())) { 
                 return b;
             }
@@ -426,7 +426,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
     /* ================= TopCohort interface =================================*/
 
-    public synchronized void contextChanged(CohortIdentifier cid, WorkerContext newContext) {
+    public synchronized void contextChanged(ConstellationIdentifier cid, WorkerContext newContext) {
 
         for (int i=0;i<workerCount;i++) { 
 
@@ -441,7 +441,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
     }
 
     public synchronized ActivityIdentifierFactory 
-    getActivityIdentifierFactory(CohortIdentifier cid) {
+    getActivityIdentifierFactory(ConstellationIdentifier cid) {
         return parent.getActivityIdentifierFactory(cid);
     }
 
@@ -483,7 +483,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
         if (m.isTargetSet()) { 
 
-            BottomCohort b = getWorker(m.target);
+            BottomConstellation b = getWorker(m.target);
 
             if (b != null) { 
 
@@ -512,13 +512,13 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
         if (m.isTargetSet()) { 
 
-            CohortIdentifier id = m.target;
+            ConstellationIdentifier id = m.target;
 
             if (id.equals(identifier)) { 
                 return;
             }
 
-            BottomCohort b = getWorker(m.target);
+            BottomConstellation b = getWorker(m.target);
 
             if (b != null) {
                 b.deliverLookupReply(m);
@@ -538,7 +538,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
         if (m.isTargetSet()) { 
 
-            BottomCohort b = getWorker(m.target);
+            BottomConstellation b = getWorker(m.target);
 
             if (b != null) { 
 
@@ -578,7 +578,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         logger.fixme("I just dropped an undeliverable event! " + m.event);
     }
 
-    private int selectTargetWorker(CohortIdentifier exclude) { 
+    private int selectTargetWorker(ConstellationIdentifier exclude) { 
 
         if (workerCount == 1) { 
             return -1;
@@ -586,7 +586,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
         int rnd = selectTargetWorker();
 
-        CohortIdentifier cid = workers[rnd].identifier();
+        ConstellationIdentifier cid = workers[rnd].identifier();
 
         if (cid.equals(exclude)) { 
             return ((rnd+1)%workerCount);
@@ -672,12 +672,12 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         System.out.println("MT has " + restrictedQueue.size() + " + " + queue.size() + " activities queued!");
     }
 
-    public CohortIdentifierFactory getCohortIdentifierFactory(
-            CohortIdentifier cid) {
+    public ConstellationIdentifierFactory getCohortIdentifierFactory(
+            ConstellationIdentifier cid) {
         return parent.getCohortIdentifierFactory(cid);        
     }
 
-    public synchronized void register(SingleThreadedBottomCohort cohort) throws Exception {
+    public synchronized void register(SingleThreadedBottomConstellation cohort) throws Exception {
 
         if (active) { 
             throw new Exception("Cannot register new BottomCohort while " +
@@ -697,29 +697,29 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
     /* ================= BottomCohort interface ==============================*/
 
-    public CohortIdentifier [] getLeafIDs() { 
+    public ConstellationIdentifier [] getLeafIDs() { 
 
-        ArrayList<CohortIdentifier> tmp = new ArrayList<CohortIdentifier>();
+        ArrayList<ConstellationIdentifier> tmp = new ArrayList<ConstellationIdentifier>();
 
-        for (BottomCohort w : workers) { 
-            CohortIdentifier [] ids = w.getLeafIDs();
+        for (BottomConstellation w : workers) { 
+            ConstellationIdentifier [] ids = w.getLeafIDs();
 
-            for (CohortIdentifier id : ids) { 
+            for (ConstellationIdentifier id : ids) { 
                 tmp.add(id);
             }
         }
 
-        return tmp.toArray(new CohortIdentifier[tmp.size()]);
+        return tmp.toArray(new ConstellationIdentifier[tmp.size()]);
     }
 
-    public synchronized void setContext(CohortIdentifier id, WorkerContext context) 
+    public synchronized void setContext(ConstellationIdentifier id, WorkerContext context) 
     throws Exception {
 
         if (Debug.DEBUG_CONTEXT) { 
             logger.info("Setting context of " + id + " to " + context);
         }
 
-        BottomCohort b = getWorker(id);
+        BottomConstellation b = getWorker(id);
 
         if (b == null) {
             throw new Exception("Cohort " + id + " not found!");
@@ -780,7 +780,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         return myContext;
     }
 
-    public CohortIdentifier identifier() {
+    public ConstellationIdentifier identifier() {
         return identifier;
     }
 
@@ -794,7 +794,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
             active = true;
         
             workerCount = incomingWorkers.size();
-            workers = incomingWorkers.toArray(new SingleThreadedBottomCohort[workerCount]);
+            workers = incomingWorkers.toArray(new SingleThreadedBottomConstellation[workerCount]);
 
             StealPool [] tmp = new StealPool[workerCount];
            
@@ -834,11 +834,11 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         lookup.done();
 
         if (active) { 
-            for (BottomCohort u : workers) {
+            for (BottomConstellation u : workers) {
                 u.done();
             }
         } else { 
-            for (BottomCohort u : incomingWorkers) {
+            for (BottomConstellation u : incomingWorkers) {
                 u.done();
             }
         }
@@ -922,8 +922,8 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
             return;
         }
 
-        CohortIdentifier cid = sr.target;
-        BottomCohort b = null;
+        ConstellationIdentifier cid = sr.target;
+        BottomConstellation b = null;
 
         if (cid != null) { 
 
@@ -975,7 +975,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
             return;
         }
         
-        CohortIdentifier cid = lr.target;
+        ConstellationIdentifier cid = lr.target;
 
         if (lr.target != null) { 
 
@@ -987,7 +987,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
                 return;
             }
 
-            BottomCohort b = getWorker(cid);
+            BottomConstellation b = getWorker(cid);
 
             if (b != null) { 
                 b.deliverLookupRequest(lr);
@@ -1018,7 +1018,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
       //  System.err.println("MT STEAL reply: " + Arrays.toString(sr.getWork()));
 
-        CohortIdentifier cid = sr.target;
+        ConstellationIdentifier cid = sr.target;
 
         if (cid == null) { 
 
@@ -1044,7 +1044,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
             return;
         }
 
-        BottomCohort b = getWorker(cid);
+        BottomConstellation b = getWorker(cid);
 
         if (cid == null) { 
 
@@ -1073,7 +1073,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         // Cache the result!
         locationCache.put(lr.missing, lr.location, lr.count);
 
-        CohortIdentifier cid = lr.target;
+        ConstellationIdentifier cid = lr.target;
 
         if (cid == null) { 
             logger.warning("Received lookup reply without target!");
@@ -1084,7 +1084,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
             return;
         }
 
-        BottomCohort b = getWorker(cid);
+        BottomConstellation b = getWorker(cid);
 
         if (cid == null) { 
             logger.warning("Received event message for unknown target!");
@@ -1096,7 +1096,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
 
     public void deliverEventMessage(ApplicationMessage m) {
 
-        CohortIdentifier cid = m.target;
+        ConstellationIdentifier cid = m.target;
 
         if (cid == null) { 
             logger.fixme("DROP EventMessage without target!");
@@ -1108,7 +1108,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
             return;
         }
 
-        BottomCohort b = getWorker(cid);
+        BottomConstellation b = getWorker(cid);
 
         if (b == null) { 
             logger.fixme("DROP EventMessage for unknown target " + cid);
@@ -1122,7 +1122,7 @@ public class MultiThreadedMiddleCohort implements BottomCohort {
         logger.fixme("DROP UndeliverableEvent", new Exception());
     }
 
-	public void addToLookupCache(CohortIdentifier cid, ActivityIdentifier aid) {
+	public void addToLookupCache(ConstellationIdentifier cid, ActivityIdentifier aid) {
 		locationCache.put(aid, cid, 0);
 	}
 

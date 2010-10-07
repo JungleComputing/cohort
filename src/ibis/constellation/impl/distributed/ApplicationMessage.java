@@ -1,7 +1,7 @@
 package ibis.constellation.impl.distributed;
 
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 
 public class ApplicationMessage extends Message {
@@ -10,7 +10,7 @@ public class ApplicationMessage extends Message {
 
     public final Event event;
     
-    public ApplicationMessage(final CohortIdentifier source, final Event e) { 
+    public ApplicationMessage(final ConstellationIdentifier source, final Event e) { 
         super(source);
         this.event = e;
     }

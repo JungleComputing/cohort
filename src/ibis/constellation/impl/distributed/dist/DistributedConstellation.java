@@ -5,21 +5,21 @@ import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
 import ibis.constellation.CancelEvent;
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.UnitWorkerContext;
-import ibis.constellation.extra.CohortIdentifierFactory;
-import ibis.constellation.extra.CohortLogger;
+import ibis.constellation.extra.ConstellationIdentifierFactory;
+import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.WorkQueue;
 import ibis.constellation.extra.WorkQueueFactory;
 import ibis.constellation.impl.distributed.ActivityRecord;
 import ibis.constellation.impl.distributed.ApplicationMessage;
-import ibis.constellation.impl.distributed.BottomCohort;
+import ibis.constellation.impl.distributed.BottomConstellation;
 import ibis.constellation.impl.distributed.LocationCache;
 import ibis.constellation.impl.distributed.LookupReply;
 import ibis.constellation.impl.distributed.LookupRequest;
@@ -31,7 +31,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Properties;
 
-public class DistributedCohort implements Cohort {
+public class DistributedConstellation implements Constellation {
 
 	private static final int STEAL_RANDOM = 1; 
 	private static final int STEAL_MASTER = 2;
@@ -51,20 +51,20 @@ public class DistributedCohort implements Cohort {
 
 	private boolean active;
 
-	private BottomCohort subCohort;
+	private BottomConstellation subCohort;
 
 	private final WorkQueue queue; 
 	private final WorkQueue restrictedQueue; 
 
-	private final CohortIdentifier identifier;
+	private final ConstellationIdentifier identifier;
 
 	private final LocationCache cache = new LocationCache();
 
 	private final Pool pool;
 
-	private final DistributedCohortIdentifierFactory cidFactory;
+	private final DistributedConstellationIdentifierFactory cidFactory;
 
-	private final CohortLogger logger;
+	private final ConstellationLogger logger;
 
 	private ActivityIdentifierFactory aidFactory;
 
@@ -81,7 +81,7 @@ public class DistributedCohort implements Cohort {
 
 	private final long start;
 
-	public DistributedCohort(Properties p) throws Exception {         
+	public DistributedConstellation(Properties p) throws Exception {         
 
 		String tmp = p.getProperty("ibis.cohort.remotesteal.throttle");
 
@@ -152,7 +152,7 @@ public class DistributedCohort implements Cohort {
 
 		aidFactory = getActivityIdentifierFactory(identifier);        
 
-		logger = CohortLogger.getLogger(DistributedCohort.class, identifier);
+		logger = ConstellationLogger.getLogger(DistributedConstellation.class, identifier);
 
 		start = System.currentTimeMillis();
 
@@ -279,7 +279,7 @@ public class DistributedCohort implements Cohort {
     }
 	 */
 
-	private boolean isLocal(CohortIdentifier id) { 
+	private boolean isLocal(ConstellationIdentifier id) { 
 		return pool.isLocal(id);
 	}
 
@@ -498,20 +498,20 @@ public class DistributedCohort implements Cohort {
 		pool.cleanup();
 	}
 
-	public Cohort [] getSubCohorts() {
+	public Constellation [] getSubCohorts() {
 
-		if (subCohort instanceof Cohort) {
-			return new Cohort [] { (Cohort)subCohort };
+		if (subCohort instanceof Constellation) {
+			return new Constellation [] { (Constellation)subCohort };
 		} else { 
 			return null;
 		}
 	} 
 
-	public CohortIdentifier [] getLeafIDs() {
+	public ConstellationIdentifier [] getLeafIDs() {
 		return subCohort.getLeafIDs();
 	}
 
-	public CohortIdentifier identifier() {
+	public ConstellationIdentifier identifier() {
 		return identifier;
 	}
 
@@ -541,7 +541,7 @@ public class DistributedCohort implements Cohort {
 		// We therefore do not know if the target cohort is local or remote. 
 
 		ApplicationMessage tmp = new ApplicationMessage(identifier, e);
-		CohortIdentifier cid = cache.lookup(e.target);
+		ConstellationIdentifier cid = cache.lookup(e.target);
 
 		if (cid != null) { 
 			tmp.setTarget(cid);
@@ -567,7 +567,7 @@ public class DistributedCohort implements Cohort {
 		setContext(null, context);
 	}
 
-	public synchronized void setContext(CohortIdentifier id, WorkerContext context) 
+	public synchronized void setContext(ConstellationIdentifier id, WorkerContext context) 
 	throws Exception {
 
 		if (Debug.DEBUG_CONTEXT) { 
@@ -639,7 +639,7 @@ public class DistributedCohort implements Cohort {
 
 	/* =========== TopCohort interface ====================================== */
 
-	public synchronized void contextChanged(CohortIdentifier cid, WorkerContext c) {
+	public synchronized void contextChanged(ConstellationIdentifier cid, WorkerContext c) {
 
 		// Sanity check
 		if (!cid.equals(subCohort.identifier())) { 
@@ -942,7 +942,7 @@ public class DistributedCohort implements Cohort {
 	}
 
 	public synchronized ActivityIdentifierFactory 
-		getActivityIdentifierFactory(CohortIdentifier cid) {
+		getActivityIdentifierFactory(ConstellationIdentifier cid) {
 
 		ActivityIdentifierFactory tmp = new ActivityIdentifierFactory(
 				cid.id,  startID, startID+blockSize);
@@ -951,12 +951,12 @@ public class DistributedCohort implements Cohort {
 		return tmp;
 	}
 
-	public CohortIdentifierFactory getCohortIdentifierFactory(
-			CohortIdentifier cid) {
+	public ConstellationIdentifierFactory getCohortIdentifierFactory(
+			ConstellationIdentifier cid) {
 		return cidFactory;
 	}
 
-	public synchronized void register(BottomCohort cohort) throws Exception { 
+	public synchronized void register(BottomConstellation cohort) throws Exception { 
 
 		if (active || subCohort != null) { 
 			throw new Exception("Cannot register BottomCohort");

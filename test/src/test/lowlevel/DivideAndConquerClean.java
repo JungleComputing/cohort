@@ -2,8 +2,8 @@ package test.lowlevel;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortFactory;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
@@ -90,7 +90,7 @@ public class DivideAndConquerClean extends Activity {
             e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
         }
         
-        Cohort cohort = CohortFactory.createCohort(e);
+        Constellation cohort = ConstellationFactory.createCohort(e);
         
         int branch = Integer.parseInt(args[index++]);
         int depth =  Integer.parseInt(args[index++]);

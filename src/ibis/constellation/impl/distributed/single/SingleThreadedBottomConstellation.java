@@ -4,24 +4,24 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.extra.CircularBuffer;
-import ibis.constellation.extra.CohortLogger;
+import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.impl.distributed.ActivityRecord;
 import ibis.constellation.impl.distributed.ApplicationMessage;
-import ibis.constellation.impl.distributed.BottomCohort;
+import ibis.constellation.impl.distributed.BottomConstellation;
 import ibis.constellation.impl.distributed.LookupReply;
 import ibis.constellation.impl.distributed.LookupRequest;
 import ibis.constellation.impl.distributed.StealReply;
 import ibis.constellation.impl.distributed.StealRequest;
-import ibis.constellation.impl.distributed.TopCohort;
+import ibis.constellation.impl.distributed.TopConstellation;
 import ibis.constellation.impl.distributed.UndeliverableEvent;
-import ibis.constellation.impl.distributed.multi.MultiThreadedMiddleCohort;
+import ibis.constellation.impl.distributed.multi.MultiThreadedMiddleConstellation;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -30,21 +30,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
-public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
+public class SingleThreadedBottomConstellation extends Thread implements BottomConstellation {
 
     private static final boolean PROFILE = true;
     private static final boolean THROTTLE_STEALS = true;
     private static final int DEFAULT_STEAL_DELAY = 500;
     private static final boolean DEFAULT_IGNORE_EMPTY_STEAL_REPLIES = false;
     
-    private final MultiThreadedMiddleCohort parent;
+    private final MultiThreadedMiddleConstellation parent;
 
     private final ExecutorWrapper sequential;
 
-    private final CohortIdentifier identifier;
+    private final ConstellationIdentifier identifier;
     
     private PrintStream out; 
-    private CohortLogger logger;
+    private ConstellationLogger logger;
     
     private final Thread thread;
     
@@ -79,11 +79,11 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             new ArrayList<LookupRequest>();
         */
         
-        final HashMap<CohortIdentifier, StealRequest> stealRequests = 
-            new HashMap<CohortIdentifier, StealRequest>();
+        final HashMap<ConstellationIdentifier, StealRequest> stealRequests = 
+            new HashMap<ConstellationIdentifier, StealRequest>();
         
-        final HashMap<CohortIdentifier, LookupRequest> lookupRequests = 
-            new HashMap<CohortIdentifier, LookupRequest>();
+        final HashMap<ConstellationIdentifier, LookupRequest> lookupRequests = 
+            new HashMap<ConstellationIdentifier, LookupRequest>();
         
         
         WorkerContext newContext;
@@ -141,7 +141,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     
     private volatile boolean havePendingRequests = false;
     
-    public SingleThreadedBottomCohort(MultiThreadedMiddleCohort parent, Executor executor, Properties p) 
+    public SingleThreadedBottomConstellation(MultiThreadedMiddleConstellation parent, Executor executor, Properties p) 
     	throws Exception {
 
         super();
@@ -169,7 +169,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
             out = System.out;
         }
         
-        this.logger = CohortLogger.getLogger(SingleThreadedBottomCohort.class, identifier);
+        this.logger = ConstellationLogger.getLogger(SingleThreadedBottomConstellation.class, identifier);
         
         logger.warn("Starting SingleThreadedBottomCohort: " + identifier);
         
@@ -261,7 +261,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
 
     /* ===================== BottomCohort Interface ==========================*/
     
-    public void setContext(CohortIdentifier id, WorkerContext c) throws Exception { 
+    public void setContext(ConstellationIdentifier id, WorkerContext c) throws Exception { 
 
      //   System.out.println("Setting context of " + id + " to " + c);
         
@@ -277,7 +277,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         return sequential.getContext();
     }
     
-    public CohortIdentifier identifier() { 
+    public ConstellationIdentifier identifier() { 
         return identifier;
     }
     
@@ -336,7 +336,7 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
     /*============= Needed by sequential sub cohort ==========================*/
     
     protected ActivityIdentifierFactory getActivityIdentifierFactory(
-            CohortIdentifier cid) { 
+            ConstellationIdentifier cid) { 
         return parent.getActivityIdentifierFactory(identifier);
     }
     
@@ -1312,8 +1312,8 @@ public class SingleThreadedBottomCohort extends Thread implements BottomCohort {
         out.flush();        
     }
 
-    public CohortIdentifier [] getLeafIDs() { 
-        return new CohortIdentifier [] { identifier };
+    public ConstellationIdentifier [] getLeafIDs() { 
+        return new ConstellationIdentifier [] { identifier };
     }   
      
     public void setContext(WorkerContext context) {

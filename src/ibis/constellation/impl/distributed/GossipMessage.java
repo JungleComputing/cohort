@@ -2,7 +2,7 @@ package ibis.constellation.impl.distributed;
 
 import java.io.Serializable;
 
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 
 public class GossipMessage extends Message {
 
@@ -10,7 +10,7 @@ public class GossipMessage extends Message {
   
     private Gossip [] gossip;
     
-    public GossipMessage(CohortIdentifier source, CohortIdentifier target, Gossip [] gossip) {
+    public GossipMessage(ConstellationIdentifier source, ConstellationIdentifier target, Gossip [] gossip) {
         super(source, target);
         this.gossip = gossip;
     }

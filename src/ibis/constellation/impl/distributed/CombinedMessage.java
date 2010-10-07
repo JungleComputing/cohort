@@ -1,6 +1,6 @@
 package ibis.constellation.impl.distributed;
 
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 
 public class CombinedMessage extends Message {
     
@@ -8,7 +8,7 @@ public class CombinedMessage extends Message {
 
     private Message [] messages;
     
-    public CombinedMessage(CohortIdentifier source, CohortIdentifier target, 
+    public CombinedMessage(ConstellationIdentifier source, ConstellationIdentifier target, 
             Message [] messages) { 
         super(source, target);
         this.messages = messages;

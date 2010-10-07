@@ -1,15 +1,15 @@
 package ibis.constellation.impl.distributed.dist;
 
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.ipl.IbisIdentifier;
 
-public class DistributedCohortIdentifier extends CohortIdentifier {
+public class DistributedConstellationIdentifier extends ConstellationIdentifier {
 
     private static final long serialVersionUID = -1145931224872635119L;
   
     private final IbisIdentifier ibis;
    
-    public DistributedCohortIdentifier(final IbisIdentifier ibis, 
+    public DistributedConstellationIdentifier(final IbisIdentifier ibis, 
             final long rank, final int workerID) {
         super(rank << 32 | workerID);
         this.ibis = ibis;

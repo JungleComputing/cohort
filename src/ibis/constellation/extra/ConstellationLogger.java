@@ -4,19 +4,19 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggerFactory;
 
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 
 
-public class CohortLogger extends Logger {
-    private static String FQCN = CohortLogger.class.getName() + ".";
-    private static LoggerFactory factory = new CohortLoggerFactory();
+public class ConstellationLogger extends Logger {
+    private static String FQCN = ConstellationLogger.class.getName() + ".";
+    private static LoggerFactory factory = new ConstellationLoggerFactory();
 
     /**
      * Constructor.
      *
      * Don't use directly. User getLogger(...) instead.
      */
-    public CohortLogger(String name) {
+    public ConstellationLogger(String name) {
         super(name);
     }
 
@@ -50,17 +50,17 @@ public class CohortLogger extends Logger {
         super.log(FQCN, Level.WARN, message, t);
     }
 
-    public static CohortLogger getLogger(Class clazz, CohortIdentifier identifier) {
+    public static ConstellationLogger getLogger(Class clazz, ConstellationIdentifier identifier) {
         return getLogger(clazz.getName(), identifier);
     }
 
-    public static CohortLogger getLogger(String name, CohortIdentifier identifier) {
+    public static ConstellationLogger getLogger(String name, ConstellationIdentifier identifier) {
         
         if (identifier == null) { 
-            return (CohortLogger)Logger.getLogger(name, factory);
+            return (ConstellationLogger)Logger.getLogger(name, factory);
         }
         
-        return (CohortLogger)Logger.getLogger(name + '.' + identifier, factory);
+        return (ConstellationLogger)Logger.getLogger(name + '.' + identifier, factory);
     }
 
 }

@@ -1,29 +1,29 @@
 package ibis.constellation.impl.distributed;
 
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 
 import java.io.Serializable;
 
 public abstract class Message implements Serializable {
 
-    public final CohortIdentifier source;
-    public CohortIdentifier target;
+    public final ConstellationIdentifier source;
+    public ConstellationIdentifier target;
    
     private transient long timeout = -1;
     private transient boolean stale = false;
    
-    protected Message(final CohortIdentifier source, 
-            final CohortIdentifier target) {
+    protected Message(final ConstellationIdentifier source, 
+            final ConstellationIdentifier target) {
         this.source = source;
         this.target = target;
     }
     
-    protected Message(final CohortIdentifier source) {
+    protected Message(final ConstellationIdentifier source) {
         this.source = source;
     }
     
-    public synchronized void setTarget(CohortIdentifier target) { 
+    public synchronized void setTarget(ConstellationIdentifier target) { 
         this.target = target;
     }
     

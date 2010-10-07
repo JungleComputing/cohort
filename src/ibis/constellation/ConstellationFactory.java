@@ -1,12 +1,12 @@
 package ibis.constellation;
 
-import ibis.constellation.impl.distributed.dist.DistributedCohort;
-import ibis.constellation.impl.distributed.multi.MultiThreadedMiddleCohort;
-import ibis.constellation.impl.distributed.single.SingleThreadedBottomCohort;
+import ibis.constellation.impl.distributed.dist.DistributedConstellation;
+import ibis.constellation.impl.distributed.multi.MultiThreadedMiddleConstellation;
+import ibis.constellation.impl.distributed.single.SingleThreadedBottomConstellation;
 
 import java.util.Properties;
 
-public class CohortFactory {
+public class ConstellationFactory {
 /*
     public static String SEPARATOR = "+";
     
@@ -194,31 +194,31 @@ public class CohortFactory {
     }
 */
 	
-	public static Cohort createCohort(Executor e) throws Exception { 
+	public static Constellation createCohort(Executor e) throws Exception { 
 		return createCohort(System.getProperties(), e);
 	}
 	
-	public static Cohort createCohort(Properties p, Executor e) throws Exception { 
+	public static Constellation createCohort(Properties p, Executor e) throws Exception { 
 		return createCohort(p, new Executor [] { e });
 	}
 	
-	public static Cohort createCohort(Executor ... e) throws Exception { 
+	public static Constellation createCohort(Executor ... e) throws Exception { 
 		
 		return createCohort(System.getProperties(), e);
 	}
 		
-    public static Cohort createCohort(Properties p, Executor ... e) throws Exception { 
+    public static Constellation createCohort(Properties p, Executor ... e) throws Exception { 
     	
     	if (e == null || e.length == 0) { 
     		throw new IllegalArgumentException("Need at least one executor!");
     	}
     	
     	// TODO: check is we need to create a new dist/mt here!!!
-        DistributedCohort d = new DistributedCohort(p);
-        MultiThreadedMiddleCohort m = new MultiThreadedMiddleCohort(d, p);                
+        DistributedConstellation d = new DistributedConstellation(p);
+        MultiThreadedMiddleConstellation m = new MultiThreadedMiddleConstellation(d, p);                
           	
     	for (int i=0;i<e.length;i++) { 
-    	    new SingleThreadedBottomCohort(m, e[i], p);          
+    	    new SingleThreadedBottomConstellation(m, e[i], p);          
     	}
     	
     	return d;

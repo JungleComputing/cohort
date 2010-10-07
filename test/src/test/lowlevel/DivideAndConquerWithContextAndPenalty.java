@@ -3,9 +3,9 @@ package test.lowlevel;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortFactory;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationFactory;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SingleEventCollector;
@@ -279,7 +279,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
         try {
             long start = System.currentTimeMillis();
 
-            Cohort cohort = CohortFactory.createCohort();
+            Constellation cohort = ConstellationFactory.createCohort();
                
             int branch = Integer.parseInt(args[0]);
             int depth =  Integer.parseInt(args[1]);
@@ -288,7 +288,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             int workers = Integer.parseInt(args[4]);
             int rank = Integer.parseInt(args[5]);
             
-            CohortIdentifier [] leafs = cohort.getLeafIDs();
+            ConstellationIdentifier [] leafs = cohort.getLeafIDs();
 
             WorkerContext cohortContext = null;
    
@@ -322,7 +322,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             
             System.out.println("Setting cohort context to " + cohortContext);
             
-            for (CohortIdentifier id : leafs) { 
+            for (ConstellationIdentifier id : leafs) { 
                 cohort.setContext(id, cohortContext);
             }
     

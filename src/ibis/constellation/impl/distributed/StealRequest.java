@@ -1,6 +1,6 @@
 package ibis.constellation.impl.distributed;
 
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 
@@ -15,7 +15,7 @@ public class StealRequest extends Message {
     // network.
     private transient boolean allowRestricted;  
     
-    public StealRequest(final CohortIdentifier source, final WorkerContext context, final StealPool pool) {  
+    public StealRequest(final ConstellationIdentifier source, final WorkerContext context, final StealPool pool) {  
         // Use this for a remote steal request;
         super(source);
         this.context = context;
@@ -23,7 +23,7 @@ public class StealRequest extends Message {
         allowRestricted = true;
     }
    
-    public StealRequest(final CohortIdentifier source, final WorkerContext context) {  
+    public StealRequest(final ConstellationIdentifier source, final WorkerContext context) {  
         this(source, context, StealPool.WORLD);
     }
     

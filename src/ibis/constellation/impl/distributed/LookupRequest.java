@@ -1,7 +1,7 @@
 package ibis.constellation.impl.distributed;
 
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 
 public class LookupRequest extends Message {
     
@@ -9,7 +9,7 @@ public class LookupRequest extends Message {
    
     public final ActivityIdentifier missing;
       
-    public LookupRequest(final CohortIdentifier source, 
+    public LookupRequest(final ConstellationIdentifier source, 
             final ActivityIdentifier missing) {  
         super(source);
         this.missing = missing;

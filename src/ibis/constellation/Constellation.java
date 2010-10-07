@@ -1,10 +1,10 @@
 package ibis.constellation;
 
-public interface Cohort {
+public interface Constellation {
     
     public boolean isMaster();
 
-    public CohortIdentifier identifier();
+    public ConstellationIdentifier identifier();
     
     public ActivityIdentifier submit(Activity job);
     
@@ -31,7 +31,7 @@ public interface Cohort {
     public WorkerContext getContext();
     
     public void setContext(WorkerContext context) throws Exception;
-    public void setContext(CohortIdentifier id, WorkerContext context) throws Exception;
+    public void setContext(ConstellationIdentifier id, WorkerContext context) throws Exception;
     
   //  public void addContext(Context ... contexts);
     
@@ -39,9 +39,9 @@ public interface Cohort {
     
   //  public void clearContext();
     
-    public Cohort [] getSubCohorts();
+    public Constellation [] getSubCohorts();
     
-    public CohortIdentifier [] getLeafIDs();
+    public ConstellationIdentifier [] getLeafIDs();
     
     public boolean activate();
     

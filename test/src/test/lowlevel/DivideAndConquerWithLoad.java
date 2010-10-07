@@ -2,8 +2,8 @@ package test.lowlevel;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortFactory;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SingleEventCollector;
@@ -92,7 +92,7 @@ public class DivideAndConquerWithLoad extends Activity {
     public static void main(String [] args) { 
         
         try {        
-            Cohort cohort = CohortFactory.createCohort();
+            Constellation cohort = ConstellationFactory.createCohort();
         
             if (cohort.isMaster()) { 
 

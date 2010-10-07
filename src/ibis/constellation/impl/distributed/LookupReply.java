@@ -1,21 +1,21 @@
 package ibis.constellation.impl.distributed;
 
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 
 public class LookupReply extends Message {
     
     private static final long serialVersionUID = 2655647847327367590L;
    
     public final ActivityIdentifier missing;
-    public final CohortIdentifier location;
+    public final ConstellationIdentifier location;
     public final long count;
     
     public LookupReply(
-            final CohortIdentifier source,
-            final CohortIdentifier target,
+            final ConstellationIdentifier source,
+            final ConstellationIdentifier target,
             final ActivityIdentifier missing, 
-            final CohortIdentifier location, 
+            final ConstellationIdentifier location, 
             final long count) { 
         
         super(source, target);

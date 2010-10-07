@@ -2,10 +2,10 @@ package ibis.constellation.impl.distributed;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.WorkerContext;
 
-public interface BottomCohort {
+public interface BottomConstellation {
 
     /* 
      * This interface contains all methods a super cohort will invoke on 
@@ -14,10 +14,10 @@ public interface BottomCohort {
     
     /* synchronous methods - immediately produce a result or effect */ 
    
-    CohortIdentifier [] getLeafIDs();
-    void setContext(CohortIdentifier id, WorkerContext context) throws Exception;
+    ConstellationIdentifier [] getLeafIDs();
+    void setContext(ConstellationIdentifier id, WorkerContext context) throws Exception;
     WorkerContext getContext();
-    CohortIdentifier identifier();
+    ConstellationIdentifier identifier();
     boolean activate();
     void done();
     boolean canProcessActivities();

@@ -1,8 +1,8 @@
 package ibis.constellation.impl.distributed.dist;
 
-import ibis.constellation.CohortIdentifier;
+import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.StealPool;
-import ibis.constellation.extra.CohortLogger;
+import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.StealPoolInfo;
 import ibis.constellation.impl.distributed.ApplicationMessage;
@@ -41,7 +41,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private static final byte OPCODE_POOL_UPDATE_REQUEST   = 44;
     private static final byte OPCODE_POOL_UPDATE_REPLY     = 45;
     
-    private DistributedCohort owner;
+    private DistributedConstellation owner;
 
     private final PortType portType = new PortType(
             PortType.COMMUNICATION_FIFO, 
@@ -66,9 +66,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private final ArrayList<IbisIdentifier> others = 
         new ArrayList<IbisIdentifier>();
 
-    private final DistributedCohortIdentifierFactory cidFactory;
+    private final DistributedConstellationIdentifierFactory cidFactory;
 
-    private CohortLogger logger;
+    private ConstellationLogger logger;
 
     private final Ibis ibis;
     private final IbisIdentifier local;
@@ -198,10 +198,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private HashMap<String, PoolInfo> pools = new HashMap<String, PoolInfo>();
     private PoolUpdater updater = new PoolUpdater();
     
-    public Pool(final DistributedCohort owner, final Properties p) throws Exception { 
+    public Pool(final DistributedConstellation owner, final Properties p) throws Exception { 
 
         this.owner = owner; 
-        this.logger = CohortLogger.getLogger(Pool.class, null);
+        this.logger = ConstellationLogger.getLogger(Pool.class, null);
 
         ibis = IbisFactory.createIbis(ibisCapabilities, p, true, this, portType);
 
@@ -246,10 +246,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         rp.enableConnections();
         rp.enableMessageUpcalls();
 
-        cidFactory = new DistributedCohortIdentifierFactory(local, rank);
+        cidFactory = new DistributedConstellationIdentifierFactory(local, rank);
     }
 
-    protected void setLogger(CohortLogger logger) { 
+    protected void setLogger(ConstellationLogger logger) { 
         this.logger = logger;
         logger.info("Cohort master is " + master + " rank is " + rank);
     }
@@ -297,15 +297,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
      *///
 
-    public DistributedCohortIdentifierFactory getCIDFactory() { 
+    public DistributedConstellationIdentifierFactory getCIDFactory() { 
         return cidFactory;
     }
 
-    public boolean isLocal(CohortIdentifier id) { 
+    public boolean isLocal(ConstellationIdentifier id) { 
 
         // TODO: think of better approach!
-        if (id instanceof DistributedCohortIdentifier) { 
-            DistributedCohortIdentifier tmp = (DistributedCohortIdentifier) id;
+        if (id instanceof DistributedConstellationIdentifier) { 
+            DistributedConstellationIdentifier tmp = (DistributedConstellationIdentifier) id;
             return tmp.getIbis().equals(local);
         }
 
@@ -445,10 +445,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         }
     }
 
-    private IbisIdentifier translate(CohortIdentifier id) { 
+    private IbisIdentifier translate(ConstellationIdentifier id) { 
 
-        if (id instanceof DistributedCohortIdentifier) { 
-            return ((DistributedCohortIdentifier)id).getIbis();
+        if (id instanceof DistributedConstellationIdentifier) { 
+            return ((DistributedConstellationIdentifier)id).getIbis();
         }
 
         return null;
@@ -487,7 +487,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     
     public boolean forward(Message m) { 
 
-        CohortIdentifier target = m.target;
+        ConstellationIdentifier target = m.target;
 
         if (Debug.DEBUG_COMMUNICATION) { 
             logger.info("POOL FORWARD Message from " + m.source + " to " + m.target + " " + m);
@@ -523,7 +523,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return true;
     }
 
-    public CohortIdentifier selectTarget() {
+    public ConstellationIdentifier selectTarget() {
         return null;
     }
 

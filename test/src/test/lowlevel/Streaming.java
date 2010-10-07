@@ -2,8 +2,8 @@ package test.lowlevel;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.Cohort;
-import ibis.constellation.CohortFactory;
+import ibis.constellation.Constellation;
+import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SingleEventCollector;
@@ -80,7 +80,7 @@ public class Streaming extends Activity {
 
         long start = System.currentTimeMillis();
 
-        Cohort cohort = CohortFactory.createCohort();
+        Constellation cohort = ConstellationFactory.createCohort();
         
         int index = 0;
          
