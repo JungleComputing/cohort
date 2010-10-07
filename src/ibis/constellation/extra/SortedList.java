@@ -1,6 +1,6 @@
 package ibis.constellation.extra;
 
-import ibis.constellation.impl.distributed.ActivityRecord;
+import ibis.constellation.impl.ActivityRecord;
 
 import java.util.Comparator;
 

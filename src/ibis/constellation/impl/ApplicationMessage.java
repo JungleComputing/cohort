@@ -1,4 +1,4 @@
-package ibis.constellation.impl.distributed;
+package ibis.constellation.impl;
 
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ConstellationIdentifier;

@@ -1,4 +1,4 @@
-package ibis.constellation.impl.distributed;
+package ibis.constellation.impl;
 
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.StealPool;

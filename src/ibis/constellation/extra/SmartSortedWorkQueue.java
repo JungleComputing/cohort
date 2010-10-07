@@ -7,7 +7,7 @@ import ibis.constellation.context.OrActivityContext;
 import ibis.constellation.context.OrWorkerContext;
 import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
-import ibis.constellation.impl.distributed.ActivityRecord;
+import ibis.constellation.impl.ActivityRecord;
 
 import java.util.HashMap;
 import java.util.HashSet;

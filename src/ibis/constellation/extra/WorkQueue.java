@@ -2,7 +2,7 @@ package ibis.constellation.extra;
 
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.WorkerContext;
-import ibis.constellation.impl.distributed.ActivityRecord;
+import ibis.constellation.impl.ActivityRecord;
 
 public abstract class WorkQueue {
 

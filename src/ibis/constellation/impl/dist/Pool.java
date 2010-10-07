@@ -1,18 +1,18 @@
-package ibis.constellation.impl.distributed.dist;
+package ibis.constellation.impl.dist;
 
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.StealPool;
 import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.StealPoolInfo;
-import ibis.constellation.impl.distributed.ApplicationMessage;
-import ibis.constellation.impl.distributed.CombinedMessage;
-import ibis.constellation.impl.distributed.LookupReply;
-import ibis.constellation.impl.distributed.LookupRequest;
-import ibis.constellation.impl.distributed.Message;
-import ibis.constellation.impl.distributed.StealReply;
-import ibis.constellation.impl.distributed.StealRequest;
-import ibis.constellation.impl.distributed.UndeliverableEvent;
+import ibis.constellation.impl.ApplicationMessage;
+import ibis.constellation.impl.CombinedMessage;
+import ibis.constellation.impl.LookupReply;
+import ibis.constellation.impl.LookupRequest;
+import ibis.constellation.impl.Message;
+import ibis.constellation.impl.StealReply;
+import ibis.constellation.impl.StealRequest;
+import ibis.constellation.impl.UndeliverableEvent;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;

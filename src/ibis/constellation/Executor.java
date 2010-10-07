@@ -1,7 +1,7 @@
 package ibis.constellation;
 
 import ibis.constellation.context.UnitWorkerContext;
-import ibis.constellation.impl.distributed.single.ExecutorWrapper;
+import ibis.constellation.impl.single.ExecutorWrapper;
 
 import java.io.Serializable;
 

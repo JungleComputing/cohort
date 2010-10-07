@@ -1,4 +1,4 @@
-package ibis.constellation.impl.distributed.multi;
+package ibis.constellation.impl.multi;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
@@ -15,18 +15,18 @@ import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.StealPoolInfo;
 import ibis.constellation.extra.WorkQueue;
 import ibis.constellation.extra.WorkQueueFactory;
-import ibis.constellation.impl.distributed.ActivityRecord;
-import ibis.constellation.impl.distributed.ApplicationMessage;
-import ibis.constellation.impl.distributed.BottomConstellation;
-import ibis.constellation.impl.distributed.LocationCache;
-import ibis.constellation.impl.distributed.LookupReply;
-import ibis.constellation.impl.distributed.LookupRequest;
-import ibis.constellation.impl.distributed.StealReply;
-import ibis.constellation.impl.distributed.StealRequest;
-import ibis.constellation.impl.distributed.TopConstellation;
-import ibis.constellation.impl.distributed.UndeliverableEvent;
-import ibis.constellation.impl.distributed.dist.DistributedConstellation;
-import ibis.constellation.impl.distributed.single.SingleThreadedBottomConstellation;
+import ibis.constellation.impl.ActivityRecord;
+import ibis.constellation.impl.ApplicationMessage;
+import ibis.constellation.impl.BottomConstellation;
+import ibis.constellation.impl.LocationCache;
+import ibis.constellation.impl.LookupReply;
+import ibis.constellation.impl.LookupRequest;
+import ibis.constellation.impl.StealReply;
+import ibis.constellation.impl.StealRequest;
+import ibis.constellation.impl.TopConstellation;
+import ibis.constellation.impl.UndeliverableEvent;
+import ibis.constellation.impl.dist.DistributedConstellation;
+import ibis.constellation.impl.single.SingleThreadedBottomConstellation;
 
 import java.io.PrintStream;
 import java.util.ArrayList;

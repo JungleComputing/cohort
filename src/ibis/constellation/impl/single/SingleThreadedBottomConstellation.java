@@ -1,4 +1,4 @@
-package ibis.constellation.impl.distributed.single;
+package ibis.constellation.impl.single;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
@@ -12,16 +12,16 @@ import ibis.constellation.WorkerContext;
 import ibis.constellation.extra.CircularBuffer;
 import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
-import ibis.constellation.impl.distributed.ActivityRecord;
-import ibis.constellation.impl.distributed.ApplicationMessage;
-import ibis.constellation.impl.distributed.BottomConstellation;
-import ibis.constellation.impl.distributed.LookupReply;
-import ibis.constellation.impl.distributed.LookupRequest;
-import ibis.constellation.impl.distributed.StealReply;
-import ibis.constellation.impl.distributed.StealRequest;
-import ibis.constellation.impl.distributed.TopConstellation;
-import ibis.constellation.impl.distributed.UndeliverableEvent;
-import ibis.constellation.impl.distributed.multi.MultiThreadedMiddleConstellation;
+import ibis.constellation.impl.ActivityRecord;
+import ibis.constellation.impl.ApplicationMessage;
+import ibis.constellation.impl.BottomConstellation;
+import ibis.constellation.impl.LookupReply;
+import ibis.constellation.impl.LookupRequest;
+import ibis.constellation.impl.StealReply;
+import ibis.constellation.impl.StealRequest;
+import ibis.constellation.impl.TopConstellation;
+import ibis.constellation.impl.UndeliverableEvent;
+import ibis.constellation.impl.multi.MultiThreadedMiddleConstellation;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;

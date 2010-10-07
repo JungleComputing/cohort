@@ -1,8 +1,8 @@
 package ibis.constellation;
 
-import ibis.constellation.impl.distributed.dist.DistributedConstellation;
-import ibis.constellation.impl.distributed.multi.MultiThreadedMiddleConstellation;
-import ibis.constellation.impl.distributed.single.SingleThreadedBottomConstellation;
+import ibis.constellation.impl.dist.DistributedConstellation;
+import ibis.constellation.impl.multi.MultiThreadedMiddleConstellation;
+import ibis.constellation.impl.single.SingleThreadedBottomConstellation;
 
 import java.util.Properties;
 

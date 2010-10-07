@@ -1,4 +1,4 @@
-package ibis.constellation.impl.distributed.single;
+package ibis.constellation.impl.single;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
@@ -17,7 +17,7 @@ import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.SmartSortedWorkQueue;
 import ibis.constellation.extra.WorkQueue;
-import ibis.constellation.impl.distributed.ActivityRecord;
+import ibis.constellation.impl.ActivityRecord;
 
 import java.util.HashMap;
 import java.util.Properties;

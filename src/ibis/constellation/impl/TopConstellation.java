@@ -1,11 +1,11 @@
-package ibis.constellation.impl.distributed;
+package ibis.constellation.impl;
 
 import ibis.constellation.ActivityIdentifierFactory;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.extra.ConstellationIdentifierFactory;
-import ibis.constellation.impl.distributed.single.SingleThreadedBottomConstellation;
+import ibis.constellation.impl.single.SingleThreadedBottomConstellation;
 
 public interface TopConstellation {
     /* 
