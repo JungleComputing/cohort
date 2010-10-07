@@ -1,14 +1,14 @@
-<project name="Cohort" default="build" basedir=".">
+<project name="Constellation" default="build" basedir=".">
 
-	<property name="version" value="0.6.0" />
-	<property name="jar" value="cohort-${version}.jar" />
-	<property name="zip" value="cohort-${version}.zip" />
-	<property name="src-zip" value="cohort-${version}-src.zip" />
+	<property name="version" value="0.7.0" />
+	<property name="jar" value="constellation-${version}.jar" />
+	<property name="zip" value="constellation-${version}.zip" />
+	<property name="src-zip" value="constellation-${version}-src.zip" />
 
 	<property name="srcdir" value="./src" />
 	<property name="builddir" value="./build" />
 	<property name="distdir" value="./lib" />
-	<property name="javadoc" value="javadoc/cohort" />
+	<property name="javadoc" value="javadoc/constellation" />
 
 	<path id="default.classpath">
 		<fileset dir="external">
@@ -45,7 +45,7 @@
 	<target name="javadoc" description="Create javadocs">
 		<!-- Create the javadoc -->
 		<mkdir dir="${javadoc}" />
-		<javadoc destdir="${javadoc}" access="public" sourcepath="src" windowtitle="Cohort Documentation" packagenames="ibis.cohort" overview="src/overview.html" doctitle="Cohort Documentation" bottom="The Ibis project" classpathref="default.classpath">
+		<javadoc destdir="${javadoc}" access="public" sourcepath="src" windowtitle="Constellation Documentation" packagenames="ibis.constellation" overview="src/overview.html" doctitle="Constellation Documentation" bottom="The Ibis project" classpathref="default.classpath">
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
 		</javadoc>
 
@@ -67,8 +67,8 @@
 		<delete failonerror="false" file="${src-zip}" />
 
 		<zip destfile="${src-zip}">
-			<zipfileset dir="." prefix="cohort-${version}" includes="src/**,external/**,jars/**,*.properties,*.example,notices/**,README.txt,INSTALL.txt,LICENSE.txt,javadoc/**,build.xml" />
-			<zipfileset dir="." prefix="cohort-${version}" filemode="755" includes="bin/**" />
+			<zipfileset dir="." prefix="constellation-${version}" includes="src/**,external/**,jars/**,*.properties,*.example,notices/**,README.txt,INSTALL.txt,LICENSE.txt,javadoc/**,build.xml" />
+			<zipfileset dir="." prefix="constellation-${version}" filemode="755" includes="bin/**" />
 		</zip>
 	</target>
 

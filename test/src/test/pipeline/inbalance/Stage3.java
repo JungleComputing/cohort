@@ -1,8 +1,8 @@
 package test.pipeline.inbalance;
 
-import ibis.cohort.ActivityIdentifier;
-import ibis.cohort.SimpleActivity;
-import ibis.cohort.context.UnitActivityContext;
+import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.SimpleActivity;
+import ibis.constellation.context.UnitActivityContext;
 
 public class Stage3 extends SimpleActivity {
 

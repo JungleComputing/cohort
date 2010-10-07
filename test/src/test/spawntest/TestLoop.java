@@ -1,9 +1,9 @@
 package test.spawntest;
 
-import ibis.cohort.Activity;
-import ibis.cohort.ActivityIdentifier;
-import ibis.cohort.Event;
-import ibis.cohort.context.UnitActivityContext;
+import ibis.constellation.Activity;
+import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Event;
+import ibis.constellation.context.UnitActivityContext;
 
 public class TestLoop extends Activity {
 

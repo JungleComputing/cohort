@@ -1,10 +1,10 @@
 package test.pipeline.inbalance;
 
-import ibis.cohort.Activity;
-import ibis.cohort.ActivityIdentifier;
-import ibis.cohort.Event;
-import ibis.cohort.MessageEvent;
-import ibis.cohort.context.UnitActivityContext;
+import ibis.constellation.Activity;
+import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Event;
+import ibis.constellation.MessageEvent;
+import ibis.constellation.context.UnitActivityContext;
 
 public class Stage5 extends Activity {
 

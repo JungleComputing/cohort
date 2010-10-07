@@ -1,8 +1,8 @@
 package test.create;
 
-import ibis.cohort.Cohort;
-import ibis.cohort.CohortFactory;
-import ibis.cohort.SimpleExecutor;
+import ibis.constellation.Cohort;
+import ibis.constellation.CohortFactory;
+import ibis.constellation.SimpleExecutor;
 
 public class CreateTest {
 

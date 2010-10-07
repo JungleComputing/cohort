@@ -2,9 +2,9 @@ package test.pipeline.simple;
 
 import java.util.Properties;
 
-import ibis.cohort.Cohort;
-import ibis.cohort.CohortFactory;
-import ibis.cohort.MultiEventCollector;
+import ibis.constellation.Cohort;
+import ibis.constellation.CohortFactory;
+import ibis.constellation.MultiEventCollector;
 
 public class PipelineTest {
 

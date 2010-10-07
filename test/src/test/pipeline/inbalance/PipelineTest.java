@@ -1,8 +1,8 @@
 package test.pipeline.inbalance;
 
-import ibis.cohort.Cohort;
-import ibis.cohort.CohortFactory;
-import ibis.cohort.MultiEventCollector;
+import ibis.constellation.Cohort;
+import ibis.constellation.CohortFactory;
+import ibis.constellation.MultiEventCollector;
 
 public class PipelineTest {
 

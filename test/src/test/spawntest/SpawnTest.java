@@ -1,8 +1,8 @@
 package test.spawntest;
 
-import ibis.cohort.Cohort;
-import ibis.cohort.CohortFactory;
-import ibis.cohort.SingleEventCollector;
+import ibis.constellation.Cohort;
+import ibis.constellation.CohortFactory;
+import ibis.constellation.SingleEventCollector;
 
 public class SpawnTest {
     

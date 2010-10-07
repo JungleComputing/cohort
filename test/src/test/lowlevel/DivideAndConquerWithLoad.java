@@ -1,13 +1,13 @@
 package test.lowlevel;
 
-import ibis.cohort.Activity;
-import ibis.cohort.Cohort;
-import ibis.cohort.CohortFactory;
-import ibis.cohort.Event;
-import ibis.cohort.ActivityIdentifier;
-import ibis.cohort.MessageEvent;
-import ibis.cohort.SingleEventCollector;
-import ibis.cohort.context.UnitActivityContext;
+import ibis.constellation.Activity;
+import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Cohort;
+import ibis.constellation.CohortFactory;
+import ibis.constellation.Event;
+import ibis.constellation.MessageEvent;
+import ibis.constellation.SingleEventCollector;
+import ibis.constellation.context.UnitActivityContext;
 
 public class DivideAndConquerWithLoad extends Activity {
 
