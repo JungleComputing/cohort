@@ -23,7 +23,6 @@ import ibis.constellation.impl.LookupReply;
 import ibis.constellation.impl.LookupRequest;
 import ibis.constellation.impl.StealReply;
 import ibis.constellation.impl.StealRequest;
-import ibis.constellation.impl.TopConstellation;
 import ibis.constellation.impl.UndeliverableEvent;
 import ibis.constellation.impl.dist.DistributedConstellation;
 import ibis.constellation.impl.single.SingleThreadedBottomConstellation;
@@ -264,8 +263,8 @@ public class MultiThreadedMiddleConstellation implements BottomConstellation {
 
         this.parent = parent;
 
-        cidFactory = parent.getCohortIdentifierFactory(null);
-        identifier = cidFactory.generateCohortIdentifier();
+        cidFactory = parent.getConstellationIdentifierFactory(null);
+        identifier = cidFactory.generateConstellationIdentifier();
         aidFactory = getActivityIdentifierFactory(identifier);        
 
         String tmp = p.getProperty("ibis.cohort.submit.pushdown");
@@ -674,7 +673,7 @@ public class MultiThreadedMiddleConstellation implements BottomConstellation {
 
     public ConstellationIdentifierFactory getCohortIdentifierFactory(
             ConstellationIdentifier cid) {
-        return parent.getCohortIdentifierFactory(cid);        
+        return parent.getConstellationIdentifierFactory(cid);        
     }
 
     public synchronized void register(SingleThreadedBottomConstellation cohort) throws Exception {

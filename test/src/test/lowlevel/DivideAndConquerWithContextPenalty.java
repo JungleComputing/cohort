@@ -8,6 +8,7 @@ import ibis.constellation.ConstellationFactory;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
+import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.UnitActivityContext;
@@ -125,8 +126,6 @@ public class DivideAndConquerWithContextPenalty extends Activity {
     public static void main(String [] args) { 
         
         try {        
-            Constellation cohort = ConstellationFactory.createCohort();
-        
             int branch = Integer.parseInt(args[0]);
             int depth =  Integer.parseInt(args[1]);
             int sleep =  Integer.parseInt(args[2]);
@@ -156,19 +155,14 @@ public class DivideAndConquerWithContextPenalty extends Activity {
             
             int rank = Integer.parseInt(tmp);
 
+            WorkerContext context = null;
+            
             if ((rank % 2) == 0) { 
                 // even
            
                 if (forceContext)  {
                     System.out.println("Forcing context to Even");
-                    
-                    ConstellationIdentifier [] leafs = cohort.getLeafIDs();
-                    
-                    UnitWorkerContext c = new UnitWorkerContext("Even");
-                    
-                    for (ConstellationIdentifier id : leafs) { 
-                        cohort.setContext(id, c);
-                    }
+                    context = new UnitWorkerContext("Even");
                 } else { 
                     System.out.println("LocalData context set to Even");
                     LocalData.getLocalData().put("context", new UnitWorkerContext("Even"));
@@ -179,24 +173,17 @@ public class DivideAndConquerWithContextPenalty extends Activity {
 
                 if (forceContext)  {
                     System.out.println("Forcing context to Odd");
-                    
-                    ConstellationIdentifier [] leafs = cohort.getLeafIDs();
-                    
-                    UnitWorkerContext c = new UnitWorkerContext("Odd");
-                    
-                    for (ConstellationIdentifier id : leafs) { 
-                        cohort.setContext(id, c);
-                    }
-                
+                    context = new UnitWorkerContext("Odd");
                 } else { 
                     System.out.println("LocalData context set to Odd");
                     LocalData.getLocalData().put("context", new UnitWorkerContext("Odd"));
                 }   
             } 
             
-            cohort.activate();
+            Constellation cn = ConstellationFactory.createCohort(new SimpleExecutor(context));            
+            cn.activate();
             
-            if (cohort.isMaster()) { 
+            if (cn.isMaster()) { 
 
                 long count = 0;
 
@@ -217,8 +204,8 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                 
                 SingleEventCollector a = new SingleEventCollector();
 
-                cohort.submit(a);
-                cohort.submit(new DivideAndConquerWithContextPenalty(
+                cn.submit(a);
+                cn.submit(new DivideAndConquerWithContextPenalty(
                         a.identifier(), branch, depth, sleep, penalty,
                         new UnitActivityContext("Even")));
 
@@ -235,7 +222,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
 
             }
             
-            cohort.done();
+            cn.done();
         
         } catch (Exception e) {
             System.err.println("Oops: " + e);

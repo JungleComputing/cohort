@@ -19,7 +19,6 @@ import ibis.constellation.impl.LookupReply;
 import ibis.constellation.impl.LookupRequest;
 import ibis.constellation.impl.StealReply;
 import ibis.constellation.impl.StealRequest;
-import ibis.constellation.impl.TopConstellation;
 import ibis.constellation.impl.UndeliverableEvent;
 import ibis.constellation.impl.multi.MultiThreadedMiddleConstellation;
 
@@ -148,7 +147,7 @@ public class SingleThreadedBottomConstellation extends Thread implements BottomC
         
         this.thread = this;
         this.parent = parent;
-        this.identifier = parent.getCohortIdentifierFactory(null).generateCohortIdentifier();
+        this.identifier = parent.getCohortIdentifierFactory(null).generateConstellationIdentifier();
             
         super.setName("SingleThreadedBottomCohort " + identifier.id);
         

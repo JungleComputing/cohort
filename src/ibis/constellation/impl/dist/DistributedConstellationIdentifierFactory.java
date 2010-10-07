@@ -15,7 +15,7 @@ public class DistributedConstellationIdentifierFactory implements ConstellationI
         this.rank = rank;
     }
     
-    public synchronized ConstellationIdentifier generateCohortIdentifier() {
+    public synchronized ConstellationIdentifier generateConstellationIdentifier() {
         return new DistributedConstellationIdentifier(ibis, rank, count++);
     }
 }

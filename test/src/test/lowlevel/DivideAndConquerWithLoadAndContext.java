@@ -7,7 +7,9 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
+import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.WorkerContext;
 import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
 
@@ -101,8 +103,6 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
     public static void main(String [] args) { 
         
         try {        
-            Constellation cohort = ConstellationFactory.createCohort();
-        
             int branch = Integer.parseInt(args[0]);
             int depth =  Integer.parseInt(args[1]);
             int load =  Integer.parseInt(args[2]);
@@ -121,21 +121,22 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
             
             int rank = Integer.parseInt(tmp);
 
+            WorkerContext context = null;
+            
             if ((rank % 2) == 0) { 
                 // even
                 System.out.println("Setting context to Even");
-                
-                cohort.setContext(new UnitWorkerContext("Even"));
+                context = new UnitWorkerContext("Even");
             } else { 
                 // odd
                 System.out.println("Setting context to Odd");
-                
-                cohort.setContext(new UnitWorkerContext("Odd"));
+                context = new UnitWorkerContext("Odd");
             }
-    
-            cohort.activate();
             
-            if (cohort.isMaster()) { 
+            Constellation cn = ConstellationFactory.createCohort(new SimpleExecutor(context));            
+            cn.activate();
+            
+            if (cn.isMaster()) { 
 
                 long count = 0;
 
@@ -154,8 +155,8 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
                 
                 SingleEventCollector a = new SingleEventCollector();
 
-                cohort.submit(a);
-                cohort.submit(new DivideAndConquerWithLoadAndContext(
+                cn.submit(a);
+                cn.submit(new DivideAndConquerWithLoadAndContext(
                         a.identifier(), branch, depth, load, 
                         new UnitActivityContext("Even")));
 
@@ -172,7 +173,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
 
             }
             
-            cohort.done();
+            cn.done();
         
         } catch (Exception e) {
             System.err.println("Oops: " + e);

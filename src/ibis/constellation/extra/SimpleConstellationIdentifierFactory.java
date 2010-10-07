@@ -6,7 +6,7 @@ public class SimpleConstellationIdentifierFactory implements ConstellationIdenti
 
     private long count; 
     
-    public synchronized ConstellationIdentifier generateCohortIdentifier() {
+    public synchronized ConstellationIdentifier generateConstellationIdentifier() {
         return new ConstellationIdentifier(count++);
     }
 }

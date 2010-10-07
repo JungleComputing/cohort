@@ -51,7 +51,7 @@ public class DistributedConstellation implements Constellation {
 
 	private boolean active;
 
-	private BottomConstellation subCohort;
+	private BottomConstellation subConstellation;
 
 	private final WorkQueue queue; 
 	private final WorkQueue restrictedQueue; 
@@ -140,7 +140,7 @@ public class DistributedConstellation implements Constellation {
 		pool = new Pool(this, p);
 
 		cidFactory = pool.getCIDFactory();        
-		identifier = cidFactory.generateCohortIdentifier();
+		identifier = cidFactory.generateConstellationIdentifier();
 
 		String queueName = p.getProperty("ibis.cohort.workqueue");
 
@@ -157,16 +157,16 @@ public class DistributedConstellation implements Constellation {
 		start = System.currentTimeMillis();
 
 		if (true) { 
-			System.out.println("DistributeCohort : " + identifier.id);
-			System.out.println("        throttle : " + REMOTE_STEAL_THROTTLE);
-			System.out.println("  throttle delay : " + REMOTE_STEAL_TIMEOUT);
-			System.out.println("        pushdown : " + PUSHDOWN_SUBMITS);
-			System.out.println("           queue : " + queueName);     
-			System.out.println("        stealing : " + stealName);
-			System.out.println("           start : " + start);
+			System.out.println("DistributeConstellation : " + identifier.id);
+			System.out.println("               throttle : " + REMOTE_STEAL_THROTTLE);
+			System.out.println("         throttle delay : " + REMOTE_STEAL_TIMEOUT);
+			System.out.println("               pushdown : " + PUSHDOWN_SUBMITS);
+			System.out.println("                  queue : " + queueName);     
+			System.out.println("               stealing : " + stealName);
+			System.out.println("                  start : " + start);
 		}
 
-		logger.warn("Starting DistributedCohort " + identifier + " / " + myContext);
+		logger.warn("Starting DistributedConstellation " + identifier + " / " + myContext);
 	}
 
 
@@ -331,7 +331,7 @@ public class DistributedConstellation implements Constellation {
 
 		}
 
-		subCohort.deliverStealRequest(sr);
+		subConstellation.deliverStealRequest(sr);
 	}
 
 	protected void deliverRemoteLookupRequest(LookupRequest lr) { 
@@ -371,7 +371,7 @@ public class DistributedConstellation implements Constellation {
 			logger.warning("DELIVER TO CHILD");
 		}
 
-		subCohort.deliverLookupRequest(lr);
+		subConstellation.deliverLookupRequest(lr);
 	}
 
 	protected void deliverRemoteStealReply(StealReply sr) { 
@@ -390,7 +390,7 @@ public class DistributedConstellation implements Constellation {
 			return;
 		}
 
-		subCohort.deliverStealReply(sr);
+		subConstellation.deliverStealReply(sr);
 	}
 
 
@@ -404,7 +404,7 @@ public class DistributedConstellation implements Constellation {
 			return;
 		}
 
-		subCohort.deliverLookupReply(lr);
+		subConstellation.deliverLookupReply(lr);
 	}
 
 	private boolean deliverEventToLocalActivity(Event e) { 
@@ -441,7 +441,7 @@ public class DistributedConstellation implements Constellation {
 			return;
 		} 
 
-		subCohort.deliverEventMessage(re);
+		subConstellation.deliverEventMessage(re);
 	}
 
 	protected void deliverUndeliverableEvent(UndeliverableEvent ue) { 
@@ -453,7 +453,7 @@ public class DistributedConstellation implements Constellation {
 			return;
 		} 
 
-		subCohort.deliverUndeliverableEvent(ue);
+		subConstellation.deliverUndeliverableEvent(ue);
 	}
 
 
@@ -470,7 +470,7 @@ public class DistributedConstellation implements Constellation {
 		}
 
 		pool.activate();
-		return subCohort.activate();
+		return subConstellation.activate();
 	}
 
 	public void cancel(ActivityIdentifier id) {
@@ -491,7 +491,7 @@ public class DistributedConstellation implements Constellation {
 			logger.warning("Failed to terminate pool!", e);
 		}
 
-		subCohort.done();        
+		subConstellation.done();        
 
 		printStatistics();
 
@@ -500,15 +500,15 @@ public class DistributedConstellation implements Constellation {
 
 	public Constellation [] getSubCohorts() {
 
-		if (subCohort instanceof Constellation) {
-			return new Constellation [] { (Constellation)subCohort };
+		if (subConstellation instanceof Constellation) {
+			return new Constellation [] { (Constellation)subConstellation };
 		} else { 
 			return null;
 		}
 	} 
 
 	public ConstellationIdentifier [] getLeafIDs() {
-		return subCohort.getLeafIDs();
+		return subConstellation.getLeafIDs();
 	}
 
 	public ConstellationIdentifier identifier() {
@@ -547,7 +547,7 @@ public class DistributedConstellation implements Constellation {
 			tmp.setTarget(cid);
 
 			if (isLocal(cid)) { 
-				subCohort.deliverEventMessage(tmp);
+				subConstellation.deliverEventMessage(tmp);
 			} else { 
 				pool.forward(tmp);
 			}
@@ -575,10 +575,10 @@ public class DistributedConstellation implements Constellation {
 		}
 
 		if (id == null || id.equals(identifier)) { 
-			throw new Exception("Cannot set Context of a DistributedCohort!");
+			throw new Exception("Cannot set Context of a DistributedConstellation!");
 		}
 
-		subCohort.setContext(id, context);
+		subConstellation.setContext(id, context);
 	} 
 
 	private synchronized ActivityIdentifier createActivityID() {
@@ -606,7 +606,7 @@ public class DistributedConstellation implements Constellation {
 				logger.info("D PUSHDOWN SUBMIT activity with context " + a.getContext());
 			}
 
-			return subCohort.deliverSubmit(a);
+			return subConstellation.deliverSubmit(a);
 		}
 
 		if (Debug.DEBUG_SUBMIT) { 
@@ -642,7 +642,7 @@ public class DistributedConstellation implements Constellation {
 	public synchronized void contextChanged(ConstellationIdentifier cid, WorkerContext c) {
 
 		// Sanity check
-		if (!cid.equals(subCohort.identifier())) { 
+		if (!cid.equals(subConstellation.identifier())) { 
 			logger.warning("INTERNAL ERROR: Context changed by unknown" +
 					" cohort " + cid);
 			return;
@@ -951,18 +951,18 @@ public class DistributedConstellation implements Constellation {
 		return tmp;
 	}
 
-	public ConstellationIdentifierFactory getCohortIdentifierFactory(
+	public ConstellationIdentifierFactory getConstellationIdentifierFactory(
 			ConstellationIdentifier cid) {
 		return cidFactory;
 	}
 
-	public synchronized void register(BottomConstellation cohort) throws Exception { 
+	public synchronized void register(BottomConstellation c) throws Exception { 
 
-		if (active || subCohort != null) { 
-			throw new Exception("Cannot register BottomCohort");
+		if (active || subConstellation != null) { 
+			throw new Exception("Cannot register BottomConstellation");
 		}
 
-		subCohort = cohort;
+		subConstellation = c;
 	}
 
 
@@ -979,7 +979,7 @@ public class DistributedConstellation implements Constellation {
 	public void belongsTo(StealPool belongsTo) {
 
 		if (belongsTo == null) { 
-			logger.error("Cohort does not belong to any pool!");
+			logger.error("Constellation does not belong to any pool!");
 			return;
 		}
 
@@ -1009,7 +1009,7 @@ public class DistributedConstellation implements Constellation {
 	public void stealsFrom(StealPool stealsFrom) {
 
 		if (stealsFrom == null) { 
-			logger.error("Cohort does not steal from to any pool!");
+			logger.warn("Constellation does not steal from to any pool!");
 			return;
 		}
 

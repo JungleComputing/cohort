@@ -7,8 +7,11 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
+import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
+import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
@@ -278,8 +281,6 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
         
         try {
             long start = System.currentTimeMillis();
-
-            Constellation cohort = ConstellationFactory.createCohort();
                
             int branch = Integer.parseInt(args[0]);
             int depth =  Integer.parseInt(args[1]);
@@ -287,18 +288,15 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             int penalty =  Integer.parseInt(args[3]);
             int workers = Integer.parseInt(args[4]);
             int rank = Integer.parseInt(args[5]);
-            
-            ConstellationIdentifier [] leafs = cohort.getLeafIDs();
-
-            WorkerContext cohortContext = null;
-   
             int mode = parseMode(args[6]);            
             int type = parseType(args[7]);         
+           
+            WorkerContext context = null;
             
             if (mode == CONTEXT_NONE) { 
-                cohortContext = UnitWorkerContext.DEFAULT;
+                context = UnitWorkerContext.DEFAULT;
             } else if (mode == CONTEXT_WEAK) { 
-                cohortContext = UnitWorkerContext.DEFAULT;
+                context = UnitWorkerContext.DEFAULT;
    
                 ActivityContext local = null;
                 
@@ -314,21 +312,18 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                 
             } else if (mode == CONTEXT_STRONG) { 
                 if (rank % 2 == 0) { 
-                    cohortContext = new UnitWorkerContext("Even");
+                    context = new UnitWorkerContext("Even");
                 } else { 
-                    cohortContext = new UnitWorkerContext("Odd");
+                    context = new UnitWorkerContext("Odd");
                 }
             }
             
-            System.out.println("Setting cohort context to " + cohortContext);
+            System.out.println("Setting context to " + context);
             
-            for (ConstellationIdentifier id : leafs) { 
-                cohort.setContext(id, cohortContext);
-            }
-    
-            cohort.activate();
+            Constellation c = ConstellationFactory.createCohort(new SimpleExecutor(context));
+            c.activate();
             
-            if (cohort.isMaster()) { 
+            if (c.isMaster()) { 
            
                 long count = 0;
 
@@ -346,8 +341,8 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
 
                 SingleEventCollector a = new SingleEventCollector();
 
-                cohort.submit(a);
-                cohort.submit(new DivideAndConquerWithContextAndPenalty(
+                c.submit(a);
+                c.submit(new DivideAndConquerWithContextAndPenalty(
                         a.identifier(), branch, depth, sleep, penalty, mode, 
                         type, new UnitActivityContext("Even")));
 
@@ -364,7 +359,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                         nsPerJob + " nsec/job");
             }
                     
-            cohort.done();
+            c.done();
         
             if (mode == CONTEXT_WEAK) { 
                 Integer tmp = (Integer) LocalData.getLocalData().get("mismatch");
