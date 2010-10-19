@@ -2,7 +2,7 @@ package ibis.constellation;
 
 import java.io.Serializable;
 
-public class ConstellationIdentifier implements Serializable {
+public final class ConstellationIdentifier implements Serializable {
 
     private static final long serialVersionUID = -8236873210293335756L;
 
@@ -37,7 +37,7 @@ public class ConstellationIdentifier implements Serializable {
     }
     
     public String toString() { 
-        return "CID: " + Long.toHexString(id);
-    }
-    
+        return "CID: " + Integer.toHexString((int)(id >> 32) & 0xffffffff) + " "
+            + Integer.toHexString((int)(id & 0xffffffff));
+    }   
 }

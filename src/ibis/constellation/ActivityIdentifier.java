@@ -6,21 +6,34 @@ public class ActivityIdentifier implements Serializable {
 
     private static final long serialVersionUID = 4785081436543353644L;
 
-    // The globally unique UUID for this activity is "high:low" 
-    public final long high;
-    public final long low;
+    // The globally unique UUID for this activity is "EID:AID"
+    // "EID" is the id of the executor on which this actvity was created, 
+    // "AID" is the sequence number of this activity on that executor. 
+    public final long EID;
+    public final long AID;
+    
+    private long lastKnownEID;
     
     public ActivityIdentifier(long high, long low) { 
-        this.high = high;
-        this.low = low;
+        this.EID = high;
+        this.AID = low;        
+        this.lastKnownEID = EID;
+    }
+    
+    public ConstellationIdentifier getLastKnownLocation() { 
+        return new ConstellationIdentifier(lastKnownEID);
+    }
+    
+    public ConstellationIdentifier getOrigin() { 
+        return new ConstellationIdentifier(EID);
     }
     
     @Override
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + (int) (high ^ (high >>> 32));
-        result = PRIME * result + (int) (low ^ (low >>> 32));
+        result = PRIME * result + (int) (EID ^ (EID >>> 32));
+        result = PRIME * result + (int) (AID ^ (AID >>> 32));
         return result;
     }
 
@@ -37,10 +50,14 @@ public class ActivityIdentifier implements Serializable {
     
         final ActivityIdentifier other = (ActivityIdentifier) obj;
 
-        return (high == other.high && low == other.low);
+        return (EID == other.EID && AID == other.AID);
     }
 
     public String toString() { 
-        return "AID: " + Long.toHexString(high) + ":" + Long.toHexString(low);
+        return "AID: " + Integer.toHexString((int)(EID >> 32) & 0xffffffff) 
+            + " " + Integer.toHexString((int)(EID & 0xffffffff)) 
+            + " " + Long.toHexString(EID) 
+            + " (" + Integer.toHexString((int)(lastKnownEID >> 32) & 0xffffffff) 
+            + " " + Integer.toHexString((int)(lastKnownEID & 0xffffffff)) + ")"; 
     }
 }
