@@ -9,4 +9,8 @@ public class SimpleConstellationIdentifierFactory implements ConstellationIdenti
     public synchronized ConstellationIdentifier generateConstellationIdentifier() {
         return new ConstellationIdentifier(count++);
     }
+    
+    public boolean isLocal(ConstellationIdentifier cid) { 
+    	return true;
+    }
 }

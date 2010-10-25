@@ -1,6 +1,7 @@
 package ibis.constellation.extra;
 
 import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Event;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.impl.ActivityRecord;
 
@@ -49,12 +50,17 @@ public class SynchronizedWorkQueue extends WorkQueue {
     }
 
 	@Override
-	public boolean contains(ActivityIdentifier id) {
+	public synchronized boolean contains(ActivityIdentifier id) {
 		return queue.contains(id);
 	}
 	
 	@Override
-	public ActivityRecord lookup(ActivityIdentifier id) {
+	public synchronized ActivityRecord lookup(ActivityIdentifier id) {
 		return queue.lookup(id);
+	}
+	
+	@Override
+	public synchronized boolean deliver(ActivityIdentifier id, Event e) {
+		return queue.deliver(id, e);
 	}
 }

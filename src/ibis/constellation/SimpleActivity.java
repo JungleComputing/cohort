@@ -10,7 +10,7 @@ public abstract class SimpleActivity extends Activity {
 
     protected SimpleActivity(ActivityIdentifier parent, ActivityContext context, 
             boolean restictToLocal) {
-        super(context, restictToLocal);
+        super(context, restictToLocal, false);
         this.parent = parent;
     }
     
@@ -21,17 +21,17 @@ public abstract class SimpleActivity extends Activity {
     }
     
     @Override
-    public void cancel() throws Exception {
+    public final void cancel() throws Exception {
         // not used
     }
 
     @Override
-    public void cleanup() throws Exception {
+    public final void cleanup() throws Exception {
         // not used
     }
     
     @Override
-    public void process(Event e) throws Exception {
+    public final void process(Event e) throws Exception {
         // not used
     }
     

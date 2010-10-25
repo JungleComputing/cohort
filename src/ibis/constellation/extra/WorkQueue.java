@@ -1,6 +1,7 @@
 package ibis.constellation.extra;
 
 import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Event;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.impl.ActivityRecord;
 
@@ -19,8 +20,8 @@ public abstract class WorkQueue {
     
     public abstract boolean contains(ActivityIdentifier id);
     public abstract ActivityRecord lookup(ActivityIdentifier id);
-    
-    
+    public abstract boolean deliver(ActivityIdentifier id, Event e);
+        
     protected ActivityRecord [] trim(ActivityRecord [] a, int count) { 
         ActivityRecord [] result = new ActivityRecord[count];
         System.arraycopy(a, 0, result, 0, count);

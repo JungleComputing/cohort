@@ -2,6 +2,7 @@ package ibis.constellation.extra;
 
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Event;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.OrActivityContext;
 import ibis.constellation.context.OrWorkerContext;
@@ -10,7 +11,6 @@ import ibis.constellation.context.UnitWorkerContext;
 import ibis.constellation.impl.ActivityRecord;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class SmartSortedWorkQueue extends WorkQueue {
 
@@ -350,6 +350,19 @@ public class SmartSortedWorkQueue extends WorkQueue {
 	@Override
 	public ActivityRecord lookup(ActivityIdentifier id) {
 		return ids.get(id);
+	}
+	
+	@Override
+	public boolean deliver(ActivityIdentifier id, Event e) {
+		
+		ActivityRecord ar = ids.get(id);
+		
+		if (ar != null) { 
+			ar.enqueue(e);
+			return true;
+		}
+		
+		return false;
 	}
 }
 

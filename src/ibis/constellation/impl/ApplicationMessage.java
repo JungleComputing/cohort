@@ -10,8 +10,8 @@ public class ApplicationMessage extends Message {
 
     public final Event event;
     
-    public ApplicationMessage(final ConstellationIdentifier source, final Event e) { 
-        super(source);
+    public ApplicationMessage(final ConstellationIdentifier source, final ConstellationIdentifier target, final Event e) { 
+        super(source, target);
         this.event = e;
     }
     

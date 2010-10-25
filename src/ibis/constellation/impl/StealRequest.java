@@ -10,21 +10,23 @@ public class StealRequest extends Message {
    
     public final WorkerContext context;
     public final StealPool pool;
+    public final int size;
     
     // Note allowRestricted is set to false when the StealRequest traverses the 
     // network.
     private transient boolean allowRestricted;  
     
-    public StealRequest(final ConstellationIdentifier source, final WorkerContext context, final StealPool pool) {  
+    public StealRequest(final ConstellationIdentifier source, final WorkerContext context, final StealPool pool, final int size) {  
         // Use this for a remote steal request;
         super(source);
         this.context = context;
         this.pool = pool;
+        this.size = size;
         allowRestricted = true;
     }
    
-    public StealRequest(final ConstellationIdentifier source, final WorkerContext context) {  
-        this(source, context, StealPool.WORLD);
+    public StealRequest(final ConstellationIdentifier source, final WorkerContext context, final int size) {  
+        this(source, context, StealPool.WORLD, size);
     }
     
     @Override

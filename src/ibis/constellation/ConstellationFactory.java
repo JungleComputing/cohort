@@ -1,8 +1,8 @@
 package ibis.constellation;
 
-import ibis.constellation.impl.dist.DistributedConstellation;
-import ibis.constellation.impl.multi.MultiThreadedMiddleConstellation;
-import ibis.constellation.impl.single.SingleThreadedBottomConstellation;
+import ibis.constellation.impl.DistributedConstellation;
+import ibis.constellation.impl.MultiThreadedConstellation;
+import ibis.constellation.impl.SingleThreadedConstellation;
 
 import java.util.Properties;
 
@@ -215,10 +215,10 @@ public class ConstellationFactory {
     	
     	// TODO: check is we need to create a new dist/mt here!!!
         DistributedConstellation d = new DistributedConstellation(p);
-        MultiThreadedMiddleConstellation m = new MultiThreadedMiddleConstellation(d, p);                
+        MultiThreadedConstellation m = new MultiThreadedConstellation(d, p);                
           	
     	for (int i=0;i<e.length;i++) { 
-    	    new SingleThreadedBottomConstellation(m, e[i], p);          
+    	    new SingleThreadedConstellation(m, e[i], p);          
     	}
     	
     	return d;

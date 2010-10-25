@@ -16,16 +16,22 @@ public abstract class Activity implements Serializable {
     private final ActivityContext context; 
     
     private final boolean restrictToLocal;
+    private final boolean willReceiveEvents;
     
     private byte next = REQUEST_UNKNOWN;
-        
-    protected Activity(ActivityContext context, boolean restrictToLocal) { 
+            
+    protected Activity(ActivityContext context, boolean restrictToLocal, boolean willReceiveEvents) { 
         this.context = context;
         this.restrictToLocal = restrictToLocal;
+        this.willReceiveEvents = willReceiveEvents;
     }
     
-    protected Activity(ActivityContext context) { 
-        this(context, false);
+    protected Activity(ActivityContext context, boolean willReceiveEvents) { 
+        this(context, false, willReceiveEvents);
+    }
+    
+    public boolean expectsEvents() { 
+    	return willReceiveEvents;
     }
     
     public void initialize(ActivityIdentifier id) { 

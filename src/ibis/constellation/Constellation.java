@@ -31,9 +31,9 @@ public interface Constellation {
     
     
     // TODO: change this to use Pool as scope instead of Context!
-    public boolean register(String name, ActivityIdentifier id, ActivityContext scope);
-    public ActivityIdentifier lookup(String name,  ActivityContext scope);
-    public boolean deregister(String name,  ActivityContext scope);
+  //  public boolean register(String name, ActivityIdentifier id, ActivityContext scope);
+  //  public ActivityIdentifier lookup(String name,  ActivityContext scope);
+  //  public boolean deregister(String name,  ActivityContext scope);
     
     /*
     public boolean register(String name, ActivityIdentifier id, StealPool scope);
