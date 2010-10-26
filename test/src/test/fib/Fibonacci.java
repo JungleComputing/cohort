@@ -23,7 +23,7 @@ public class Fibonacci extends Activity {
     private int merged = 0;
 
     public Fibonacci(ActivityIdentifier parent, int input) {
-        super(new UnitActivityContext("DEFAULT", input));
+    	super(new UnitActivityContext("DEFAULT", input), input > 1);
         this.parent = parent;
         this.input = input;
     }
@@ -41,16 +41,12 @@ public class Fibonacci extends Activity {
         } 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
         
-        output += ((MessageEvent<Integer>) e).message;
-
+        output += (Integer)(((MessageEvent) e).message);
         merged++;
       
-      //  System.out.println("FIB " + input + " " + merged + " " + output);
-        
         if (merged < 2) { 
             suspend();
         } else { 
@@ -61,7 +57,7 @@ public class Fibonacci extends Activity {
     @Override
     public void cleanup() throws Exception {
         if (parent != null) {
-            executor.send(identifier(), parent, output);
+            executor.send(new MessageEvent(identifier(), parent, output));
         } 
     }
     
@@ -84,23 +80,23 @@ public class Fibonacci extends Activity {
             e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
         }
         
-        Constellation cohort = ConstellationFactory.createCohort(e);
-        cohort.activate();
+        Constellation c = ConstellationFactory.createConstellation(e);
+        c.activate();
         
         int input = Integer.parseInt(args[index++]);
 
-        if (cohort.isMaster()) { 
+        if (c.isMaster()) { 
        
             System.out.println("Starting as master!");
             
             SingleEventCollector a = new SingleEventCollector();
 
-            cohort.submit(a);
-            cohort.submit(new Fibonacci(a.identifier(), input));
+            c.submit(a);
+            c.submit(new Fibonacci(a.identifier(), input));
 
-            int result = ((MessageEvent<Integer>)a.waitForEvent()).message;
+            int result = (Integer)((MessageEvent)a.waitForEvent()).message;
 
-            cohort.done();
+            c.done();
 
             long end = System.currentTimeMillis();
 
@@ -108,15 +104,12 @@ public class Fibonacci extends Activity {
                     + (end-start) + ")");
         } else { 
             System.out.println("Starting as slave!");
-            cohort.done();
+            c.done();
         }
     }
    
     @Override
     public void cancel() throws Exception {
-        // TODO Auto-generated method stub
-        
+        // not used
     }
-
-
 }

@@ -158,4 +158,52 @@ public class StealPool implements Serializable {
 
         return new StealPool(tmp.toArray(new StealPool[tmp.size()]));
     }
+    
+    public boolean overlap(StealPool other) {
+    
+    	if (other == this) { 
+    		return true;
+    	}
+    	
+    	if (isWorld && other.isWorld) { 
+    		return true;
+    	}
+    	
+    	if (isNone || other.isNone) { 
+    		return false;
+    	}
+    	
+    	if (isSet) {     		
+    		if (other.isSet) {
+    			// Expensive!    			
+    			for (int i=0;i<set.length;i++) {
+    				StealPool tmp = set[i];
+    				
+    				for (int j=0;j<other.set.length;j++) {
+    					if (tmp.tag.equals(other.set[j].tag)) { 
+    						return true;
+    					}
+    				}
+    			}
+    		} else { 
+    			for (int i=0;i<set.length;i++) { 
+    				if (other.tag.equals(set[i].tag)) { 
+    					return true;
+    				}
+    			}
+    		}    		
+    	} else {     		
+    		if (other.isSet) { 
+    			for (int i=0;i<other.set.length;i++) { 
+    				if (tag.equals(other.set[i].tag)) { 
+    					return true;
+    				}
+    			}
+    		} else { 
+    			return tag.equals(other.tag);
+    		}
+    	}
+    	
+    	return false;
+    }    
 }

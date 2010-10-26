@@ -17,13 +17,44 @@ public abstract class Executor implements Serializable {
 	private ExecutorWrapper owner = null;
 
 	protected Executor(StealPool myPool, StealPool stealsFrom, WorkerContext context) { 
-		this.myPool = myPool;
-		this.stealsFrom = stealsFrom;
-		this.context = context;
+		
+		if (myPool == null) { 
+			this.myPool = StealPool.NONE;
+		} else { 
+			this.myPool = myPool;
+		}
+		
+		if (stealsFrom == null) { 
+			this.stealsFrom = StealPool.NONE;
+		} else { 
+			this.stealsFrom = stealsFrom;
+		}
+		
+		if (context == null) { 
+			this.context = UnitWorkerContext.DEFAULT;
+		} else {
+			this.context = context;
+		}
 	}
 	
 	protected Executor() { 
 		this(StealPool.WORLD, StealPool.WORLD, UnitWorkerContext.DEFAULT);
+	}
+	
+	protected boolean processActivity() { 
+		return false;
+	}
+	
+	protected boolean processActivities() { 
+		return owner.processActitivies();
+	}
+
+	public ActivityIdentifier submit(Activity job) {
+		return owner.submit(job);
+	}
+
+	public void send(Event e) {
+		owner.send(e);
 	}
 	
 	public WorkerContext getContext() { 
@@ -46,29 +77,6 @@ public abstract class Executor implements Serializable {
 	public StealPool stealsFrom() {
 		return stealsFrom;
 	}
-		
-	protected boolean processActivity() { 
-		return false;
-	}
-	
-	protected boolean processActivities() { 
-		return owner.processActitivies();
-	}
-
-	public ActivityIdentifier submit(Activity job) {
-		return owner.submit(job);
-	}
-
-	public void send(Event e) {
-		owner.send(e);
-	}
-	
-	public void send(ActivityIdentifier source, ActivityIdentifier target, Object o) { 
-		owner.send(source, target, o);
-	}
 	
 	public abstract void run();
-	
-	
-	
 }

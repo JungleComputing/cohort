@@ -63,4 +63,18 @@ public abstract class WorkQueue {
         
         return tmp;
     }
+    
+    public int steal(WorkerContext c, ActivityRecord [] dst, int off, int len) {
+        
+        for (int i=off;i<off+len;i++) { 
+        	dst[i] = steal(c);
+            
+            if (dst[i] == null) { 
+            	return (i-off);
+            }
+        }
+        
+        return len;
+    }
+    
 }

@@ -24,10 +24,6 @@ public class StealRequest extends Message {
         this.size = size;
         allowRestricted = true;
     }
-   
-    public StealRequest(final ConstellationIdentifier source, final WorkerContext context, final int size) {  
-        this(source, context, StealPool.WORLD, size);
-    }
     
     @Override
     public boolean requiresRandomSelection() {

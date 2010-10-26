@@ -1,6 +1,7 @@
 package ibis.constellation.impl;
 
 import ibis.constellation.Activity;
+import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.extra.CircularBuffer;
@@ -23,6 +24,7 @@ public class ActivityRecord implements Serializable {
     private int state = INITIALIZING;
     
     private boolean stolen = false;
+    private boolean relocated = false;
     private boolean remote = false;
     
     public ActivityRecord(Activity activity) {
@@ -74,7 +76,7 @@ public class ActivityRecord implements Serializable {
     }
 
     public boolean isStolen() { 
-        return (stolen);
+        return stolen;
     }
 
     public void setStolen(boolean value) { 
@@ -88,6 +90,14 @@ public class ActivityRecord implements Serializable {
     public void setRemote(boolean value) { 
         remote = value;
     }
+    
+    public void setRelocated(boolean value) { 
+        relocated = value;
+    }
+    
+    public boolean isRelocated() {
+		return relocated;
+	}
     
     public boolean isRestrictedToLocal() { 
         return activity.isRestrictedToLocal();
@@ -235,5 +245,7 @@ public class ActivityRecord implements Serializable {
         return 0;
     }
 
-   
+	public ActivityContext getContext() {
+		return activity.getContext();
+	}
 }

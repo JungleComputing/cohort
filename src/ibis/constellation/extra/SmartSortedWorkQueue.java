@@ -19,8 +19,8 @@ public class SmartSortedWorkQueue extends WorkQueue {
     //
     // 'UNIT' jobs are likely to have limited suitable locations, but 
     //     their context matching is easy
-    // 'OR' jobs have more suitable locations, but their context matching may be 
-    //     more expensive
+    // 'OR' jobs may have more suitable locations, but their context matching  
+    //     is more expensive
 
 	protected final HashMap<ActivityIdentifier, ActivityRecord> ids = 
 		new HashMap<ActivityIdentifier, ActivityRecord>(); 

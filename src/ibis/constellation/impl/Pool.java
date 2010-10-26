@@ -278,10 +278,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
                 logger.warn("POOL processing PENDING StealRequest from " + m.source);
                 owner.deliverRemoteStealRequest((StealRequest)m);
 
-            } else if (m instanceof ApplicationMessage) { 
+            } else if (m instanceof EventMessage) { 
 
                 logger.warn("POOL processing PENDING ApplicationMessage from " + m.source);
-                owner.deliverRemoteEvent((ApplicationMessage)m);
+                owner.deliverRemoteEvent((EventMessage)m);
 /*
             } else if (m instanceof UndeliverableEvent) { 
 
@@ -654,13 +654,13 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
             owner.deliverRemoteLookupReply((LookupReply)m);
 */
-        } else if (m instanceof ApplicationMessage) { 
+        } else if (m instanceof EventMessage) { 
 
             if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) { 
                 logger.info("POOL RECEIVE EventMessage from " + m.source);
             }
 
-            owner.deliverRemoteEvent((ApplicationMessage)m);
+            owner.deliverRemoteEvent((EventMessage)m);
 /*
         } else if (m instanceof UndeliverableEvent) { 
 

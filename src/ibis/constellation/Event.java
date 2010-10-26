@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 public abstract class Event implements Serializable {
 
+    private static final long serialVersionUID = 8672434537078611592L;
+	
     public final ActivityIdentifier source;
     public final ActivityIdentifier target;
     
