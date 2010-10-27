@@ -162,21 +162,11 @@ public class DistributedConstellation {
 
         myContext = UnitWorkerContext.DEFAULT;
         
-      //  int cacheSize = Integer.parseInt(p.getProperty("ibis.cohort.	remote_activity_cache", "" + REMOTE_ACTIVITY_CACHE));
-
         // Init communication here...
         pool = new Pool(this, p);
 
         cidFactory = pool.getCIDFactory();        
         identifier = cidFactory.generateConstellationIdentifier();
-
-      //  String queueName = p.getProperty("ibis.cohort.workqueue");
-
-        //queue = WorkQueueFactory.createQueue(queueName, true, 
-            //    "D(" + identifier.id + ")");
-
-        //restrictedQueue = WorkQueueFactory.createQueue(queueName, true, 
-          //      "D(" + identifier.id + "-RESTRICTED)");
 
         logger = ConstellationLogger.getLogger(DistributedConstellation.class, identifier);
 
@@ -187,9 +177,7 @@ public class DistributedConstellation {
             System.out.println("               throttle : " + REMOTE_STEAL_THROTTLE);
             System.out.println("         throttle delay : " + REMOTE_STEAL_TIMEOUT);
             System.out.println("               pushdown : " + PUSHDOWN_SUBMITS);
-      //      System.out.println("                  queue : " + queueName);     
             System.out.println("               stealing : " + stealName);
-      //      System.out.println("         location cache : " + cacheSize);
             System.out.println("                  start : " + start);
             
         }
@@ -349,15 +337,13 @@ public class DistributedConstellation {
     void deliverRemoteEvent(EventMessage re) { 
         // Event from network.
     	//
-    	// This method is called from an unfinished upcall. It may NOT 
-        // block for a long period of time or communicate!   
+    	// This method is called from an finished upcall. Therefore it 
+        // may block for a long period of time or communicate. 
     	subConstellation.deliverEventMessage(re);
     }
    
     void handleStealRequest(StealRequest sr) {
     	// steal request from below
-    	
-    	
     	// FIXME: ADD POOL AWARE THROTTLING!!!!
     	
         // A steal request coming in from the subcohort below. 
@@ -409,9 +395,6 @@ public class DistributedConstellation {
                 boolean pending = setPendingSteal(true);
 
                 if (pending) { 
-
-                    //System.out.println("POOL steal is already pending");
-
                     // We have already send out a steal in this slot, so 
                     // we're not allowed to send another one.
                     return;
@@ -467,10 +450,12 @@ public class DistributedConstellation {
             // If the send fails we reclaim the work.
         	
         	if (!m.isEmpty()) { 
+        		System.out.println("FAILED to deliver steal reply to " + target + " (reclaiming work and dropping reply)");
         	    logger.warn("FAILED to deliver steal reply to " + target + " (reclaiming work and dropping reply)");        		
         	    return false;
         	} else { 
-                logger.warn("FAILED to deliver empty steal reply to " + target + " (dropping reply)"); 
+        		System.out.println("FAILED to deliver empty steal reply to " + target + " (dropping reply)");
+        	    logger.warn("FAILED to deliver empty steal reply to " + target + " (dropping reply)"); 
         	}               
         }
         
@@ -515,9 +500,7 @@ public class DistributedConstellation {
             }
 
         } else { 
-            if (!belongsTo.isWorld()) { 
-                pool.registerWithPool(belongsTo.getTag());
-            }
+        	pool.registerWithPool(belongsTo.getTag());
         }
     }
 

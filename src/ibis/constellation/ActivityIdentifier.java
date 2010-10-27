@@ -79,8 +79,8 @@ public class ActivityIdentifier implements Serializable {
 
     public String toString() { 
         return "AID: " + Integer.toHexString((int)(EID >> 32) & 0xffffffff) 
-            + " " + Integer.toHexString((int)(EID & 0xffffffff)) 
-            + " " + Long.toHexString(EID); /*
+            + ":" + Integer.toHexString((int)(EID & 0xffffffff)) 
+            + ":" + Long.toHexString(AID); /*
             + " (" + Integer.toHexString((int)(lastKnownEID >> 32) & 0xffffffff) 
             + " " + Integer.toHexString((int)(lastKnownEID & 0xffffffff)) + ")"; */ 
     }

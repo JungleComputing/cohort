@@ -10,7 +10,7 @@ public class MultiEventCollector extends Activity {
     private int count;
     
     public MultiEventCollector(ActivityContext c, int events) {
-        super(c, true);
+        super(c, true, true);
         this.events = new Event[events];
     }
     

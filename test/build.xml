@@ -25,7 +25,13 @@
 		<mkdir dir="${distdir}" />
 		<mkdir dir="${builddir}" />
 
-		<javac destdir="${builddir}" srcdir="${srcdir}" target="1.6" debug="true" includes="**/*.java" classpathref="default.classpath" />
+		<javac destdir="${builddir}" 
+                       srcdir="${srcdir}" 
+                       target="1.6" 
+                       debug="true" 
+                       includes="test/fib/*.java" 
+                       classpathref="default.classpath" 
+                       includeantruntime="false"/>
 
 		<jar jarfile="${distdir}/${jar}" basedir="${builddir}" includes="**">
 			<manifest>

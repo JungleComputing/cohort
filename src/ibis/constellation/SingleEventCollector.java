@@ -9,7 +9,7 @@ public class SingleEventCollector extends Activity {
     private Event event;
     
     public SingleEventCollector(ActivityContext c) {
-        super(c, true);
+        super(c, true, true);
     }
     
     public SingleEventCollector() {

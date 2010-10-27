@@ -18,19 +18,33 @@ public class Fibonacci extends Activity {
 
     private final ActivityIdentifier parent;
 
+    private final boolean top;
     private final int input;
     private int output;
     private int merged = 0;
 
-    public Fibonacci(ActivityIdentifier parent, int input) {
+    public Fibonacci(ActivityIdentifier parent, int input, boolean top) {
     	super(new UnitActivityContext("DEFAULT", input), input > 1);
         this.parent = parent;
         this.input = input;
+        this.top = top;
+
+        if (top) { 
+        	System.out.println("fib " + input + " created.");
+        }
+    }
+    
+    public Fibonacci(ActivityIdentifier parent, int input) {
+    	this(parent, input, false);
     }
 
     @Override
     public void initialize() throws Exception {
 
+    	if (top) { 
+    		System.out.println("fib " + input + " running.");
+    	}
+    	
         if (input == 0 || input == 1) {
             output = input;
             finish();
@@ -44,7 +58,11 @@ public class Fibonacci extends Activity {
     @Override
     public void process(Event e) throws Exception {
         
-        output += (Integer)(((MessageEvent) e).message);
+    	if (top) { 
+    		System.out.println("fib " + input + " got event.");
+    	}
+    	
+    	output += (Integer)(((MessageEvent) e).message);
         merged++;
       
         if (merged < 2) { 
@@ -56,9 +74,14 @@ public class Fibonacci extends Activity {
 
     @Override
     public void cleanup() throws Exception {
+     	
+    	if (top) { 
+    		System.out.println("fib " + input + " done.");
+    	}
+    	
         if (parent != null) {
-            executor.send(new MessageEvent(identifier(), parent, output));
-        } 
+        	executor.send(new MessageEvent(identifier(), parent, output));
+        }
     }
     
     public String toString() { 
@@ -90,9 +113,9 @@ public class Fibonacci extends Activity {
             System.out.println("Starting as master!");
             
             SingleEventCollector a = new SingleEventCollector();
-
-            c.submit(a);
-            c.submit(new Fibonacci(a.identifier(), input));
+            
+            ActivityIdentifier aid = c.submit(a);
+            c.submit(new Fibonacci(aid, input, true));
 
             int result = (Integer)((MessageEvent)a.waitForEvent()).message;
 

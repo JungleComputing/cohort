@@ -8,8 +8,8 @@ import java.util.HashMap;
 
 public class StealPoolInfo {
 
-    private final HashMap<String, ArrayList> map =
-        new HashMap<String, ArrayList>();
+    private final HashMap<String, ArrayList<Object>> map =
+        new HashMap<String, ArrayList<Object>>();
     
     public StealPoolInfo() { 
         // Nothing to see here... move along!
@@ -17,7 +17,7 @@ public class StealPoolInfo {
     
     private void remove(String tag, Object o) {
      
-        ArrayList tmp = map.get(tag);
+        ArrayList<Object> tmp = map.get(tag);
         
         if (tmp == null || !tmp.contains(o)) { 
             System.err.println("EEP: failed remove from StealPoolInfo!");
@@ -29,10 +29,10 @@ public class StealPoolInfo {
     
     private void add(String tag, Object o) {
         
-        ArrayList tmp = map.get(tag);
+        ArrayList<Object> tmp = map.get(tag);
         
         if (tmp == null) { 
-            tmp = new ArrayList();
+            tmp = new ArrayList<Object>();
         }
 
         // Sanity check, should never happen ? 

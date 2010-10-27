@@ -37,7 +37,7 @@ public final class ConstellationIdentifier implements Serializable {
     }
     
     public String toString() { 
-        return "CID: " + Integer.toHexString((int)(id >> 32) & 0xffffffff) + " "
+        return "CID: " + Integer.toHexString((int)(id >> 32) & 0xffffffff) + ":"
             + Integer.toHexString((int)(id & 0xffffffff));
     }   
 }

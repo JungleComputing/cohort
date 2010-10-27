@@ -42,7 +42,6 @@ public class MultiThreadedConstellation {
 
     private boolean active = false;
 
-    private WorkerContext [] contexts;
     private WorkerContext myContext;
     
     private final ConstellationIdentifierFactory cidFactory;
@@ -109,9 +108,7 @@ public class MultiThreadedConstellation {
     
     public MultiThreadedConstellation(DistributedConstellation parent, Properties p) throws Exception {
 
-        int count = 0;
-
-        this.parent = parent;
+    	this.parent = parent;
 
         if (parent != null) {        
         	cidFactory = parent.getConstellationIdentifierFactory(null);
@@ -124,8 +121,6 @@ public class MultiThreadedConstellation {
         this.logger = ConstellationLogger.getLogger(MultiThreadedConstellation.class, identifier);
 
         incomingWorkers = new ArrayList<SingleThreadedConstellation>();
-        contexts    = new WorkerContext[count];
-
         myContext = UnitWorkerContext.DEFAULT;
 
         logger.info("Starting MultiThreadedCohort " + identifier);
@@ -133,8 +128,15 @@ public class MultiThreadedConstellation {
         parent.register(this);
     }
     
-    ActivityIdentifier performSubmit(Activity a) {
-    	return workers[selectRandomWorker()].performSubmit(a);
+    int next = 0;
+    
+    synchronized ActivityIdentifier performSubmit(Activity a) {
+    	
+    	// Round robin submit (for testing)
+    	int index = next++;
+    	next = next % workerCount;    	
+    	return workers[index].performSubmit(a);
+    	//return workers[selectRandomWorker()].performSubmit(a);
     }
     
     void performSend(Event e) {
@@ -241,12 +243,22 @@ FIXME REMOVE!!
     void handleEventMessage(EventMessage m) { 
     	// One of our children wishes to send a message to 'm.target', 
     	// which may be local or remote. 
-    	
+
+		System.out.println("MT: routing event to " + m.event.target + " at " + m.target + " (" + cidFactory.isLocal(m.target) + ") from " + m.source);
+    
     	if (cidFactory.isLocal(m.target)) { 
     		
     		ConstellationIdentifier cid = deliverLocally(m.target, m);
     		
-    		if (cid != null) { 
+    		if (cid != null) {
+    			
+    			if (cid.equals(m.target)) { 
+    				logger.error("INTERNAL ERROR: loop in event routing! (dropping event)");
+    				return;
+    			}
+    			    		
+    			System.out.println("Rerouting event from " + m.target + " to " + cid);
+    			
         		// The activity has been relocated or stolen, so try again
     			m.setTarget(cid);    	
     			handleEventMessage(m);
@@ -267,6 +279,8 @@ FIXME REMOVE!!
     			logger.error("ERROR: event target " + m.target + " cannot be found (event dropped)");
     			return;
     		} 
+    		
+    		System.out.println("Remote send of event to activity " + m.event.target + " at " + m.target);
     		
     		parent.handleApplicationMessage(m);
     	}
@@ -312,7 +326,7 @@ FIXME REMOVE!!
     		if (tmp != c && poolMatrix[rank][tmp.getRank()]) {
     		
     			// FIXME: size hardcoded to 1!
-    			int size = c.attemptSteal(result, context, pool, c.identifier(), 1, true);
+    			int size = tmp.attemptSteal(result, context, pool, c.identifier(), 1, true);
     		
     			if (size == 1) { 
     				return result;
@@ -334,7 +348,7 @@ FIXME REMOVE!!
     		SingleThreadedConstellation tmp = workers[(rnd+i) % workerCount];
     		
     		if (tmp != c && poolMatrix[rank][tmp.getRank()]) {    		
-    			c.deliverStealRequest(sr);
+    			tmp.deliverStealRequest(sr);
     			return null;
     		}
     	}
@@ -398,7 +412,7 @@ FIXME REMOVE!!
             // should not happen ?
         	return UnitWorkerContext.DEFAULT;
         } else if (map.size() == 1) { 
-            return contexts[1];
+            return map.values().iterator().next();
         } else { 
             UnitWorkerContext [] contexts = map.values().toArray(new UnitWorkerContext[map.size()]);                
             return new OrWorkerContext(contexts, false); 
@@ -592,10 +606,45 @@ FIXME REMOVE!!
     	SingleThreadedConstellation st = getWorker(am.target);
     	
     	if (st == null) { 
+    		System.out.println("ERROR: failed to locate event target activity " + am.target + " for remote event (dropping event)");
     		logger.error("ERROR: failed to locate event target activity " + am.target + " for remote event (dropping event)");
     		return;
     	}
     	
-    	st.deliverEventMessage(am);
+    	ConstellationIdentifier cid = st.deliverEventMessage(am);
+    	
+    	if (cid == null) {
+    		// Message was delivered -- we're done!
+    		return;
+    	}
+
+    	// The activity is no longer at the expected location.    	
+    	am.setTarget(cid);
+    	
+    	if (cidFactory.isLocal(cid)) { 
+    		// It has been relocated    		
+    		st = getWorker(cid);
+    		
+    		if (st == null) { 
+        		System.out.println("ERROR: failed to locate event target activity " + am.target + " for remote event (dropping event)");
+        		logger.error("ERROR: failed to locate event target activity " + am.target + " for remote event (dropping event)");
+        		return;
+        	}
+    		
+    		System.out.println("Forwarding message to new location (relocated): " + cid);
+    		
+    		// NOTE: this should always return null!
+        	cid = st.deliverEventMessage(am);
+        		
+    		// Sanity check
+        	if (st == null) { 
+        		System.out.println("INTERNAL ERROR: target activity " + am.event.target + " has moved more that once!");
+        		logger.error("INTERNAL ERROR: target activity " + am.event.target + " has moved more that once!");
+        	}        	
+    	} else { 
+    		// it has been exported
+    		System.out.println("Forwarding message to new location (exported): " + cid);
+    		parent.handleApplicationMessage(am);
+    	}
     }
 }

@@ -28,7 +28,7 @@ public class SingleThreadedConstellation extends Thread {
 
     private static final boolean PROFILE = true;
     private static final boolean THROTTLE_STEALS = true;
-    private static final int DEFAULT_STEAL_DELAY = 500;
+    private static final int DEFAULT_STEAL_DELAY = 50;
     private static final boolean DEFAULT_IGNORE_EMPTY_STEAL_REPLIES = false;
     
     private final MultiThreadedConstellation parent;
@@ -343,19 +343,28 @@ public class SingleThreadedConstellation extends Thread {
 		ActivityContext c = a.getContext();
 
 		if (c.satisfiedBy(wrapper.getContext())) { 
-
+		
 			synchronized (this) {
 				lookup.put(a.identifier(), ar);
 
-				if (a.isRestrictedToLocal()) { 
+				if (a.isRestrictedToLocal()) {
+					
+					System.out.println("ST: " + identifier + " sumbit " + id + " to restricted.");
+					
 					restricted.enqueue(ar);	
 				} else { 
+					
+					System.out.println("ST: " + identifier + " sumbit " + id + " to fresh.");
+					
 					fresh.enqueue(ar);
 				}
 			}
 		} else {
 			synchronized (this) {
 				lookup.put(ar.identifier(), ar);
+				
+				System.out.println("ST: " + identifier + " sumbit " + id + " to wrong.");
+				
 				wrongContext.enqueue(ar);
 			}
 		}
@@ -420,6 +429,14 @@ public class SingleThreadedConstellation extends Thread {
     synchronized int attemptSteal(ActivityRecord [] tmp, WorkerContext context, StealPool pool, ConstellationIdentifier src, int size, boolean local) {         
     	// attempted steal request from parent. Expects an immediate reply 
     	
+    	// sanity check
+    	if (src.equals(identifier)) { 
+    		System.out.println("INTERAL ERROR: attemp steal from self!");
+    		new Exception().printStackTrace(System.out);
+    		return 0;
+    	}
+    	
+    	
     	if (!pool.overlap(wrapper.belongsTo())) { 
     		return 0;
     	}
@@ -453,6 +470,8 @@ public class SingleThreadedConstellation extends Thread {
     		tmp = trim(tmp, offset);
     	}
     	
+    	System.out.println("ST: " + identifier + " returning " + offset + " stolen jobs to " + src);
+    	
     	// Next, remote activities from lookup, and mark and register them as relocated or stolen/exported
     	registerLeavingActivities(tmp, offset, src, local);
     	    	
@@ -485,42 +504,55 @@ public class SingleThreadedConstellation extends Thread {
     }
     
     private synchronized boolean pushWorkToExecutor() {
+    
+    	//System.out.println("ST: " + identifier + " Pushing work to executor");
     	
     	// Push all relocated activities to our executor. 
     	if (relocated.size() > 0) { 				
     		while (relocated.size() > 0) { 
     			ActivityRecord ar = (ActivityRecord) relocated.removeFirst();
-    			lookup.remove(ar);
+    			lookup.remove(ar.identifier());
     			wrapper.addPrivateActivity(ar);
     		}
 
+    	//	System.out.println("ST: " + identifier + " Pushed from relocated");
     		return true;
 		}
 		
     	// Else: push one restricted activity to our executor
     	if (restricted.size() > 0) { 				
     		ActivityRecord ar = restricted.steal(wrapper.getContext());
-    		lookup.remove(ar);
-    		wrapper.addPrivateActivity(ar);
-    		return true;
-		}
+    		if (ar != null) { 
+    			lookup.remove(ar.identifier());
+    			wrapper.addPrivateActivity(ar);
+    	//		System.out.println("ST: " + identifier + " Pushed from restricted");
+        		return true;
+    		}
+    	}
 
     	// Else: push one stolen activity to our executor
     	if (stolen.size() > 0) { 				
-    		ActivityRecord ar = restricted.steal(wrapper.getContext());
-    		lookup.remove(ar);
-    		wrapper.addPrivateActivity(ar);
-    		return true;
-		}
+    		ActivityRecord ar = stolen.steal(wrapper.getContext());
+    		if (ar != null) { 
+    			lookup.remove(ar.identifier());
+    			wrapper.addPrivateActivity(ar);
+    	//		System.out.println("ST: " + identifier + " Pushed from stolen");
+    			return true;
+    		}
+    	}
     	
     	// Else: push one fresh activity to our executor
     	if (fresh.size() > 0) { 				
-    		ActivityRecord ar = restricted.steal(wrapper.getContext());
-    		lookup.remove(ar);
-    		wrapper.addPrivateActivity(ar);
-    		return true;
-		}
+    		ActivityRecord ar = fresh.steal(wrapper.getContext());
+    		if (ar != null) { 
+    			lookup.remove(ar.identifier());
+    			wrapper.addPrivateActivity(ar);
+    	//	    System.out.println("ST: " + identifier + " Pushed from fresh");
+    			return true;
+    		}
+    	}
     	
+	  //  System.out.println("ST: " + identifier + " Failed to push any work " + relocated.size() + " " + restricted.size() + " " + stolen.size() + " " + fresh.size() + " " + lookup.size());
     	return false;
     }
     
@@ -569,20 +601,25 @@ public class SingleThreadedConstellation extends Thread {
     	//    b) it may about to be reclaimed because the target could not be reached
     	// 
     	
-    	// The target activity may be in one of my local queues    	
+    	// The target activity may be in one of my local queues
+    	
+    	System.out.println("ST: " + identifier + " Delivering message from " + m.source + " to " + m.event.target);
+    	
     	Event e = m.event;
 
     	ActivityRecord tmp = lookup.get(e.target);
     
     	if (tmp != null) { 
     		tmp.enqueue(e);
-    		return null;
+    		System.out.println("ST: " + identifier + " success");
+        	return null;
     	}
     	
     	// If not, it may have been relocated 
     	ConstellationIdentifier cid = relocatedActivities.lookup(e.target);
     	
     	if (cid != null) { 
+    		System.out.println("ST: " + identifier + " relocated to " + cid);
     		return cid;
     	}
     
@@ -590,10 +627,12 @@ public class SingleThreadedConstellation extends Thread {
     	cid = exportedActivities.lookup(e.target);
     	
     	if (cid != null) { 
+    		System.out.println("ST: " + identifier + " exported to " + cid);
     		return cid;
     	}
     	
-    	// If not, is should be in the queue of my executor 
+    	// If not, is should be in the queue of my executor
+		System.out.println("ST: " + identifier + " posted");
         postEventMessage(m);
         return null;
     }
@@ -667,6 +706,14 @@ public class SingleThreadedConstellation extends Thread {
     }
     
     private void postStealRequest(StealRequest s) {
+    	
+    	// sanity check
+    	if (s.source.equals(identifier)) { 
+    		System.out.println("INTERAL ERROR: posted steal request from self!");
+    		new Exception().printStackTrace(System.out);
+    		return;
+    	}
+    	
         synchronized (incoming) {
             
             if (Debug.DEBUG_STEAL) { 
@@ -713,13 +760,10 @@ public class SingleThreadedConstellation extends Thread {
         }
     }
 
-    
-    
     private synchronized boolean getDone() {
         return done;
     }
   
-
     private void swapEventQueues() {
         
         if (Debug.DEBUG_SUBMIT) { 
@@ -789,8 +833,19 @@ public class SingleThreadedConstellation extends Thread {
             if (ar.isRelocated()) { 
             	// We should unset the relocation flag if an activity is returned. 
             	ar.setRelocated(false);
+            	relocated.remove(ar.identifier());
+            } else if (ar.isStolen()) {
+            	
+            	// Sanity check -- should never fire! FIXME --remove!
+            	if (!ar.identifier().getOrigin().equals(identifier)) { 
+            		System.out.println("INTERNAL ERROR: resetting stolen  "); 
+            	} 
+            	
+            	// We should unset the stolen flag if an activity is returned. 
+            	ar.setStolen(false);
+            	exportedActivities.remove(ar.identifier());
             }
-
+                        
             if (c.satisfiedBy(wrapper.getContext())) { 
 
             	synchronized (this) {
@@ -820,7 +875,7 @@ public class SingleThreadedConstellation extends Thread {
         }
         
         for (StealRequest s : processing.stealRequests.values()) { 
-        
+        	
             // Make sure the steal request is still valid!
             if (!s.getStale()) { 
                 
@@ -918,6 +973,12 @@ public class SingleThreadedConstellation extends Thread {
     	   return 0;
        }
     }
+  
+    private void resetStealDeadline() { 
+        if (THROTTLE_STEALS) { 
+        	nextStealDeadline = 0;
+        }
+    }
     
     void deliverWrongContext(ActivityRecord a) { 
         wrongContext.enqueue(a);
@@ -989,8 +1050,22 @@ public class SingleThreadedConstellation extends Thread {
     					logger.info("GENERATING STEAL REQUEST at " + identifier + " with context " + getContext());
     				} 
 
-    				// FIXME: hard coded steal size!
-    				parent.handleStealRequest(this);
+    				ActivityRecord [] result = parent.handleStealRequest(this);
+    				
+    				if (result != null) { 
+    					
+    					for (int i=0;i<result.length;i++) { 
+    						if (result[i] != null) { 
+    							wrapper.addPrivateActivity(result[i]);
+    							more = true;
+    						}
+    					}
+    					
+    					if (more) {
+    						// ignore steal deadline when we are succesfull!
+    						resetStealDeadline();
+    					}
+    				}    				
     			} else {       		
     				more = pauseUntil(nextDeadline);
     			}

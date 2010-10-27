@@ -123,7 +123,14 @@ public class ExecutorWrapper implements Constellation {
         size = relocated.size();
 
         if (size > 0) {
-            return (ActivityRecord) relocated.removeFirst();
+        	
+        	ActivityRecord ar = (ActivityRecord) relocated.removeFirst();
+        	
+        	System.out.println("EW: " + identifier + " dequeue " + ar.identifier() + " from relocated!");
+        	
+        	return ar;
+        	
+        	//return (ActivityRecord) relocated.removeFirst();
         }
 
         // Next see if there are any activities that cannot  
@@ -168,7 +175,11 @@ public class ExecutorWrapper implements Constellation {
     void addPrivateActivity(ActivityRecord a) { 
     	// add an activity that only I am allowed to run, either because 
     	// it is relocated, or because we have just obtained it and we don't 
-    	// want anyone else to steal it from us.     	
+    	// want anyone else to steal it from us.
+    	
+		// System.out.println("ExectutorWrapper got private activity " + a.identifier());
+		
+		lookup.put(a.identifier(), a);
     	relocated.insertLast(a);    	
     }
         
@@ -270,9 +281,12 @@ public class ExecutorWrapper implements Constellation {
         		runnable.insertLast(ar);
         	}
 
+            System.out.println("EW: queued event for " + e.target);
+
         	return true;
         }
         
+        System.out.println("ERROR: Cannot deliver event: Failed to find activity " + e.target);
         logger.error("ERROR: Cannot deliver event: Failed to find activity " + e.target);
 
         return false;
@@ -334,8 +348,6 @@ public class ExecutorWrapper implements Constellation {
                     logger.info("STOLEN " + r.identifier());
                 }
 
-                r.setStolen(true);
-
                 return r;
             }
 
@@ -356,8 +368,6 @@ public class ExecutorWrapper implements Constellation {
             if (Debug.DEBUG_STEAL) {
                 logger.info("STOLEN " + r.identifier());
             }
-
-            r.setStolen(true);
 
             return r;
         }
@@ -478,13 +488,13 @@ public class ExecutorWrapper implements Constellation {
     }
     
     public boolean activate() { 
-
+/*
         if (parent != null) { 
             return true;
         }
 
         while (process());
-
+*/
         return false;
     }
 

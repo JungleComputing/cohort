@@ -30,7 +30,7 @@ public class StealRequest extends Message {
         return true;
     }
     
-    public void setAllowRestricted() { 
+    public void doNotAllowRestricted() { 
         allowRestricted = false;
     }
     
