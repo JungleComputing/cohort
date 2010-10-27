@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import ibis.constellation.ActivityContext;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 
 public class UnitActivityContext extends ActivityContext {
@@ -74,35 +75,35 @@ public class UnitActivityContext extends ActivityContext {
         return "UnitActivityContext(" + name + ", " + rank + ")";
     }
 
-    public boolean satisfiedBy(UnitWorkerContext offer) {
+    public boolean satisfiedBy(UnitWorkerContext offer, StealStrategy s) {
 
     	if (!name.equals(offer.name)) { 
     		return false;
     	}
     	
-    	switch (offer.opcode) { 
-    	case UnitWorkerContext.BIGGEST: 
-    	case UnitWorkerContext.SMALLEST:
-    	case UnitWorkerContext.ANY:
+    	switch (s.strategy) { 
+    	case StealStrategy._BIGGEST: 
+    	case StealStrategy._SMALLEST:
+    	case StealStrategy._ANY:
     		return true;
 
-    	case UnitWorkerContext.VALUE:
-    		return (rank == offer.start);
+    	case StealStrategy._VALUE:
+    		return (rank == s.start);
     		
-    	case UnitWorkerContext.RANGE:
-    		return (rank >= offer.start && rank <= offer.end); 
+    	case StealStrategy._RANGE:
+    		return (rank >= s.start && rank <= s.end); 
     	}
     	
     	return false;
     } 
     
-    public boolean satisfiedBy(OrWorkerContext offer) {
+    public boolean satisfiedBy(OrWorkerContext offer, StealStrategy s) {
     	
     	for (int i=0;i<offer.size();i++) { 
     		
     		UnitWorkerContext c = offer.get(i);
 
-    		if (satisfiedBy(c)) { 
+    		if (satisfiedBy(c, s)) { 
     			return true;
     		}
     	
@@ -112,7 +113,7 @@ public class UnitActivityContext extends ActivityContext {
     }
     
     @Override
-    public boolean satisfiedBy(WorkerContext offer) {
+    public boolean satisfiedBy(WorkerContext offer, StealStrategy s) {
      
     	// This does NOT take the rank into account.     	
         if (offer == null) { 
@@ -120,11 +121,11 @@ public class UnitActivityContext extends ActivityContext {
         }
         
         if (offer.isUnit()) { 
-        	return satisfiedBy((UnitWorkerContext)offer);
+        	return satisfiedBy((UnitWorkerContext)offer, s);
         }
         
         if (offer.isOr()) { 
-        	return satisfiedBy((OrWorkerContext)offer);
+        	return satisfiedBy((OrWorkerContext)offer, s);
         }
         
         return false;

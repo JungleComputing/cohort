@@ -16,7 +16,7 @@ public abstract class ActivityContext implements Serializable {
     }
         
     public abstract boolean equals(Object other);
-    public abstract boolean satisfiedBy(WorkerContext other);
+    public abstract boolean satisfiedBy(WorkerContext other, StealStrategy s);
     
     public boolean isUnit() { 
         return false;

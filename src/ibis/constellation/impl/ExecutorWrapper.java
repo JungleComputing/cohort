@@ -9,6 +9,7 @@ import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
 import ibis.constellation.StealPool;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.extra.CircularBuffer;
 import ibis.constellation.extra.ConstellationLogger;
@@ -35,7 +36,10 @@ public class ExecutorWrapper implements Constellation {
     private final Executor executor;
 
     private final WorkerContext myContext; 
-  
+    
+    private final StealStrategy localStealStrategy; 
+    private final StealStrategy remoteStealStrategy; 
+    
     private HashMap<ActivityIdentifier, ActivityRecord> lookup = 
         new HashMap<ActivityIdentifier, ActivityRecord>();
 
@@ -86,6 +90,8 @@ public class ExecutorWrapper implements Constellation {
 
         executor.connect(this);
         myContext = executor.getContext();
+        localStealStrategy = executor.getLocalStealStrategy();
+        remoteStealStrategy = executor.getRemoteStealStrategy();
     }
 
     public void cancel(ActivityIdentifier id) {
@@ -206,7 +212,7 @@ public class ExecutorWrapper implements Constellation {
     	}
 */
   
-    	if (c.satisfiedBy(myContext)) { 
+    	if (c.satisfiedBy(myContext, StealStrategy.ANY)) { 
 
     		lookup.put(a.identifier(), ar);
 
@@ -292,7 +298,7 @@ public class ExecutorWrapper implements Constellation {
         return false;
     }
    
-    protected ActivityRecord [] steal(WorkerContext context, boolean allowRestricted, int count, ConstellationIdentifier source) {
+    protected ActivityRecord [] steal(WorkerContext context, StealStrategy s, boolean allowRestricted, int count, ConstellationIdentifier source) {
 
         // logger.warn("In STEAL on BASE " + context + " " + count);
 
@@ -302,7 +308,7 @@ public class ExecutorWrapper implements Constellation {
 
         // FIXME: Optimize this!!!        
         for (int i=0;i<count;i++) { 
-            result[i] = doSteal(context, allowRestricted);
+            result[i] = doSteal(context, s, allowRestricted);
 
             if (result[i] == null) { 
 
@@ -323,7 +329,7 @@ public class ExecutorWrapper implements Constellation {
         return result;
     }
 
-    private ActivityRecord doSteal(WorkerContext context, boolean allowRestricted) {
+    private ActivityRecord doSteal(WorkerContext context, StealStrategy s, boolean allowRestricted) {
 
         if (Debug.DEBUG_STEAL) { 
             logger.info("STEAL BASE(" + identifier + "): activities F: " 
@@ -333,7 +339,7 @@ public class ExecutorWrapper implements Constellation {
        
         if (allowRestricted) { 
 
-            ActivityRecord r = restricted.steal(context);
+            ActivityRecord r = restricted.steal(context, s);
 
             if (r != null) { 
 
@@ -354,7 +360,7 @@ public class ExecutorWrapper implements Constellation {
             // If restricted fails we try the regular queue 
         }
 
-        ActivityRecord r = fresh.steal(context);
+        ActivityRecord r = fresh.steal(context, s);
 
         if (r != null) { 
 
@@ -485,6 +491,14 @@ public class ExecutorWrapper implements Constellation {
 
     public WorkerContext getContext() {
         return myContext;
+    }
+    
+    public StealStrategy getLocalStealStrategy() { 
+        return localStealStrategy;
+    }
+
+    public StealStrategy getRemoteStealStrategy() { 
+        return remoteStealStrategy;
     }
     
     public boolean activate() { 

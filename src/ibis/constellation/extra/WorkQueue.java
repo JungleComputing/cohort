@@ -2,6 +2,7 @@ package ibis.constellation.extra;
 
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.impl.ActivityRecord;
 
@@ -15,7 +16,7 @@ public abstract class WorkQueue {
     
     public abstract void enqueue(ActivityRecord a);
     public abstract ActivityRecord dequeue(boolean head);
-    public abstract ActivityRecord steal(WorkerContext c); 
+    public abstract ActivityRecord steal(WorkerContext c, StealStrategy s); 
     public abstract int size();     
     
     public abstract boolean contains(ActivityIdentifier id);
@@ -49,12 +50,12 @@ public abstract class WorkQueue {
         return tmp;
     }
     
-    public ActivityRecord [] steal(WorkerContext c, int count) {
+    public ActivityRecord [] steal(WorkerContext c, StealStrategy s, int count) {
         
         ActivityRecord [] tmp = new ActivityRecord[count];
         
         for (int i=0;i<count;i++) { 
-            tmp[i] = steal(c);
+            tmp[i] = steal(c, s);
             
             if (tmp[i] == null) { 
                 return trim(tmp, i);
@@ -64,10 +65,10 @@ public abstract class WorkQueue {
         return tmp;
     }
     
-    public int steal(WorkerContext c, ActivityRecord [] dst, int off, int len) {
+    public int steal(WorkerContext c, StealStrategy s, ActivityRecord [] dst, int off, int len) {
         
         for (int i=off;i<off+len;i++) { 
-        	dst[i] = steal(c);
+        	dst[i] = steal(c, s);
             
             if (dst[i] == null) { 
             	return (i-off);

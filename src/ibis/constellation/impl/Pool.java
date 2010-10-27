@@ -620,7 +620,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
                 rm.finish();
             }
 
-            ((StealRequest)m).doNotAllowRestricted();
+            ((StealRequest)m).setRemote();
             owner.deliverRemoteStealRequest((StealRequest)m);
             return true;
 
@@ -754,7 +754,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
             rm.finish();
             
-            m.doNotAllowRestricted();
+            m.setRemote();
             owner.deliverRemoteStealRequest(m);
         }
         break;

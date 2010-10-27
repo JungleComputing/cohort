@@ -9,6 +9,7 @@ import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
 
@@ -99,8 +100,8 @@ public class Fibonacci extends Activity {
         Executor [] e = new Executor[executors];
         
         for (int i=0;i<executors;i++) { 
-        	// Hmmm... this is not what we want. We want small jobs locally, and big jobs remote....
-            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
+            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT"), 
+            		StealStrategy.SMALLEST, StealStrategy.BIGGEST);
         }
         
         Constellation c = ConstellationFactory.createConstellation(e);

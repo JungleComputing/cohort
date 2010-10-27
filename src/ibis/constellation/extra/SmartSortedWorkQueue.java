@@ -3,6 +3,7 @@ package ibis.constellation.extra;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.OrActivityContext;
 import ibis.constellation.context.OrWorkerContext;
@@ -70,7 +71,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
     }
     	
     
-    private ActivityRecord getUnit(UnitWorkerContext c) { 
+    private ActivityRecord getUnit(UnitWorkerContext c, StealStrategy s) { 
 
         SortedList tmp = unit.get(c.name);
 
@@ -81,19 +82,19 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         ActivityRecord a = null;
         
-        switch (c.opcode) { 
-        case UnitWorkerContext.BIGGEST:
-        case UnitWorkerContext.ANY:
+        switch (s.strategy) { 
+        case StealStrategy._BIGGEST:
+        case StealStrategy._ANY:
         	a = (ActivityRecord) tmp.removeTail();
         	break;
         	
-        case UnitWorkerContext.SMALLEST:
+        case StealStrategy._SMALLEST:
         	a = (ActivityRecord) tmp.removeHead();
         	break;
         	
-        case UnitWorkerContext.VALUE:
-        case UnitWorkerContext.RANGE:
-        	a = tmp.removeOneInRange(c.start, c.end);
+        case StealStrategy._VALUE:
+        case StealStrategy._RANGE:
+        	a = tmp.removeOneInRange(s.start, s.end);
         	break;
         }
         
@@ -154,7 +155,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
         return a;
     } 
     	
-    private ActivityRecord getOr(UnitWorkerContext c) { 
+    private ActivityRecord getOr(UnitWorkerContext c, StealStrategy s) { 
 
         SortedList tmp = or.get(c.name);
 
@@ -167,19 +168,19 @@ public class SmartSortedWorkQueue extends WorkQueue {
         
         ActivityRecord a = null;
         
-        switch (c.opcode) { 
-        case UnitWorkerContext.BIGGEST:
-        case UnitWorkerContext.ANY:
+        switch (s.strategy) { 
+        case StealStrategy._BIGGEST:
+        case StealStrategy._ANY:
         	a = (ActivityRecord) tmp.removeTail();
         	break;
         	
-        case UnitWorkerContext.SMALLEST:
+        case StealStrategy._SMALLEST:
         	a = (ActivityRecord) tmp.removeHead();
         	break;
         	
-        case UnitWorkerContext.VALUE:
-        case UnitWorkerContext.RANGE:
-        	a = tmp.removeOneInRange(c.start, c.end);
+        case StealStrategy._VALUE:
+        case StealStrategy._RANGE:
+        	a = tmp.removeOneInRange(s.start, s.end);
         	break;
         }
 
@@ -294,7 +295,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
     }
     
     @Override
-    public ActivityRecord steal(WorkerContext c) {
+    public ActivityRecord steal(WorkerContext c, StealStrategy s) {
 
     	//System.out.println(id + "   STEAL: " + c);
     	
@@ -302,10 +303,10 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
         	UnitWorkerContext tmp = (UnitWorkerContext) c;
         	
-            ActivityRecord a = getUnit(tmp);
+            ActivityRecord a = getUnit(tmp, s);
 
             if (a == null) { 
-                a = getOr(tmp);
+                a = getOr(tmp, s);
             }
 
             return a;
@@ -323,7 +324,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
           //  	System.out.println(id + "   STEAL attempt from unit with " + ctx);            		
             	
-            	ActivityRecord a = getUnit(ctx); 
+            	ActivityRecord a = getUnit(ctx, s); 
 
             	if (a != null) { 
             		return a;
@@ -331,7 +332,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
            // 	System.out.println(id + "   STEAL attempt from or with " + ctx);            		
             	
-            	a = getOr(ctx);
+            	a = getOr(ctx, s);
 
             	if (a != null) { 
             		return a;

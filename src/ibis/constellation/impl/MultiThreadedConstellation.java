@@ -326,7 +326,7 @@ FIXME REMOVE!!
     		if (tmp != c && poolMatrix[rank][tmp.getRank()]) {
     		
     			// FIXME: size hardcoded to 1!
-    			int size = tmp.attemptSteal(result, context, pool, c.identifier(), 1, true);
+    			int size = tmp.attemptSteal(result, context, c.getLocalStealStrategy(), pool, c.identifier(), 1, true);
     		
     			if (size == 1) { 
     				return result;
@@ -337,7 +337,7 @@ FIXME REMOVE!!
     	// If this fails, we do a remote steal followed by an enqueued steal at a random suitable peer.    	
     	
     	// FIXME: size hardcoded to workerCount!
-    	StealRequest sr = new StealRequest(c.identifier(), context, pool, workerCount);
+    	StealRequest sr = new StealRequest(c.identifier(), context, c.getLocalStealStrategy(), c.getRemoteStealStrategy(), pool, workerCount);
     	
         if (parent != null) { 
         	parent.handleStealRequest(sr);
@@ -374,6 +374,7 @@ FIXME REMOVE!!
     	return myContext;
     }
     
+    // FIXME: does NOT merge steal strategies! 
     private WorkerContext mergeContext() { 
     	
         // We should now combine all contexts of our workers into one
@@ -388,10 +389,10 @@ FIXME REMOVE!!
 
                 UnitWorkerContext u = (UnitWorkerContext) tmp;
 
-                String tag = u.uniqueTag();
+                String name = u.name;
 
-                if (!map.containsKey(tag)) { 
-                    map.put(tag, u);
+                if (!map.containsKey(name)) { 
+                    map.put(name, u);
                 }
             } else if (tmp.isOr()) { 
                 OrWorkerContext o = (OrWorkerContext) tmp;
@@ -399,10 +400,10 @@ FIXME REMOVE!!
                 for (int j=0;j<o.size();j++) { 
                     UnitWorkerContext u = o.get(i);
 
-                    String tag = u.uniqueTag();
+                    String name = u.name;
 
-                    if (!map.containsKey(tag)) { 
-                        map.put(tag, u);
+                    if (!map.containsKey(name)) { 
+                        map.put(name, u);
                     }
                 }
             }
@@ -552,7 +553,7 @@ FIXME REMOVE!!
     		
     		if (sr.pool.overlap(p)) { 
     			// We're allowed to steal!
-    			ActivityRecord [] result = tmp.attemptSteal(sr.context, sr.pool, sr.source, sr.size, false);
+    			ActivityRecord [] result = tmp.attemptSteal(sr.context, sr.remoteStrategy, sr.pool, sr.source, sr.size, false);
     		
     			if (result != null) { 
     				// We've managed to find some work!

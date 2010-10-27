@@ -2,27 +2,35 @@ package ibis.constellation.impl;
 
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.StealPool;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 
 public class StealRequest extends Message {
     
     private static final long serialVersionUID = 2655647847327367590L;
    
-    public final WorkerContext context;
+    public final WorkerContext context;    
+    public final StealStrategy localStrategy;
+    public final StealStrategy remoteStrategy;        
     public final StealPool pool;
     public final int size;
     
     // Note allowRestricted is set to false when the StealRequest traverses the 
     // network.
-    private transient boolean allowRestricted;  
+    private transient boolean isLocal;  
     
-    public StealRequest(final ConstellationIdentifier source, final WorkerContext context, final StealPool pool, final int size) {  
-        // Use this for a remote steal request;
-        super(source);
+    public StealRequest(final ConstellationIdentifier source, final WorkerContext context, 
+    		final StealStrategy localStrategy, final StealStrategy remoteStrategy, 
+    		final StealPool pool, final int size) {  
+
+    	super(source);
         this.context = context;
+        this.localStrategy = localStrategy;
+        this.remoteStrategy = remoteStrategy;
         this.pool = pool;
         this.size = size;
-        allowRestricted = true;
+        
+        isLocal = true;
     }
     
     @Override
@@ -30,13 +38,11 @@ public class StealRequest extends Message {
         return true;
     }
     
-    public void doNotAllowRestricted() { 
-        allowRestricted = false;
+    public void setRemote() { 
+        isLocal = false;
     }
     
-    public boolean allowRestricted() { 
-        return allowRestricted;
+    public boolean isLocal() { 
+        return isLocal;
     }
-    
-    
 }

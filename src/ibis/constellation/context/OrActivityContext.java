@@ -1,6 +1,7 @@
 package ibis.constellation.context;
 
 import ibis.constellation.ActivityContext;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 
 public class OrActivityContext extends ActivityContext {
@@ -56,37 +57,6 @@ public class OrActivityContext extends ActivityContext {
         
         return false;
     }    
-
-    /*
-    public boolean contains(OrActivityContext other) {
-
-    	if (other == this) { 
-    		return true;
-    	}
-    	
-    	for (UnitActivityContext u : other.unitContexts) { 
-    		if (!contains(u)) { 
-    			return false;
-            }
-        }
-
-        return true;
-    }
-
-    public boolean overlapping(OrActivityContext other) {
-
-    	// TODO: use the fact that the unitContexts are sorted!!!!    	
-        if (unitContexts.length != 0 && other.unitContexts.length != 0) {
-            for (UnitActivityContext u : other.unitContexts) { 
-                if (contains(u)) { 
-                    return true;
-                }            
-            }
-        }
-
-        return false;
-    }
-    */
     
     public int countUnitContexts() { 
         return unitContexts.length;
@@ -100,22 +70,7 @@ public class OrActivityContext extends ActivityContext {
     public boolean isOr() { 
         return true;
     }
-    
-    /*
-    public boolean contains(ActivityContext other) {
-
-        if (other.isUnit()) { 
-            return contains((UnitActivityContext)other);
-        }
-
-        if (other.isOr()) { 
-            return contains((OrActivityContext)other);
-        }
-
-        return false;
-    }
-    */
-    
+  
     @Override
     public int hashCode() { 
         return hashCode;
@@ -177,13 +132,13 @@ public class OrActivityContext extends ActivityContext {
         return b.toString();
     }
 
-    private boolean satisfiedBy(UnitWorkerContext offer) {
+    private boolean satisfiedBy(UnitWorkerContext offer, StealStrategy s) {
     	
     	for (int i=0;i<unitContexts.length;i++) { 
     		
     		UnitActivityContext tmp = unitContexts[i];
     		
-    		if (tmp.satisfiedBy(offer)) { 
+    		if (tmp.satisfiedBy(offer, s)) { 
     			return true;
     		}
     	}
@@ -191,13 +146,13 @@ public class OrActivityContext extends ActivityContext {
     	return false;
     }
     
-    private boolean satisfiedBy(OrWorkerContext offer) {
+    private boolean satisfiedBy(OrWorkerContext offer, StealStrategy s) {
     	
     	UnitWorkerContext [] tmp = offer.getContexts();
     	
     	for (int i=0;i<tmp.length;i++) { 
     		
-    		if (satisfiedBy(tmp[i])) { 
+    		if (satisfiedBy(tmp[i], s)) { 
     			return true;
     		}
     	}
@@ -206,82 +161,22 @@ public class OrActivityContext extends ActivityContext {
     }
     
     @Override
-    public boolean satisfiedBy(WorkerContext offer) {
+    public boolean satisfiedBy(WorkerContext offer, StealStrategy s) {
         
         if (offer == null) {
             return false;
         }
         
         if (offer.isUnit()) {
-        	return satisfiedBy((UnitWorkerContext) offer);
+        	return satisfiedBy((UnitWorkerContext) offer, s);
         }
         
         if (offer.isOr()) {
-        	return satisfiedBy((OrWorkerContext) offer);
+        	return satisfiedBy((OrWorkerContext) offer, s);
         }
         
         return false;
     }
 
-    /*
-    public static Context merge(Context[] a) {
 
-        // TODO: slow N^2 implementation!!!!
-
-        if (a == null || a.length == 0) { 
-            return UnitContext.DEFAULT;
-        }
-        
-        LinkedHashMap<String name, >
-        
-        ArrayList<UnitContext> unit = new ArrayList<UnitContext>();
-        
-        for (int i=0;i<a.length;i++) {
-            Context tmp = a[i];
-            
-            if (tmp != null) { 
-
-                if (tmp.isUnit()) {
-                    if (!unit.contains(tmp)) { 
-                        unit.add((UnitContext) tmp);
-                    }
-                } else if (tmp.isOr()) { 
-                    
-                    UnitContext [] uc = ((OrContext)tmp).unitContexts;
-                    
-                    for (int j=0;i<uc.length;j++) { 
-                        
-                        UnitContext u = uc[i];
-                        
-                        if (!unit.contains(u)) { 
-                            unit.add(u);
-                        }
-                    }
-                }
-            }
-        }
-  
-        if (unit.size() == 0) { 
-            
-            int size = and.size();
-            
-            if (size == 0) { 
-                return UnitContext.DEFAULT;
-            }
-        
-            if (size == 1) { 
-                return and.get(0);
-            }
-    
-        } else if (unit.size() == 1) { 
-            
-            if (and.size() == 0) { 
-                return unit.get(0);
-            }
-        }   
-        
-        return new OrContext(unit.toArray(new UnitContext[unit.size()]); 
-
-    }
-    */
 }
