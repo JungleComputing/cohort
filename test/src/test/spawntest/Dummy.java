@@ -3,6 +3,7 @@ package test.spawntest;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
+import ibis.constellation.MessageEvent;
 import ibis.constellation.context.UnitActivityContext;
 
 public class Dummy extends Activity {
@@ -12,13 +13,13 @@ public class Dummy extends Activity {
     private final ActivityIdentifier parent;
     
     public Dummy(ActivityIdentifier parent) {
-        super(UnitActivityContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT, false);
         this.parent = parent;
     }
 
     @Override
     public void initialize() throws Exception {
-        executor.send(identifier(), parent, null);
+        executor.send(new MessageEvent(identifier(), parent, null));
         finish();
     }
 

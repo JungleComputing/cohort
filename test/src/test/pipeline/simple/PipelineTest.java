@@ -5,12 +5,13 @@ import java.util.Properties;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.MultiEventCollector;
+import ibis.constellation.SimpleExecutor;
 
 public class PipelineTest {
 
     public static void main(String [] args) { 
         
-        // Simple test that creates, starts and stops a set of cohorts. When 
+        // Simple test that creates, starts and stops a set of constellations. When 
         // the lot is running, it deploys a series of jobs. 
         
         int nodes = Integer.parseInt(args[0]);
@@ -34,8 +35,8 @@ public class PipelineTest {
         p.put("ibis.cohort.impl", config);
         
         try {
-            Constellation cohort = ConstellationFactory.createCohort();
-            cohort.activate();
+            Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor());
+            constellation.activate();
   
             if (rank == 0) { 
 
@@ -43,13 +44,13 @@ public class PipelineTest {
 
                 MultiEventCollector me = new MultiEventCollector(jobs);
 
-                cohort.submit(me);
+                constellation.submit(me);
 
                 for (int i=0;i<jobs;i++) { 
                  
                     System.out.println("SUBMIT " + i);
                     
-                    cohort.submit(new Pipeline(me.identifier(), i, 0, 
+                    constellation.submit(new Pipeline(me.identifier(), i, 0, 
                             nodes*threads-1, sleep, new byte[data]));
                 }
 
@@ -63,7 +64,7 @@ public class PipelineTest {
             
             } 
             
-            cohort.done();
+            constellation.done();
         } catch (Exception e) {
             e.printStackTrace();
         }

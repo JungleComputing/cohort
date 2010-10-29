@@ -6,8 +6,11 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
+import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.context.UnitActivityContext;
+import ibis.constellation.context.UnitWorkerContext;
 
 public class Series extends Activity {
     
@@ -25,7 +28,7 @@ public class Series extends Activity {
     private final int count;
     
     public Series(ActivityIdentifier root, int length, int count) {
-        super(UnitActivityContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT, true);
         this.root = root;
         this.length = length;
         this.count = count;
@@ -52,7 +55,7 @@ public class Series extends Activity {
         
         if (count == length) { 
             // Only the last job send a reply!
-            executor.send(identifier(), root, count);
+            executor.send(new MessageEvent(identifier(), root, count));
         }
     }
     
@@ -64,8 +67,8 @@ public class Series extends Activity {
 
         long start = System.currentTimeMillis();
         
-        Constellation cohort = ConstellationFactory.createCohort();
-        
+        Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
+        constellation.activate();
         int index = 0;
          
         int length = Integer.parseInt(args[index++]);
@@ -74,10 +77,10 @@ public class Series extends Activity {
         
         SingleEventCollector a = new SingleEventCollector();
 
-        cohort.submit(a);
-        cohort.submit(new Series(a.identifier(), length, 0));
+        constellation.submit(a);
+        constellation.submit(new Series(a.identifier(), length, 0));
 
-        long result = ((MessageEvent<Integer>)a.waitForEvent()).message;
+        long result = (Integer)((MessageEvent)a.waitForEvent()).message;
 
         long end = System.currentTimeMillis();
 
@@ -89,7 +92,7 @@ public class Series extends Activity {
                 correct + " total time = " + (end-start) + 
                 " job time = " + nsPerJob + " nsec/job");
 
-        cohort.done();
+        constellation.done();
 
     }
 

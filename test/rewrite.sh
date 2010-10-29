@@ -1,3 +1,3 @@
 cd lib
-$IPL_HOME/bin/iplc cohort-0.3.6.jar  cohort-tests-0.2.jar
+$IPL_HOME/bin/iplc constellation-0.7.0.jar  constellation-tests-0.2.jar
 cd -

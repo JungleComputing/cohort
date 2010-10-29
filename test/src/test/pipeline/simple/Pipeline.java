@@ -1,6 +1,7 @@
 package test.pipeline.simple;
 
 import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleActivity;
 import ibis.constellation.context.UnitActivityContext;
 
@@ -42,7 +43,7 @@ public class Pipeline extends SimpleActivity {
         
             System.out.println("Sending pipeline reply");
             
-            executor.send(identifier(), parent, data);
+            executor.send(new MessageEvent(identifier(), parent, data));
         } else { 
 
             System.out.println("Submitting pipeline stage: " + index + " " + (current+1) + " " + last);

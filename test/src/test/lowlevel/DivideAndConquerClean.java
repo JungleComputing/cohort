@@ -9,6 +9,7 @@ import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
 
@@ -31,7 +32,7 @@ public class DivideAndConquerClean extends Activity {
     private long count = 1;
     
     public DivideAndConquerClean(ActivityIdentifier parent, int branch, int depth) {
-        super(UnitActivityContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT, true);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
@@ -50,11 +51,10 @@ public class DivideAndConquerClean extends Activity {
         } 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
         
-        count += ((MessageEvent<Long>) e).message;
+        count += (Long)((MessageEvent) e).message;
 
         merged++;
       
@@ -67,7 +67,7 @@ public class DivideAndConquerClean extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        executor.send(identifier(), parent, count);        
+        executor.send(new MessageEvent(identifier(), parent, count));
     }
     
     public String toString() { 
@@ -87,10 +87,11 @@ public class DivideAndConquerClean extends Activity {
         
         for (int i=0;i<executors;i++) { 
         	// Hmmm... this is not what we want. We want small jobs locally, and big jobs remote....
-            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT", UnitWorkerContext.BIGGEST));
+            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT"), StealStrategy.SMALLEST, StealStrategy.BIGGEST);
         }
         
-        Constellation cohort = ConstellationFactory.createCohort(e);
+        Constellation constellation = ConstellationFactory.createConstellation(e);
+        constellation.activate();
         
         int branch = Integer.parseInt(args[index++]);
         int depth =  Integer.parseInt(args[index++]);
@@ -106,10 +107,10 @@ public class DivideAndConquerClean extends Activity {
         
         SingleEventCollector a = new SingleEventCollector();
 
-        cohort.submit(a);
-        cohort.submit(new DivideAndConquerClean(a.identifier(), branch, depth));
+        constellation.submit(a);
+        constellation.submit(new DivideAndConquerClean(a.identifier(), branch, depth));
 
-        long result = ((MessageEvent<Long>)a.waitForEvent()).message;
+        long result = (Long)((MessageEvent)a.waitForEvent()).message;
 
         long end = System.currentTimeMillis();
 
@@ -120,14 +121,13 @@ public class DivideAndConquerClean extends Activity {
         System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
                 correct + " total time = " + (end-start) + " job time = " + nsPerJob + " nsec/job");
 
-        cohort.done();
+        constellation.done();
 
     }
 
     @Override
     public void cancel() throws Exception {
         // TODO Auto-generated method stub
-        
     }
 
 

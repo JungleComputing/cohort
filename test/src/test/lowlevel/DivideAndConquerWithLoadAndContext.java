@@ -9,6 +9,7 @@ import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
@@ -34,7 +35,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
     
     public DivideAndConquerWithLoadAndContext(ActivityIdentifier parent, 
             int branch, int depth, int load, ActivityContext c) {
-        super(c);
+        super(c, true);
        
       //  System.out.println("Creating job with Context " + c);
         
@@ -75,11 +76,10 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
         } 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 
-        took += ((MessageEvent<Long>) e).message;
+        took += (Long)((MessageEvent) e).message;
 
         merged++;
 
@@ -92,7 +92,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        executor.send(identifier(), parent, took);        
+        executor.send(new MessageEvent(identifier(), parent, took));        
     }
 
     public String toString() { 
@@ -132,8 +132,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
                 System.out.println("Setting context to Odd");
                 context = new UnitWorkerContext("Odd");
             }
-            
-            Constellation cn = ConstellationFactory.createCohort(new SimpleExecutor(context));            
+            Constellation cn = ConstellationFactory.createConstellation(new SimpleExecutor(context, StealStrategy.SMALLEST, StealStrategy.BIGGEST));            
             cn.activate();
             
             if (cn.isMaster()) { 
@@ -160,7 +159,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
                         a.identifier(), branch, depth, load, 
                         new UnitActivityContext("Even")));
 
-                long result = ((MessageEvent<Long>)a.waitForEvent()).message;
+                long result = (Long)((MessageEvent)a.waitForEvent()).message;
 
                 long end = System.currentTimeMillis();
 

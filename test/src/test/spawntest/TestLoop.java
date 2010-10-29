@@ -3,6 +3,7 @@ package test.spawntest;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
+import ibis.constellation.MessageEvent;
 import ibis.constellation.context.UnitActivityContext;
 
 public class TestLoop extends Activity {
@@ -20,7 +21,7 @@ public class TestLoop extends Activity {
     private long end;
     
     public TestLoop(ActivityIdentifier parent, long count, int spawns) {
-        super(UnitActivityContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT, true);
         this.parent = parent;
         this.count = count;
         this.spawns = spawns;
@@ -57,7 +58,7 @@ public class TestLoop extends Activity {
                 
         System.out.println("spawn = " + timeSatin + " s, time/spawn = " + cost + " us/spawn" );
         
-        executor.send(identifier(), parent, null);
+        executor.send(new MessageEvent(identifier(), parent, null));
     }
 
     @Override

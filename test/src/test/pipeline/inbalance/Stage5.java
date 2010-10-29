@@ -18,7 +18,7 @@ public class Stage5 extends Activity {
  
     public Stage5(ActivityIdentifier parent, long sleep) { 
         
-        super(new UnitActivityContext("A"));
+        super(new UnitActivityContext("A"), true);
    
         this.parent = parent;
         this.sleep = sleep;
@@ -41,7 +41,7 @@ public class Stage5 extends Activity {
         
         System.out.println("Finished pipeline: " + result.index);
         
-        executor.send(identifier(), parent, result);
+        executor.send(new MessageEvent(identifier(), parent, result));
     }
   
     private Data processData() { 
@@ -58,11 +58,10 @@ public class Stage5 extends Activity {
         return new Data(result3.index, 5, result3.data);
     }
     
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 
-        Data data = ((MessageEvent<Data>) e).message;
+        Data data = (Data)((MessageEvent) e).message;
        
         if (data.stage == 3) { 
             result3 = data;

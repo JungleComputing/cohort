@@ -5,13 +5,11 @@ import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
-import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
-import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
-import ibis.constellation.StealPool;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
@@ -52,7 +50,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             int branch, int depth, int sleep, int penalty, int mode, int type,  
             ActivityContext context) {
       
-        super(context);
+        super(context, true);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
@@ -72,7 +70,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             // With WEAK context each machine can run each job, but there 
             // is a performance penalty when the context doesn't match.
             // With NONE or STRONG context we either don't care about 
-            // context, or cohort has ensured the context is correct. Either 
+            // context, or constellation has ensured the context is correct. Either 
             // way, just sleep for the specified amount of time.
             
             if (mode == CONTEXT_WEAK) { 
@@ -208,11 +206,10 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
         } 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 
-        count += ((MessageEvent<Long>) e).message;
+        count += (Long)((MessageEvent) e).message;
 
         merged++;
 
@@ -225,7 +222,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        executor.send(identifier(), parent, count);        
+        executor.send(new MessageEvent(identifier(), parent, count));        
     }
 
     @Override
@@ -320,7 +317,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
             
             System.out.println("Setting context to " + context);
             
-            Constellation c = ConstellationFactory.createCohort(new SimpleExecutor(context));
+            Constellation c = ConstellationFactory.createConstellation(new SimpleExecutor(context, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
             c.activate();
             
             if (c.isMaster()) { 
@@ -346,7 +343,7 @@ public class DivideAndConquerWithContextAndPenalty extends Activity {
                         a.identifier(), branch, depth, sleep, penalty, mode, 
                         type, new UnitActivityContext("Even")));
 
-                long result = ((MessageEvent<Long>)a.waitForEvent()).message;
+                long result = (Long)((MessageEvent)a.waitForEvent()).message;
 
                 long end = System.currentTimeMillis();
 

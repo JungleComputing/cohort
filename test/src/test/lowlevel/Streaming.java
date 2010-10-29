@@ -6,8 +6,11 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
+import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.context.UnitActivityContext;
+import ibis.constellation.context.UnitWorkerContext;
 
 public class Streaming extends Activity {
     
@@ -29,7 +32,7 @@ public class Streaming extends Activity {
     private int dataSeen;
     
     public Streaming(ActivityIdentifier root, int length, int index, int totaldata) {
-        super(UnitActivityContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT, true);
         this.root = root;
         this.length = length;
         this.index = index;
@@ -51,7 +54,7 @@ public class Streaming extends Activity {
     public void process(Event e) throws Exception {
 
         if (next != null) { 
-            executor.send(identifier(), next, ((MessageEvent) e).message);
+            executor.send(new MessageEvent(identifier(), next, ((MessageEvent) e).message));
         }
         
         dataSeen++;
@@ -68,7 +71,7 @@ public class Streaming extends Activity {
 
         if (next == null) { 
             // only the last replies!
-            executor.send(identifier(), root, dataSeen);
+            executor.send(new MessageEvent(identifier(), root, dataSeen));
         }
     }
     
@@ -80,8 +83,8 @@ public class Streaming extends Activity {
 
         long start = System.currentTimeMillis();
 
-        Constellation cohort = ConstellationFactory.createCohort();
-        
+        Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
+        constellation.activate();
         int index = 0;
          
         int length = Integer.parseInt(args[index++]);
@@ -91,16 +94,16 @@ public class Streaming extends Activity {
                 + " and " + data + " messages");
         
         SingleEventCollector a = new SingleEventCollector();
-        cohort.submit(a);
+        constellation.submit(a);
         
         Streaming s = new Streaming(a.identifier(), length, 0, data);
-        cohort.submit(s);
+        constellation.submit(s);
 
         for (int i=0;i<data;i++) { 
-            cohort.send(a.identifier(), s.identifier(), i);
+            constellation.send(new MessageEvent(a.identifier(), s.identifier(), i));
         }
         
-        long result = ((MessageEvent<Integer>)a.waitForEvent()).message;
+        long result = (Integer)((MessageEvent)a.waitForEvent()).message;
 
         long end = System.currentTimeMillis();
 
@@ -112,7 +115,7 @@ public class Streaming extends Activity {
                 correct + " total time = " + (end-start) + 
                 " job time = " + nsPerJob + " nsec/job");
 
-        cohort.done();
+        constellation.done();
 
     }
 

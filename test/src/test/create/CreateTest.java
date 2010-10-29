@@ -8,9 +8,9 @@ public class CreateTest {
 
     public static void main(String [] args) { 
   
-        // Simple test that creates, starts and stops a cohort
+        // Simple test that creates, starts and stops a constellation
         try {
-        	Constellation cohort = ConstellationFactory.createCohort(new SimpleExecutor());
+        	Constellation cohort = ConstellationFactory.createConstellation(new SimpleExecutor());
             cohort.activate();
             cohort.done();
         } catch (Exception e) {

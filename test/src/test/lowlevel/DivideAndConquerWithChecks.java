@@ -6,8 +6,11 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
+import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.context.UnitActivityContext;
+import ibis.constellation.context.UnitWorkerContext;
 
 import java.util.Arrays;
 
@@ -36,7 +39,7 @@ public class DivideAndConquerWithChecks extends Activity {
     private ActivityIdentifier [] received;
     
     public DivideAndConquerWithChecks(ActivityIdentifier parent, int branch, int depth) {
-        super(UnitActivityContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT, true);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
@@ -80,7 +83,6 @@ public class DivideAndConquerWithChecks extends Activity {
         
     }
     
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
         
@@ -88,7 +90,7 @@ public class DivideAndConquerWithChecks extends Activity {
 
         received[merged] = e.source;
         
-        count += ((MessageEvent<Long>) e).message;
+        count += (Long)((MessageEvent) e).message;
 
         merged++;
       
@@ -103,7 +105,7 @@ public class DivideAndConquerWithChecks extends Activity {
     public void cleanup() throws Exception {
         
         if (!done) { 
-            executor.send(identifier(), parent, count);
+            executor.send(new MessageEvent(identifier(), parent, count));
             done = true;
         } else { 
             System.out.println("EEP! Cleanup called twice!");
@@ -121,9 +123,9 @@ public class DivideAndConquerWithChecks extends Activity {
 
         long start = System.currentTimeMillis();
 
-      //  Cohort cohort = new Sequential();
         
-        Constellation cohort = ConstellationFactory.createCohort();
+        Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
+        constellation.activate();
         
         int index = 0;
         
@@ -141,10 +143,10 @@ public class DivideAndConquerWithChecks extends Activity {
         
         SingleEventCollector a = new SingleEventCollector();
 
-        cohort.submit(a);
-        cohort.submit(new DivideAndConquerWithChecks(a.identifier(), branch, depth));
+        constellation.submit(a);
+        constellation.submit(new DivideAndConquerWithChecks(a.identifier(), branch, depth));
 
-        long result = ((MessageEvent<Long>)a.waitForEvent()).message;
+        long result = (Long)((MessageEvent)a.waitForEvent()).message;
 
         long end = System.currentTimeMillis();
 
@@ -155,7 +157,7 @@ public class DivideAndConquerWithChecks extends Activity {
         System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
                 correct + " total time = " + (end-start) + " job time = " + nsPerJob + " nsec/job");
 
-        cohort.done();
+        constellation.done();
 
     }
 

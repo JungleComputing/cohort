@@ -6,8 +6,11 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
+import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.context.UnitActivityContext;
+import ibis.constellation.context.UnitWorkerContext;
 
 public class DivideAndConquerSpawnTest extends Activity {
 
@@ -34,7 +37,7 @@ public class DivideAndConquerSpawnTest extends Activity {
     private long start;
     
     public DivideAndConquerSpawnTest(ActivityIdentifier parent, boolean spawn) {
-        super(UnitActivityContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT, true);
         this.parent = parent;
         this.spawn = spawn;
     }
@@ -55,12 +58,11 @@ public class DivideAndConquerSpawnTest extends Activity {
             spawnAll();            
             suspend();            
         } else {
-            executor.send(identifier(), parent, 1);
+            executor.send(new MessageEvent(identifier(), parent, 1));
             finish();
         }                        
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
         
@@ -100,6 +102,7 @@ public class DivideAndConquerSpawnTest extends Activity {
         }       
             
         // We have finished completely
+        executor.send(new MessageEvent(identifier(), parent, 1L));
         finish();
     }
 
@@ -112,18 +115,19 @@ public class DivideAndConquerSpawnTest extends Activity {
 
       //  Cohort cohort = new Sequential();
 
-        Constellation cohort = ConstellationFactory.createCohort();
+        Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
+        constellation.activate();
         
         int index = 0;
         
         SingleEventCollector a = new SingleEventCollector();
 
-        cohort.submit(a);
-        cohort.submit(new DivideAndConquerSpawnTest(a.identifier(), true));
+        constellation.submit(a);
+        constellation.submit(new DivideAndConquerSpawnTest(a.identifier(), true));
 
-        long result = ((MessageEvent<Long>)a.waitForEvent()).message;
+        long result = (Long)((MessageEvent)a.waitForEvent()).message;
      
-        cohort.done();
+        constellation.done();
 
     }
 

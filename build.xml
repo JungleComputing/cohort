@@ -19,7 +19,7 @@
 		</fileset>
 	</path>
 
-	<!-- Compile cohort -->
+	<!-- Compile constellation -->
 	<target name="compile">
 		<mkdir dir="${distdir}" />
 		<mkdir dir="${builddir}" />

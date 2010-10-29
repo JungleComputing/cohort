@@ -1,9 +1,9 @@
-<project name="Cohort tests" default="build" basedir=".">
+<project name="Constellation tests" default="build" basedir=".">
 
 	<property name="version" value="0.2" />
-	<property name="jar" value="cohort-tests-${version}.jar" />
-	<property name="zip" value="cohort-tests-${version}.zip" />
-	<property name="src-zip" value="cohort-tests-${version}-src.zip" />
+	<property name="jar" value="constellation-tests-${version}.jar" />
+	<property name="zip" value="constellation-tests-${version}.zip" />
+	<property name="src-zip" value="constellation-tests-${version}-src.zip" />
 
 	<property name="srcdir" value="./src" />
 	<property name="builddir" value="./build" />
@@ -20,7 +20,7 @@
 		</fileset>
 	</path>
 
-	<!-- Compile cohort -->
+	<!-- Compile constellation tests -->
 	<target name="compile">
 		<mkdir dir="${distdir}" />
 		<mkdir dir="${builddir}" />
@@ -29,7 +29,6 @@
                        srcdir="${srcdir}" 
                        target="1.6" 
                        debug="true" 
-                       includes="test/fib/*.java" 
                        classpathref="default.classpath" 
                        includeantruntime="false"/>
 
@@ -48,8 +47,8 @@
 		<delete failonerror="false" file="${zip}" />
 
 		<zip destfile="${zip}">
-			<zipfileset dir="." prefix="cohort-tests-${version}" includes="external/**,jars/**,*.properties,*.example,notices/**,README.txt,INSTALL.txt,LICENSE.txt,javadoc/**" />
-			<zipfileset dir="." prefix="cohort-tests-${version}" filemode="755" includes="bin/**" />
+			<zipfileset dir="." prefix="constellation-tests-${version}" includes="external/**,jars/**,*.properties,*.example,notices/**,README.txt,INSTALL.txt,LICENSE.txt,javadoc/**" />
+			<zipfileset dir="." prefix="constellation-tests-${version}" filemode="755" includes="bin/**" />
 		</zip>
 	</target>
 
@@ -57,8 +56,8 @@
 		<delete failonerror="false" file="${src-zip}" />
 
 		<zip destfile="${src-zip}">
-			<zipfileset dir="." prefix="cohort-tests-${version}" includes="src/**,external/**,jars/**,*.properties,*.example,notices/**,README.txt,INSTALL.txt,LICENSE.txt,javadoc/**,build.xml" />
-			<zipfileset dir="." prefix="cohort-tests-${version}" filemode="755" includes="bin/**" />
+			<zipfileset dir="." prefix="constellation-tests-${version}" includes="src/**,external/**,jars/**,*.properties,*.example,notices/**,README.txt,INSTALL.txt,LICENSE.txt,javadoc/**,build.xml" />
+			<zipfileset dir="." prefix="constellation-tests-${version}" filemode="755" includes="bin/**" />
 		</zip>
 	</target>
 

@@ -5,11 +5,11 @@ import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
-import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
@@ -37,7 +37,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
     public DivideAndConquerWithContextPenalty(ActivityIdentifier parent, 
             int branch, int depth, int sleep, int penalty, ActivityContext c) {
       
-        super(c);
+        super(c, true);
        
       //  System.out.println("Creating job with Context " + c);
         
@@ -90,11 +90,10 @@ public class DivideAndConquerWithContextPenalty extends Activity {
         } 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 
-        took += ((MessageEvent<Long>) e).message;
+        took += (Long)((MessageEvent)e).message;
 
         merged++;
 
@@ -107,7 +106,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        executor.send(identifier(), parent, took);        
+        executor.send(new MessageEvent(identifier(), parent, took));        
    
         System.out.println("Finished job");
     }
@@ -180,7 +179,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                 }   
             } 
             
-            Constellation cn = ConstellationFactory.createCohort(new SimpleExecutor(context));            
+            Constellation cn = ConstellationFactory.createConstellation(new SimpleExecutor(context, StealStrategy.SMALLEST, StealStrategy.BIGGEST));            
             cn.activate();
             
             if (cn.isMaster()) { 
@@ -209,7 +208,7 @@ public class DivideAndConquerWithContextPenalty extends Activity {
                         a.identifier(), branch, depth, sleep, penalty,
                         new UnitActivityContext("Even")));
 
-                long result = ((MessageEvent<Long>)a.waitForEvent()).message;
+                long result = (Long)((MessageEvent)a.waitForEvent()).message;
 
                 long end = System.currentTimeMillis();
 

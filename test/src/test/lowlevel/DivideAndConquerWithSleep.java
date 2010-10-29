@@ -6,8 +6,11 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.MessageEvent;
+import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
+import ibis.constellation.StealStrategy;
 import ibis.constellation.context.UnitActivityContext;
+import ibis.constellation.context.UnitWorkerContext;
 
 public class DivideAndConquerWithSleep extends Activity {
 
@@ -30,7 +33,7 @@ public class DivideAndConquerWithSleep extends Activity {
 
     public DivideAndConquerWithSleep(ActivityIdentifier parent, int branch, 
             int depth, int load) {
-        super(UnitActivityContext.DEFAULT);
+        super(UnitActivityContext.DEFAULT, true);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
@@ -60,11 +63,10 @@ public class DivideAndConquerWithSleep extends Activity {
         } 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 
-        count += ((MessageEvent<Long>) e).message;
+        count += (Long)((MessageEvent) e).message;
 
         merged++;
 
@@ -77,7 +79,7 @@ public class DivideAndConquerWithSleep extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        executor.send(identifier(), parent, count);        
+        executor.send(new MessageEvent(identifier(), parent, count));        
     }
 
     public String toString() { 
@@ -90,9 +92,9 @@ public class DivideAndConquerWithSleep extends Activity {
         try {
             long start = System.currentTimeMillis();
 
-            Constellation cohort = ConstellationFactory.createCohort();
+            Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
         
-            if (cohort.isMaster()) { 
+            if (constellation.isMaster()) { 
 
                 int branch = Integer.parseInt(args[0]);
                 int depth =  Integer.parseInt(args[1]);
@@ -114,13 +116,13 @@ public class DivideAndConquerWithSleep extends Activity {
 
                 SingleEventCollector a = new SingleEventCollector();
 
-                cohort.submit(a);
-                cohort.submit(new DivideAndConquerWithSleep(a.identifier(), branch, 
+                constellation.submit(a);
+                constellation.submit(new DivideAndConquerWithSleep(a.identifier(), branch, 
                         depth, load));
                 
-                cohort.activate();
+                constellation.activate();
 
-                long result = ((MessageEvent<Long>)a.waitForEvent()).message;
+                long result = (Long)((MessageEvent)a.waitForEvent()).message;
 
                 long end = System.currentTimeMillis();
 
@@ -134,7 +136,7 @@ public class DivideAndConquerWithSleep extends Activity {
 
             }
             
-            cohort.done();
+            constellation.done();
         
         } catch (Exception e) {
             System.err.println("Oops: " + e);
