@@ -45,6 +45,8 @@ public class DistributedConstellation {
 
     private final ConstellationLogger logger;
 
+    private final DeliveryThread delivery;
+    
     private WorkerContext myContext;
 
     private long stealReplyDeadLine;
@@ -55,6 +57,7 @@ public class DistributedConstellation {
 
     private final long start;
    
+    
     private final Facade facade = new Facade();
     
     private class Facade implements Constellation {
@@ -170,6 +173,9 @@ public class DistributedConstellation {
 
         logger = ConstellationLogger.getLogger(DistributedConstellation.class, identifier);
 
+        delivery = new DeliveryThread(this);
+        delivery.start();
+        
         start = System.currentTimeMillis();
 
         if (true) { 
@@ -415,24 +421,32 @@ public class DistributedConstellation {
         logger.fixme("D STEAL REQUEST unknown stealing strategy " + stealing);
     }
     
-    void handleApplicationMessage(EventMessage m) { 
+    boolean handleApplicationMessage(EventMessage m, boolean enqueueOnFail) { 
 
         // This is triggered as a result of someone in our constellation sending 
-    	// a message (bottom up). 
+    	// a message (bottom up) or as a result of a incoming remote message 
+    	// being forwarded to some other constellation (when an activity is exported).
 
     	ConstellationIdentifier target = m.target;
     	
     	// Sanity check
     	if (cidFactory.isLocal(target)) { 
     		logger.error("INTERNAL ERROR: received message for local constellation (dropped message!)");
-    		return;
+    		return true;
     	}
     	
     	if (pool.forward(m)) { 
-    		return;
+    		return true;
     	} 
     
-		logger.error("ERROR: failed to forward message to remote constellation " + target + " (dropped message!)");
+    	if (enqueueOnFail) { 
+    		logger.error("ERROR: failed to forward message to remote constellation " + target + " (will retry!)");
+    		delivery.enqueue(m);
+    		return true;
+    	} 
+    	
+		logger.error("ERROR: failed to forward message to remote constellation " + target + " (may retry)");
+		return false;
     }
 
     boolean handleStealReply(StealReply m) {

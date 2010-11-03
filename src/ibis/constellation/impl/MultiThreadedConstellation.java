@@ -18,6 +18,7 @@ import ibis.constellation.extra.SimpleConstellationIdentifierFactory;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Random;
 
@@ -50,7 +51,7 @@ public class MultiThreadedConstellation {
     private long blockSize = 1000000;
     
     private final ConstellationLogger logger;
-            
+    
     class Facade implements Constellation {
 
 		@Override
@@ -282,7 +283,7 @@ FIXME REMOVE!!
     		
     		System.out.println("Remote send of event to activity " + m.event.target + " at " + m.target);
     		
-    		parent.handleApplicationMessage(m);
+    		parent.handleApplicationMessage(m, true);
     	}
     }    	
     
@@ -645,7 +646,7 @@ FIXME REMOVE!!
     	} else { 
     		// it has been exported
     		System.out.println("Forwarding message to new location (exported): " + cid);
-    		parent.handleApplicationMessage(am);
+    		parent.handleApplicationMessage(am, true);
     	}
     }
 }

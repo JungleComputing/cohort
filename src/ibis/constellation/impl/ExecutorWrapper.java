@@ -144,14 +144,14 @@ public class ExecutorWrapper implements Constellation {
         size = restricted.size();
 
         if (size > 0) { 
-            return restricted.dequeue(true);
+            return restricted.steal(myContext, localStealStrategy);
         }
 
         // Finally, see if there are any fresh activities.
         size = fresh.size();
 
         if (size > 0) { 
-            return fresh.dequeue(true);
+            return fresh.steal(myContext, localStealStrategy);
         }
 
         return null;

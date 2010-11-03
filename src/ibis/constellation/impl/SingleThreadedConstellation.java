@@ -524,7 +524,7 @@ public class SingleThreadedConstellation extends Thread {
     			wrapper.addPrivateActivity(ar);
     		}
 
-    	//	System.out.println("ST: " + identifier + " Pushed from relocated");
+    		System.out.println("ST: " + identifier + " Pushed from relocated");
     		return true;
 		}
 		
@@ -534,7 +534,7 @@ public class SingleThreadedConstellation extends Thread {
     		if (ar != null) { 
     			lookup.remove(ar.identifier());
     			wrapper.addPrivateActivity(ar);
-    	//		System.out.println("ST: " + identifier + " Pushed from restricted");
+    			System.out.println("ST: " + identifier + " Pushed from restricted");
         		return true;
     		}
     	}
@@ -545,7 +545,7 @@ public class SingleThreadedConstellation extends Thread {
     		if (ar != null) { 
     			lookup.remove(ar.identifier());
     			wrapper.addPrivateActivity(ar);
-    	//		System.out.println("ST: " + identifier + " Pushed from stolen");
+    			System.out.println("ST: " + identifier + " Pushed from stolen");
     			return true;
     		}
     	}
@@ -556,7 +556,7 @@ public class SingleThreadedConstellation extends Thread {
     		if (ar != null) { 
     			lookup.remove(ar.identifier());
     			wrapper.addPrivateActivity(ar);
-    	//	    System.out.println("ST: " + identifier + " Pushed from fresh");
+    		    System.out.println("ST: " + identifier + " Pushed from fresh");
     			return true;
     		}
     	}
