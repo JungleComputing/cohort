@@ -6,7 +6,6 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
-import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
 import ibis.constellation.StealStrategy;
@@ -63,7 +62,7 @@ public class Fibonacci extends Activity {
     		System.out.println("fib " + input + " got event.");
     	}
     	
-    	output += (Integer)(((MessageEvent) e).message);
+    	output += (Integer) e.data;
         merged++;
       
         if (merged < 2) { 
@@ -81,7 +80,7 @@ public class Fibonacci extends Activity {
     	}
     	
         if (parent != null) {
-        	executor.send(new MessageEvent(identifier(), parent, output));
+        	executor.send(new Event(identifier(), parent, output));
         }
     }
     
@@ -118,7 +117,7 @@ public class Fibonacci extends Activity {
             ActivityIdentifier aid = c.submit(a);
             c.submit(new Fibonacci(aid, input, true));
 
-            int result = (Integer)((MessageEvent)a.waitForEvent()).message;
+            int result = (Integer) a.waitForEvent().data;
 
             c.done();
 

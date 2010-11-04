@@ -1,7 +1,7 @@
 package test.pipeline.inbalance;
 
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.MessageEvent;
+import ibis.constellation.Event;
 import ibis.constellation.SimpleActivity;
 import ibis.constellation.context.UnitActivityContext;
 
@@ -31,6 +31,6 @@ public class Stage3 extends SimpleActivity {
             }
         }
         
-        executor.send(new MessageEvent(identifier(), parent, new Data(data.index, 3, data.data)));
+        executor.send(new Event(identifier(), parent, new Data(data.index, 3, data.data)));
     }
 }

@@ -3,7 +3,6 @@ package test.spawntest;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
-import ibis.constellation.MessageEvent;
 import ibis.constellation.context.UnitActivityContext;
 
 public class SingleTest extends Activity {
@@ -36,7 +35,7 @@ public class SingleTest extends Activity {
         replies++;
         
         if (replies == spawns) { 
-            executor.send(new MessageEvent(identifier(), parent, null));
+            executor.send(new Event(identifier(), parent, null));
             finish();
         } else { 
             suspend();

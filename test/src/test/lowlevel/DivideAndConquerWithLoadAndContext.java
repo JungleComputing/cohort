@@ -7,7 +7,6 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
-import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
 import ibis.constellation.StealStrategy;
@@ -84,7 +83,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
 	@Override
 	public void process(Event e) throws Exception {
 
-		took += (Long)((MessageEvent) e).message;
+		took += (Long) e.data;
 
 		merged++;
 
@@ -97,7 +96,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
 
 	@Override
 	public void cleanup() throws Exception {
-		executor.send(new MessageEvent(identifier(), parent, took));        
+		executor.send(new Event(identifier(), parent, took));        
 	}
 
 	public String toString() { 
@@ -154,7 +153,7 @@ public class DivideAndConquerWithLoadAndContext extends Activity {
 				c.submit(a);
 				c.submit(new DivideAndConquerWithLoadAndContext(new UnitActivityContext("EVEN", depth), a.identifier(), branch, depth, load));
 
-				long result = (Long) ((MessageEvent)a.waitForEvent()).message;
+				long result = (Long) a.waitForEvent().data;
 
 				long end = System.currentTimeMillis();
 

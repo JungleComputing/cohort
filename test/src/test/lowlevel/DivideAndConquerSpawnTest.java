@@ -5,7 +5,6 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
-import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
 import ibis.constellation.StealStrategy;
@@ -56,7 +55,7 @@ public class DivideAndConquerSpawnTest extends Activity {
             spawnAll();            
             suspend();            
         } else {
-            executor.send(new MessageEvent(identifier(), parent, 1));
+            executor.send(new Event(identifier(), parent, 1));
             finish();
         }                        
     }

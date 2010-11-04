@@ -1,7 +1,7 @@
 package test.spawntest;
 
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.MessageEvent;
+import ibis.constellation.Event;
 import ibis.constellation.SimpleActivity;
 import ibis.constellation.context.UnitActivityContext;
 
@@ -16,7 +16,7 @@ public class Dummy extends SimpleActivity {
 
 	@Override
 	public void simpleActivity() throws Exception {
-        executor.send(new MessageEvent(identifier(), parent, null));
+        executor.send(new Event(identifier(), parent, null));
         finish();
 	}
 

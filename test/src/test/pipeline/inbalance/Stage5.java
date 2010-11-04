@@ -3,7 +3,6 @@ package test.pipeline.inbalance;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
-import ibis.constellation.MessageEvent;
 import ibis.constellation.context.UnitActivityContext;
 
 public class Stage5 extends Activity {
@@ -41,7 +40,7 @@ public class Stage5 extends Activity {
         
         System.out.println("Finished pipeline: " + result.index);
         
-        executor.send(new MessageEvent(identifier(), parent, result));
+        executor.send(new Event(identifier(), parent, result));
     }
   
     private Data processData() { 
@@ -61,7 +60,7 @@ public class Stage5 extends Activity {
     @Override
     public void process(Event e) throws Exception {
 
-        Data data = (Data)((MessageEvent) e).message;
+        Data data = (Data) e.data;
        
         if (data.stage == 3) { 
             result3 = data;

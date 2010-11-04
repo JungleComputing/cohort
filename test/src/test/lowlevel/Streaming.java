@@ -6,7 +6,6 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
-import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
 import ibis.constellation.StealStrategy;
@@ -55,7 +54,7 @@ public class Streaming extends Activity {
     public void process(Event e) throws Exception {
 
         if (next != null) { 
-            executor.send(new MessageEvent(identifier(), next, ((MessageEvent) e).message));
+            executor.send(new Event(identifier(), next, e.data));
         }
         
         dataSeen++;
@@ -72,7 +71,7 @@ public class Streaming extends Activity {
 
         if (next == null) { 
             // only the last replies!
-            executor.send(new MessageEvent(identifier(), root, dataSeen));
+            executor.send(new Event(identifier(), root, dataSeen));
         }
     }
     
@@ -111,10 +110,10 @@ public class Streaming extends Activity {
         	ActivityIdentifier aid = c.submit(new Streaming(a.identifier(), length, 0, data));
 
         	for (int i=0;i<data;i++) { 
-        		c.send(new MessageEvent(a.identifier(), aid, i));
+        		c.send(new Event(a.identifier(), aid, i));
         	}
 
-        	long result = (Long) ((MessageEvent)a.waitForEvent()).message;
+        	long result = (Long) a.waitForEvent().data;
 
         	long end = System.currentTimeMillis();
 

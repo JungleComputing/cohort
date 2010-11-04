@@ -6,7 +6,6 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
-import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
 import ibis.constellation.StealStrategy;
@@ -55,7 +54,7 @@ public class DivideAndConquerClean extends Activity {
     @Override
     public void process(Event e) throws Exception {
         
-        count += (Long)((MessageEvent) e).message;
+        count += (Long) e.data;
 
         merged++;
       
@@ -68,7 +67,7 @@ public class DivideAndConquerClean extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        executor.send(new MessageEvent(identifier(), parent, count));        
+        executor.send(new Event(identifier(), parent, count));        
     }
     
     public String toString() { 
@@ -112,7 +111,7 @@ public class DivideAndConquerClean extends Activity {
         	c.submit(a);
         	c.submit(new DivideAndConquerClean(a.identifier(), branch, depth));
 
-        	long result = (Long) ((MessageEvent)a.waitForEvent()).message;
+        	long result = (Long) a.waitForEvent().data;
 
         	long end = System.currentTimeMillis();
 

@@ -5,7 +5,6 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
-import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
 import ibis.constellation.StealStrategy;
@@ -55,7 +54,7 @@ public class Series extends Activity {
         
         if (count == length) { 
             // Only the last job send a reply!
-            executor.send(new MessageEvent(identifier(), root, count));
+            executor.send(new Event(identifier(), root, count));
         }
     }
     
@@ -81,7 +80,7 @@ public class Series extends Activity {
         	c.submit(a);
         	c.submit(new Series(a.identifier(), length, 0));
 
-        	long result = (Long) ((MessageEvent)a.waitForEvent()).message;
+        	long result = (Long) a.waitForEvent().data;
 
         	long end = System.currentTimeMillis();
 

@@ -2,7 +2,6 @@ package ibis.constellation.impl;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
-import ibis.constellation.CancelEvent;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
@@ -82,8 +81,10 @@ public class DistributedConstellation {
 
 		@Override
 		public void cancel(ActivityIdentifier aid) {
-			performCancel(aid);
-            send(new CancelEvent(aid));
+			// ignored!
+			
+			//performCancel(aid);
+            //send(new CancelEvent(aid));
 		}
 
 		@Override
