@@ -5,6 +5,7 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
+import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
@@ -33,7 +34,7 @@ public class DivideAndConquerWithSleep extends Activity {
 
     public DivideAndConquerWithSleep(ActivityIdentifier parent, int branch, 
             int depth, int load) {
-        super(UnitActivityContext.DEFAULT, true);
+        super(new UnitActivityContext("DC", depth), depth > 0);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
@@ -63,6 +64,7 @@ public class DivideAndConquerWithSleep extends Activity {
         } 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 
@@ -92,14 +94,22 @@ public class DivideAndConquerWithSleep extends Activity {
         try {
             long start = System.currentTimeMillis();
 
-            Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
-        
-            if (constellation.isMaster()) { 
-
-                int branch = Integer.parseInt(args[0]);
-                int depth =  Integer.parseInt(args[1]);
-                int load =  Integer.parseInt(args[2]);
-                int workers = Integer.parseInt(args[3]);
+            int branch = Integer.parseInt(args[0]);
+            int depth =  Integer.parseInt(args[1]);
+            int load =  Integer.parseInt(args[2]);
+            int nodes = Integer.parseInt(args[3]);
+            int executors = Integer.parseInt(args[4]);
+            
+            Executor [] e = new Executor[executors];
+            
+            for (int i=0;i<executors;i++) { 
+                e[i] = new SimpleExecutor(new UnitWorkerContext("DC"), StealStrategy.SMALLEST, StealStrategy.BIGGEST);
+            }
+            
+            Constellation c = ConstellationFactory.createConstellation(e);
+            c.activate();
+            
+            if (c.isMaster()) { 
 
                 long count = 0;
 
@@ -107,22 +117,19 @@ public class DivideAndConquerWithSleep extends Activity {
                     count += Math.pow(branch, i);
                 }
 
-                double time = (load * Math.pow(branch, depth)) / (1000*workers); 
+                double time = (load * Math.pow(branch, depth)) / (1000*(nodes*executors)); 
 
                 System.out.println("Running D&C with branch factor " + branch + 
                         " and depth " + depth + " load " + load + 
                         " (expected jobs: " + count + ", expected time: " + 
                         time + " sec.)");
 
-                SingleEventCollector a = new SingleEventCollector();
+                SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("DC"));
 
-                constellation.submit(a);
-                constellation.submit(new DivideAndConquerWithSleep(a.identifier(), branch, 
-                        depth, load));
+                c.submit(a);
+                c.submit(new DivideAndConquerWithSleep(a.identifier(), branch, depth, load));
                 
-                constellation.activate();
-
-                long result = (Long)((MessageEvent)a.waitForEvent()).message;
+                long result = (Long) ((MessageEvent)a.waitForEvent()).message;
 
                 long end = System.currentTimeMillis();
 
@@ -136,7 +143,7 @@ public class DivideAndConquerWithSleep extends Activity {
 
             }
             
-            constellation.done();
+            c.done();
         
         } catch (Exception e) {
             System.err.println("Oops: " + e);

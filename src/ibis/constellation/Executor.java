@@ -13,6 +13,7 @@ public abstract class Executor implements Serializable {
 	private final WorkerContext context;
 	
 	private final StealStrategy localStealStrategy;
+	private final StealStrategy constellationStealStrategy;
 	private final StealStrategy remoteStealStrategy;
 	
 	private final StealPool myPool;
@@ -21,7 +22,8 @@ public abstract class Executor implements Serializable {
 	private ExecutorWrapper owner = null;
 
 	protected Executor(StealPool myPool, StealPool stealsFrom, WorkerContext context, 
-			StealStrategy localStealStrategy, StealStrategy remoteStealStrategy) { 
+			StealStrategy localStealStrategy, StealStrategy constellationStealStrategy, 
+			StealStrategy remoteStealStrategy) { 
 
 		if (myPool == null) { 
 			this.myPool = StealPool.NONE;
@@ -47,6 +49,12 @@ public abstract class Executor implements Serializable {
 			this.localStealStrategy = localStealStrategy;
 		}
 		
+		if (constellationStealStrategy == null) { 
+			this.constellationStealStrategy = StealStrategy.ANY;
+		} else { 
+			this.constellationStealStrategy = constellationStealStrategy;
+		}
+				
 		if (remoteStealStrategy == null) { 
 			this.remoteStealStrategy = StealStrategy.ANY;
 		} else { 
@@ -56,7 +64,7 @@ public abstract class Executor implements Serializable {
 
 	protected Executor() { 
 		this(StealPool.WORLD, StealPool.WORLD, UnitWorkerContext.DEFAULT, 
-				StealStrategy.ANY, StealStrategy.ANY);
+				StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
 	}
 
 	protected boolean processActivity() { 
@@ -69,6 +77,10 @@ public abstract class Executor implements Serializable {
 
 	public StealStrategy getLocalStealStrategy() { 
 		return localStealStrategy;
+	}
+	
+	public StealStrategy getConstellationStealStrategy() { 
+		return constellationStealStrategy;
 	}
 
 	public StealStrategy getRemoteStealStrategy() { 

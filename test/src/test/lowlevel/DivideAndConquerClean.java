@@ -32,7 +32,7 @@ public class DivideAndConquerClean extends Activity {
     private long count = 1;
     
     public DivideAndConquerClean(ActivityIdentifier parent, int branch, int depth) {
-        super(UnitActivityContext.DEFAULT, true);
+        super(new UnitActivityContext("DC", depth), depth > 0);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
@@ -51,6 +51,7 @@ public class DivideAndConquerClean extends Activity {
         } 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
         
@@ -67,7 +68,7 @@ public class DivideAndConquerClean extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-        executor.send(new MessageEvent(identifier(), parent, count));
+        executor.send(new MessageEvent(identifier(), parent, count));        
     }
     
     public String toString() { 
@@ -86,12 +87,11 @@ public class DivideAndConquerClean extends Activity {
         Executor [] e = new Executor[executors];
         
         for (int i=0;i<executors;i++) { 
-        	// Hmmm... this is not what we want. We want small jobs locally, and big jobs remote....
-            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT"), StealStrategy.SMALLEST, StealStrategy.BIGGEST);
+            e[i] = new SimpleExecutor(new UnitWorkerContext("DC"), StealStrategy.SMALLEST, StealStrategy.BIGGEST);
         }
         
-        Constellation constellation = ConstellationFactory.createConstellation(e);
-        constellation.activate();
+        Constellation c = ConstellationFactory.createConstellation(e);
+        c.activate();
         
         int branch = Integer.parseInt(args[index++]);
         int depth =  Integer.parseInt(args[index++]);
@@ -102,32 +102,34 @@ public class DivideAndConquerClean extends Activity {
            count += Math.pow(branch, i);
         }
         
-        System.out.println("Running D&C with branch factor " + branch + " and depth " 
-                + depth + " (expected jobs: " + count + ")");
+        if (c.isMaster()) { 
+
+        	System.out.println("Running D&C with branch factor " + branch + " and depth " 
+        			+ depth + " (expected jobs: " + count + ")");
+
+        	SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("DC"));
+
+        	c.submit(a);
+        	c.submit(new DivideAndConquerClean(a.identifier(), branch, depth));
+
+        	long result = (Long) ((MessageEvent)a.waitForEvent()).message;
+
+        	long end = System.currentTimeMillis();
+
+        	double nsPerJob = (1000.0*1000.0 * (end-start)) / count;
+
+        	String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
+
+        	System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
+        			correct + " total time = " + (end-start) + " job time = " + nsPerJob + " nsec/job");
+        }
         
-        SingleEventCollector a = new SingleEventCollector();
-
-        constellation.submit(a);
-        constellation.submit(new DivideAndConquerClean(a.identifier(), branch, depth));
-
-        long result = (Long)((MessageEvent)a.waitForEvent()).message;
-
-        long end = System.currentTimeMillis();
-
-        double nsPerJob = (1000.0*1000.0 * (end-start)) / count;
-        
-        String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
-        
-        System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
-                correct + " total time = " + (end-start) + " job time = " + nsPerJob + " nsec/job");
-
-        constellation.done();
-
+        c.done();
     }
 
     @Override
     public void cancel() throws Exception {
-        // TODO Auto-generated method stub
+        // Not used        
     }
 
 

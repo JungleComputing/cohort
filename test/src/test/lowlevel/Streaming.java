@@ -5,6 +5,7 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
+import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
@@ -32,7 +33,7 @@ public class Streaming extends Activity {
     private int dataSeen;
     
     public Streaming(ActivityIdentifier root, int length, int index, int totaldata) {
-        super(UnitActivityContext.DEFAULT, true);
+        super(new UnitActivityContext("S", index), true);
         this.root = root;
         this.length = length;
         this.index = index;
@@ -83,39 +84,50 @@ public class Streaming extends Activity {
 
         long start = System.currentTimeMillis();
 
-        Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
-        constellation.activate();
         int index = 0;
-         
+        
         int length = Integer.parseInt(args[index++]);
         int data = Integer.parseInt(args[index++]);
+        int executors = Integer.parseInt(args[index++]);
         
         System.out.println("Running Streaming with series length " + length 
-                + " and " + data + " messages");
+                + " and " + data + " messages " + executors + " Executors");
         
-        SingleEventCollector a = new SingleEventCollector();
-        constellation.submit(a);
+        Executor [] e = new Executor[executors];
         
-        Streaming s = new Streaming(a.identifier(), length, 0, data);
-        constellation.submit(s);
-
-        for (int i=0;i<data;i++) { 
-            constellation.send(new MessageEvent(a.identifier(), s.identifier(), i));
+        for (int i=0;i<executors;i++) { 
+            e[i] = new SimpleExecutor(new UnitWorkerContext("S"), StealStrategy.SMALLEST, StealStrategy.BIGGEST);
         }
         
-        long result = (Integer)((MessageEvent)a.waitForEvent()).message;
-
-        long end = System.currentTimeMillis();
-
-        double nsPerJob = (1000.0*1000.0 * (end-start)) / (data*length);
+        Constellation c = ConstellationFactory.createConstellation(e);
+        c.activate();
         
-        String correct = (result == data) ? " (CORRECT)" : " (WRONG!)";
-        
-        System.out.println("Series(" + length + ", " + data + ") = " + result + 
-                correct + " total time = " + (end-start) + 
-                " job time = " + nsPerJob + " nsec/job");
+        if (c.isMaster()) { 
 
-        constellation.done();
+        	SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("S"));
+
+        	c.submit(a);
+
+        	ActivityIdentifier aid = c.submit(new Streaming(a.identifier(), length, 0, data));
+
+        	for (int i=0;i<data;i++) { 
+        		c.send(new MessageEvent(a.identifier(), aid, i));
+        	}
+
+        	long result = (Long) ((MessageEvent)a.waitForEvent()).message;
+
+        	long end = System.currentTimeMillis();
+
+        	double nsPerJob = (1000.0*1000.0 * (end-start)) / (data*length);
+
+        	String correct = (result == data) ? " (CORRECT)" : " (WRONG!)";
+
+        	System.out.println("Series(" + length + ", " + data + ") = " + result + 
+        			correct + " total time = " + (end-start) + 
+        			" job time = " + nsPerJob + " nsec/job");
+        }
+        
+        c.done();
 
     }
 

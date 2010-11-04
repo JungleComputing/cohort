@@ -15,10 +15,8 @@ import ibis.constellation.context.UnitWorkerContext;
 public class DivideAndConquerSpawnTest extends Activity {
 
     /*
-     * This is the cohort equivalent of the SpawnOverhead test in Satin
+     * This is the Constellation equivalent of the SpawnOverhead test in Satin
      */
-    
-    
     private static final long serialVersionUID = 3379531054395374984L;
     
     private final ActivityIdentifier parent;
@@ -37,7 +35,7 @@ public class DivideAndConquerSpawnTest extends Activity {
     private long start;
     
     public DivideAndConquerSpawnTest(ActivityIdentifier parent, boolean spawn) {
-        super(UnitActivityContext.DEFAULT, true);
+        super(new UnitActivityContext("DC"), spawn);
         this.parent = parent;
         this.spawn = spawn;
     }
@@ -63,6 +61,7 @@ public class DivideAndConquerSpawnTest extends Activity {
         }                        
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
         
@@ -102,7 +101,6 @@ public class DivideAndConquerSpawnTest extends Activity {
         }       
             
         // We have finished completely
-        executor.send(new MessageEvent(identifier(), parent, 1L));
         finish();
     }
 
@@ -113,28 +111,26 @@ public class DivideAndConquerSpawnTest extends Activity {
     
     public static void main(String [] args) throws Exception { 
 
-      //  Cohort cohort = new Sequential();
-
-        Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
-        constellation.activate();
+    	Constellation c = ConstellationFactory.createConstellation(new SimpleExecutor(new UnitWorkerContext("DC"), StealStrategy.ANY));
+    	c.activate();
         
-        int index = 0;
-        
-        SingleEventCollector a = new SingleEventCollector();
+    	if (c.isMaster()) { 
 
-        constellation.submit(a);
-        constellation.submit(new DivideAndConquerSpawnTest(a.identifier(), true));
+    		SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("DC"));
 
-        long result = (Long)((MessageEvent)a.waitForEvent()).message;
-     
-        constellation.done();
+    		c.submit(a);
+    		c.submit(new DivideAndConquerSpawnTest(a.identifier(), true));
+
+    		a.waitForEvent();
+    		
+    	}     
+        c.done();
 
     }
 
     @Override
     public void cancel() throws Exception {
-        // TODO Auto-generated method stub
-        
+        // not used        
     }
 }
 

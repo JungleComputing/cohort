@@ -13,7 +13,7 @@ public class Stage1 extends SimpleActivity {
     
     public Stage1(ActivityIdentifier parent, long sleep, Data data) { 
         
-        super(parent, new UnitActivityContext("A"));
+        super(parent, new UnitActivityContext("A", data.index));
         
         this.sleep = sleep;
         this.data = data;

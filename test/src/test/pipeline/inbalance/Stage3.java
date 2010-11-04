@@ -14,8 +14,8 @@ public class Stage3 extends SimpleActivity {
     
     public Stage3(ActivityIdentifier target, long sleep, Data data) { 
         
-        super(target, new UnitActivityContext("B"));
-  
+        super(target, new UnitActivityContext("X", data.index));
+        
         this.sleep = sleep;
         this.data = data;
     }

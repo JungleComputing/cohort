@@ -13,7 +13,7 @@ public class Stage2 extends SimpleActivity {
     
     public Stage2(ActivityIdentifier parent, long sleep, Data data) { 
         
-        super(parent, new UnitActivityContext("A"));
+        super(parent, new UnitActivityContext("B", data.index));
         this.sleep = sleep;
         this.data = data;
     }
@@ -30,7 +30,7 @@ public class Stage2 extends SimpleActivity {
         }
       
         // Submit stage5 first, as it it used to gather the results from stage3&4 
-        ActivityIdentifier id = executor.submit(new Stage5(parent, 100));
+        ActivityIdentifier id = executor.submit(new Stage5(parent, data.index, 100));
         
         executor.submit(new Stage3(id, 1000, data));       
         executor.submit(new Stage4(id, 600, data));       

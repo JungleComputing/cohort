@@ -17,7 +17,7 @@ public class Pipeline extends SimpleActivity {
     
     public Pipeline(ActivityIdentifier parent, int index, int current, int last, long sleep, Object data) { 
         
-        super(parent, new UnitActivityContext("c" + current));
+        super(parent, new UnitActivityContext("X", current));
         
         this.index = index;
         this.current = current;

@@ -5,6 +5,7 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
+import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
@@ -28,12 +29,12 @@ public class DivideAndConquerWithLoad extends Activity {
     private final int depth;
     private final int load;
 
+    private long took = 0;    
     private int merged = 0;    
-    private long took = 0;
     
     public DivideAndConquerWithLoad(ActivityIdentifier parent, int branch, 
             int depth, int load) {
-        super(UnitActivityContext.DEFAULT, true);
+        super(new UnitActivityContext("DC", depth), depth > 0);
         this.parent = parent;
         this.branch = branch;
         this.depth = depth;
@@ -67,6 +68,7 @@ public class DivideAndConquerWithLoad extends Activity {
         } 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 
@@ -88,20 +90,30 @@ public class DivideAndConquerWithLoad extends Activity {
 
     public String toString() { 
         return "DC(" + identifier() + ") " + branch + ", " + depth + ", " 
-            + merged + " -> " + took;
+        + merged + " -> " + took;
     }
 
     public static void main(String [] args) { 
         
-        try {        
-            Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
-            constellation.activate();
-            if (constellation.isMaster()) { 
+        try {
+            long start = System.currentTimeMillis();
 
-                int branch = Integer.parseInt(args[0]);
-                int depth =  Integer.parseInt(args[1]);
-                int load =  Integer.parseInt(args[2]);
-                int workers = Integer.parseInt(args[3]);
+            int branch = Integer.parseInt(args[0]);
+            int depth =  Integer.parseInt(args[1]);
+            int load =  Integer.parseInt(args[2]);
+            int nodes = Integer.parseInt(args[3]);
+            int executors = Integer.parseInt(args[4]);
+            
+            Executor [] e = new Executor[executors];
+            
+            for (int i=0;i<executors;i++) { 
+                e[i] = new SimpleExecutor(new UnitWorkerContext("DC"), StealStrategy.SMALLEST, StealStrategy.BIGGEST);
+            }
+            
+            Constellation c = ConstellationFactory.createConstellation(e);
+            c.activate();
+            
+            if (c.isMaster()) { 
 
                 long count = 0;
 
@@ -109,35 +121,33 @@ public class DivideAndConquerWithLoad extends Activity {
                     count += Math.pow(branch, i);
                 }
 
-                double time = (load * Math.pow(branch, depth)) / (1000*workers); 
+                double time = (load * Math.pow(branch, depth)) / (1000*(nodes*executors)); 
 
                 System.out.println("Running D&C with branch factor " + branch + 
                         " and depth " + depth + " load " + load + 
                         " (expected jobs: " + count + ", expected time: " + 
                         time + " sec.)");
 
-                long start = System.currentTimeMillis();
+                SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("DC"));
+
+                c.submit(a);
+                c.submit(new DivideAndConquerWithLoad(a.identifier(), branch, depth, load));
                 
-                SingleEventCollector a = new SingleEventCollector();
-
-                constellation.submit(a);
-                constellation.submit(new DivideAndConquerWithLoad(a.identifier(), branch, 
-                        depth, load));
-
-                long result = (Long)((MessageEvent)a.waitForEvent()).message;
+                long result = (Long) ((MessageEvent)a.waitForEvent()).message;
 
                 long end = System.currentTimeMillis();
 
-                double msPerJob = ((double)(end-start)) / count;
+                double nsPerJob = (1000.0*1000.0 * (end-start)) / count;
 
-                System.out.println("D&C(" + branch + ", " + depth + ") " 
-                        + " wall clock time = " + (end-start) 
-                        + " processing time = " + result  
-                        + " avg job time = " + msPerJob + " msec/job");
+                String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
+
+                System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
+                        correct + " total time = " + (end-start) + " job time = " + 
+                        nsPerJob + " nsec/job");
 
             }
             
-            constellation.done();
+            c.done();
         
         } catch (Exception e) {
             System.err.println("Oops: " + e);
@@ -149,9 +159,9 @@ public class DivideAndConquerWithLoad extends Activity {
 
     @Override
     public void cancel() throws Exception {
-        // TODO Auto-generated method stub
-
+        // not used
     }
 
 
 }
+

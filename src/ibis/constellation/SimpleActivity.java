@@ -2,6 +2,8 @@ package ibis.constellation;
 
 public abstract class SimpleActivity extends Activity {
     
+    private static final long serialVersionUID = 1937343247220443457L;
+	
     protected ActivityIdentifier parent;
     
     protected SimpleActivity(ActivityIdentifier parent, ActivityContext context) {

@@ -6,6 +6,7 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.Event;
+import ibis.constellation.Executor;
 import ibis.constellation.MessageEvent;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
@@ -16,177 +17,170 @@ import ibis.constellation.context.UnitWorkerContext;
 
 public class DivideAndConquerWithLoadAndContext extends Activity {
 
-    /*
-     * This is a simple divide and conquer example. The user can specify the branch factor 
-     * and tree depth on the command line. All the application does is calculate the sum of 
-     * the number of nodes in each subtree. 
-     */
+	/*
+	 * This is a simple divide and conquer example. The user can specify the branch factor 
+	 * and tree depth on the command line. All the application does is calculate the sum of 
+	 * the number of nodes in each subtree. 
+	 */
 
-    private static final long serialVersionUID = 3379531054395374984L;
+	private static final long serialVersionUID = 3379531054395374984L;
 
-    private final ActivityIdentifier parent;
+	private final ActivityIdentifier parent;
 
-    private final int branch;
-    private final int depth;
-    private final int load;
+	private final int branch;
+	private final int depth;
+	private final int load;
 
-    private int merged = 0;    
-    private long took = 0;
-    
-    public DivideAndConquerWithLoadAndContext(ActivityIdentifier parent, 
-            int branch, int depth, int load, ActivityContext c) {
-        super(c, true);
-       
-      //  System.out.println("Creating job with Context " + c);
-        
-        this.parent = parent;
-        this.branch = branch;
-        this.depth = depth;
-        this.load = load;
-    }
+	private long took = 0;    
+	private int merged = 0;    
 
-    @Override
-    public void initialize() throws Exception {
+	public DivideAndConquerWithLoadAndContext(ActivityContext c, ActivityIdentifier parent, int branch, 
+			int depth, int load) {
+		super(c, depth > 0);
+		this.parent = parent;
+		this.branch = branch;
+		this.depth = depth;
+		this.load = load;
+	}
 
-        if (depth == 0) {            
+	@Override
+	public void initialize() throws Exception {
 
-            if (load > 0) {
-                
-                long start = System.currentTimeMillis();
-                long time = 0;
-                
-                while (time < load) { 
-                    time = System.currentTimeMillis() - start;
-                }
-                
-                took = time;
-            }
+		if (depth == 0) {            
 
-            finish();
-        } else {
-            ActivityContext even = new UnitActivityContext("Even");
-            ActivityContext odd = new UnitActivityContext("Odd");
-            
-            for (int i=0;i<branch;i++) { 
-                ActivityContext tmp = (i % 2) == 0 ? even : odd;
-                executor.submit(new DivideAndConquerWithLoadAndContext(
-                        identifier(), branch, depth-1, load, tmp));
-            }
-            suspend();
-        } 
-    }
+			if (load > 0) {
 
-    @Override
-    public void process(Event e) throws Exception {
+				long start = System.currentTimeMillis();
+				long time = 0;
 
-        took += (Long)((MessageEvent) e).message;
+				while (time < load) { 
+					time = System.currentTimeMillis() - start;
+				}
 
-        merged++;
+				took = time;
+			}
 
-        if (merged < branch) { 
-            suspend();
-        } else { 
-            finish();
-        }
-    }
+			finish();
+		} else {
 
-    @Override
-    public void cleanup() throws Exception {
-        executor.send(new MessageEvent(identifier(), parent, took));        
-    }
+			ActivityContext even = new UnitActivityContext("Even", depth-1);
+			ActivityContext odd = new UnitActivityContext("Odd", depth-1);
 
-    public String toString() { 
-        return "DC(" + identifier() + ") " + branch + ", " + depth + ", " 
-            + merged + " -> " + took;
-    }
+			for (int i=0;i<branch;i++) { 
 
-    public static void main(String [] args) { 
-        
-        try {        
-            int branch = Integer.parseInt(args[0]);
-            int depth =  Integer.parseInt(args[1]);
-            int load =  Integer.parseInt(args[2]);
-            int workers = Integer.parseInt(args[3]);
-            
-            // NOTE: this is just a simply way to divide all machines into 
-            // two groups, "even" and "odd". This allows us to test the context 
-            // aware stealing. 
-            
-            String tmp = System.getProperty("ibis.cohort.rank");
-            
-            if (tmp == null) { 
-                System.err.println("Cannot determine machine rank!");
-                System.exit(1);
-            }
-            
-            int rank = Integer.parseInt(tmp);
+				if (i % 2 == 0) { 
+					executor.submit(new DivideAndConquerWithLoadAndContext(even, identifier(),
+							branch, depth-1, load));
+				} else { 
+					executor.submit(new DivideAndConquerWithLoadAndContext(odd, identifier(),
+							branch, depth-1, load));
+				}
+			}
+			suspend();
+		} 
+	}
 
-            WorkerContext context = null;
-            
-            if ((rank % 2) == 0) { 
-                // even
-                System.out.println("Setting context to Even");
-                context = new UnitWorkerContext("Even");
-            } else { 
-                // odd
-                System.out.println("Setting context to Odd");
-                context = new UnitWorkerContext("Odd");
-            }
-            Constellation cn = ConstellationFactory.createConstellation(new SimpleExecutor(context, StealStrategy.SMALLEST, StealStrategy.BIGGEST));            
-            cn.activate();
-            
-            if (cn.isMaster()) { 
+	@SuppressWarnings("unchecked")
+	@Override
+	public void process(Event e) throws Exception {
 
-                long count = 0;
+		took += (Long)((MessageEvent) e).message;
 
-                for (int i=0;i<=depth;i++) { 
-                    count += Math.pow(branch, i);
-                }
+		merged++;
 
-                double time = (load * Math.pow(branch, depth)) / (1000*workers); 
+		if (merged < branch) { 
+			suspend();
+		} else { 
+			finish();
+		}
+	}
 
-                System.out.println("Running D&C with branch factor " + branch + 
-                        " and depth " + depth + " load " + load + 
-                        " (expected jobs: " + count + ", expected time: " + 
-                        time + " sec.)");
+	@Override
+	public void cleanup() throws Exception {
+		executor.send(new MessageEvent(identifier(), parent, took));        
+	}
 
-                long start = System.currentTimeMillis();
-                
-                SingleEventCollector a = new SingleEventCollector();
+	public String toString() { 
+		return "DC(" + identifier() + ") " + branch + ", " + depth + ", " 
+		+ merged + " -> " + took;
+	}
 
-                cn.submit(a);
-                cn.submit(new DivideAndConquerWithLoadAndContext(
-                        a.identifier(), branch, depth, load, 
-                        new UnitActivityContext("Even")));
+	public static void main(String [] args) { 
 
-                long result = (Long)((MessageEvent)a.waitForEvent()).message;
+		try {
+			long start = System.currentTimeMillis();
 
-                long end = System.currentTimeMillis();
+			int branch = Integer.parseInt(args[0]);
+			int depth =  Integer.parseInt(args[1]);
+			int load =  Integer.parseInt(args[2]);
+			int nodes = Integer.parseInt(args[3]);
+			int executors = Integer.parseInt(args[4]);			
+			int rank = Integer.parseInt(args[5]);
 
-                double msPerJob = ((double)(end-start)) / count;
+			WorkerContext even = new UnitWorkerContext("Even");
+			WorkerContext odd = new UnitWorkerContext("Odd");
 
-                System.out.println("D&C(" + branch + ", " + depth + ") " 
-                        + " wall clock time = " + (end-start) 
-                        + " processing time = " + result  
-                        + " avg job time = " + msPerJob + " msec/job");
+			Executor [] e = new Executor[executors];
 
-            }
-            
-            cn.done();
-        
-        } catch (Exception e) {
-            System.err.println("Oops: " + e);
-            e.printStackTrace(System.err);
-            System.exit(1);
-        }
+			for (int i=0;i<executors;i++) { 
 
-    }
+				if (rank % 2 == 0) { 
+					e[i] = new SimpleExecutor(even, StealStrategy.SMALLEST, StealStrategy.BIGGEST);
+				} else { 
+					e[i] = new SimpleExecutor(odd, StealStrategy.SMALLEST, StealStrategy.BIGGEST);
+				}
+			}
 
-    @Override
-    public void cancel() throws Exception {
-        // TODO Auto-generated method stub
+			Constellation c = ConstellationFactory.createConstellation(e);
+			c.activate();
 
-    }
+			if (c.isMaster()) { 
 
+				long count = 0;
 
+				for (int i=0;i<=depth;i++) { 
+					count += Math.pow(branch, i);
+				}
+
+				double time = (load * Math.pow(branch, depth)) / (1000*(nodes*executors)); 
+
+				System.out.println("Running D&C with even/odd context and branch factor " + branch + 
+						" and depth " + depth + " load " + load + 
+						" (expected jobs: " + count + ", expected time: " + 
+						time + " sec.)");
+
+				SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("Even"));
+
+				c.submit(a);
+				c.submit(new DivideAndConquerWithLoadAndContext(new UnitActivityContext("EVEN", depth), a.identifier(), branch, depth, load));
+
+				long result = (Long) ((MessageEvent)a.waitForEvent()).message;
+
+				long end = System.currentTimeMillis();
+
+				double nsPerJob = (1000.0*1000.0 * (end-start)) / count;
+
+				String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
+
+				System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
+						correct + " total time = " + (end-start) + " job time = " + 
+						nsPerJob + " nsec/job");
+
+			}
+
+			c.done();
+
+		} catch (Exception e) {
+			System.err.println("Oops: " + e);
+			e.printStackTrace(System.err);
+			System.exit(1);
+		}
+
+	}
+
+	@Override
+	public void cancel() throws Exception {
+		// not used
+	}
 }
+

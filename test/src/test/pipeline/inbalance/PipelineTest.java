@@ -4,6 +4,8 @@ import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
 import ibis.constellation.MultiEventCollector;
 import ibis.constellation.SimpleExecutor;
+import ibis.constellation.StealStrategy;
+import ibis.constellation.context.UnitWorkerContext;
 
 public class PipelineTest {
 
@@ -12,13 +14,15 @@ public class PipelineTest {
         // Simple test that creates, starts and stops a set of constellations. When 
         // the lot is running, it deploys a series of jobs. 
         int jobs = Integer.parseInt(args[0]);
-        int size = Integer.parseInt(args[1]);
-      
+        int size = Integer.parseInt(args[1]);      
         int rank = Integer.parseInt(args[2]);
         
+        String context = args[3];
+        
         try {
-            Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor());
-            constellation.activate();
+            Constellation c = ConstellationFactory.createConstellation(
+            		new SimpleExecutor(new UnitWorkerContext(context), StealStrategy.SMALLEST));
+            c.activate();
   
             if (rank == 0) { 
 
@@ -26,14 +30,14 @@ public class PipelineTest {
 
                 MultiEventCollector me = new MultiEventCollector(jobs);
 
-                constellation.submit(me);
+                c.submit(me);
 
                 for (int i=0;i<jobs;i++) { 
                  
                     System.out.println("SUBMIT " + i);
          
                     Data data = new Data(i, 0, new byte[size]);
-                    constellation.submit(new Stage1(me.identifier(), 100, data));
+                    c.submit(new Stage1(me.identifier(), 100, data));
                 }
 
                 System.out.println("SUBMIT DONE");
@@ -45,7 +49,7 @@ public class PipelineTest {
                 System.out.println("Total processing time: " + (end-start) + " ms.");
             } 
             
-            constellation.done();
+            c.done();
         } catch (Exception e) {
             e.printStackTrace();
         }

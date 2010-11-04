@@ -28,7 +28,7 @@ public class Series extends Activity {
     private final int count;
     
     public Series(ActivityIdentifier root, int length, int count) {
-        super(UnitActivityContext.DEFAULT, true);
+        super(new UnitActivityContext("S", count), false);
         this.root = root;
         this.length = length;
         this.count = count;
@@ -67,38 +67,38 @@ public class Series extends Activity {
 
         long start = System.currentTimeMillis();
         
-        Constellation constellation = ConstellationFactory.createConstellation(new SimpleExecutor(UnitWorkerContext.DEFAULT, StealStrategy.SMALLEST, StealStrategy.BIGGEST));
-        constellation.activate();
         int index = 0;
-         
+        
         int length = Integer.parseInt(args[index++]);
         
         System.out.println("Running Series with length " + length);
         
-        SingleEventCollector a = new SingleEventCollector();
+        Constellation c = ConstellationFactory.createConstellation(new SimpleExecutor(new UnitWorkerContext("S"), StealStrategy.ANY));
+        c.activate();
 
-        constellation.submit(a);
-        constellation.submit(new Series(a.identifier(), length, 0));
+        if (c.isMaster()) { 
+        	SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("S"));
+        	c.submit(a);
+        	c.submit(new Series(a.identifier(), length, 0));
 
-        long result = (Integer)((MessageEvent)a.waitForEvent()).message;
+        	long result = (Long) ((MessageEvent)a.waitForEvent()).message;
 
-        long end = System.currentTimeMillis();
+        	long end = System.currentTimeMillis();
 
-        double nsPerJob = (1000.0*1000.0 * (end-start)) / length;
-        
-        String correct = (result == length) ? " (CORRECT)" : " (WRONG!)";
-        
-        System.out.println("Series(" + length + ") = " + result + 
-                correct + " total time = " + (end-start) + 
-                " job time = " + nsPerJob + " nsec/job");
+        	double nsPerJob = (1000.0*1000.0 * (end-start)) / length;
 
-        constellation.done();
+        	String correct = (result == length) ? " (CORRECT)" : " (WRONG!)";
 
+        	System.out.println("Series(" + length + ") = " + result + 
+        			correct + " total time = " + (end-start) + 
+        			" job time = " + nsPerJob + " nsec/job");
+        }
+        c.done();
     }
 
     @Override
     public void cancel() throws Exception {
-        // TODO Auto-generated method stub
+        // not used
         
     }
 

@@ -21,7 +21,7 @@ public class TestLoop extends Activity {
     private long end;
     
     public TestLoop(ActivityIdentifier parent, long count, int spawns) {
-        super(UnitActivityContext.DEFAULT, true);
+        super(UnitActivityContext.DEFAULT, true, true);
         this.parent = parent;
         this.count = count;
         this.spawns = spawns;
