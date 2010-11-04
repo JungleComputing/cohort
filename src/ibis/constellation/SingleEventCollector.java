@@ -7,13 +7,19 @@ public class SingleEventCollector extends Activity {
     private static final long serialVersionUID = -538414301465754654L;
    
     private Event event;
+    private final boolean verbose;
+    
+    public SingleEventCollector(ActivityContext c, boolean verbose) {
+        super(c, true, true);
+        this.verbose = verbose;
+    }
     
     public SingleEventCollector(ActivityContext c) {
-        super(c, true, true);
+    	this(c, false);
     }
     
     public SingleEventCollector() {
-        this(UnitActivityContext.DEFAULT);
+        this(UnitActivityContext.DEFAULT, false);
     }
     
     @Override
@@ -24,8 +30,9 @@ public class SingleEventCollector extends Activity {
     @Override
     public synchronized void process(Event e) throws Exception {
       
-        System.out.println("SINGLE EVENT COLLECTOR ( " + identifier() 
-                + ") GOT RESULT!");
+    	if (verbose) { 
+    		System.out.println("SINGLE EVENT COLLECTOR ( " + identifier() + ") GOT RESULT!");
+    	}
         
         event = e;
         notifyAll();

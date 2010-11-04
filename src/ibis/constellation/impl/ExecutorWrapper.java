@@ -38,6 +38,7 @@ public class ExecutorWrapper implements Constellation {
     private final WorkerContext myContext; 
     
     private final StealStrategy localStealStrategy; 
+    private final StealStrategy constellationStealStrategy;     
     private final StealStrategy remoteStealStrategy; 
     
     private HashMap<ActivityIdentifier, ActivityRecord> lookup = 
@@ -90,7 +91,9 @@ public class ExecutorWrapper implements Constellation {
 
         executor.connect(this);
         myContext = executor.getContext();
+        
         localStealStrategy = executor.getLocalStealStrategy();
+        constellationStealStrategy = executor.getConstellationStealStrategy();
         remoteStealStrategy = executor.getRemoteStealStrategy();
     }
 
@@ -132,7 +135,7 @@ public class ExecutorWrapper implements Constellation {
         	
         	ActivityRecord ar = (ActivityRecord) relocated.removeFirst();
         	
-        	System.out.println("EW: " + identifier + " dequeue " + ar.identifier() + " from relocated!");
+        //	System.out.println("EW: " + identifier + " dequeue " + ar.identifier() + " from relocated!");
         	
         	return ar;
         	
@@ -287,7 +290,7 @@ public class ExecutorWrapper implements Constellation {
         		runnable.insertLast(ar);
         	}
 
-            System.out.println("EW: queued event for " + e.target);
+         //   System.out.println("EW: queued event for " + e.target);
 
         	return true;
         }
@@ -497,6 +500,10 @@ public class ExecutorWrapper implements Constellation {
         return localStealStrategy;
     }
 
+    public StealStrategy getConstellationStealStrategy() { 
+        return constellationStealStrategy;
+    }
+    
     public StealStrategy getRemoteStealStrategy() { 
         return remoteStealStrategy;
     }

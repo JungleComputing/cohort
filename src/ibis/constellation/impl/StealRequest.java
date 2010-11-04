@@ -11,6 +11,7 @@ public class StealRequest extends Message {
    
     public final WorkerContext context;    
     public final StealStrategy localStrategy;
+    public final StealStrategy constellationStrategy;    
     public final StealStrategy remoteStrategy;        
     public final StealPool pool;
     public final int size;
@@ -20,12 +21,15 @@ public class StealRequest extends Message {
     private transient boolean isLocal;  
     
     public StealRequest(final ConstellationIdentifier source, final WorkerContext context, 
-    		final StealStrategy localStrategy, final StealStrategy remoteStrategy, 
+    		final StealStrategy localStrategy, 
+    		final StealStrategy constellationStrategy,
+    		final StealStrategy remoteStrategy, 
     		final StealPool pool, final int size) {  
 
     	super(source);
         this.context = context;
         this.localStrategy = localStrategy;
+        this.constellationStrategy = constellationStrategy;
         this.remoteStrategy = remoteStrategy;
         this.pool = pool;
         this.size = size;

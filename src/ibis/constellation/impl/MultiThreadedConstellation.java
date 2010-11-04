@@ -245,7 +245,7 @@ FIXME REMOVE!!
     	// One of our children wishes to send a message to 'm.target', 
     	// which may be local or remote. 
 
-		System.out.println("MT: routing event to " + m.event.target + " at " + m.target + " (" + cidFactory.isLocal(m.target) + ") from " + m.source);
+		//System.out.println("MT: routing event to " + m.event.target + " at " + m.target + " (" + cidFactory.isLocal(m.target) + ") from " + m.source);
     
     	if (cidFactory.isLocal(m.target)) { 
     		
@@ -258,7 +258,7 @@ FIXME REMOVE!!
     				return;
     			}
     			    		
-    			System.out.println("Rerouting event from " + m.target + " to " + cid);
+    			//System.out.println("Rerouting event from " + m.target + " to " + cid);
     			
         		// The activity has been relocated or stolen, so try again
     			m.setTarget(cid);    	
@@ -281,7 +281,7 @@ FIXME REMOVE!!
     			return;
     		} 
     		
-    		System.out.println("Remote send of event to activity " + m.event.target + " at " + m.target);
+    		//System.out.println("Remote send of event to activity " + m.event.target + " at " + m.target);
     		
     		parent.handleApplicationMessage(m, true);
     	}
@@ -327,7 +327,7 @@ FIXME REMOVE!!
     		if (tmp != c && poolMatrix[rank][tmp.getRank()]) {
     		
     			// FIXME: size hardcoded to 1!
-    			int size = tmp.attemptSteal(result, context, c.getLocalStealStrategy(), pool, c.identifier(), 1, true);
+    			int size = tmp.attemptSteal(result, context, c.getConstellationStealStrategy(), pool, c.identifier(), 1, true);
     		
     			if (size == 1) { 
     				return result;
@@ -338,7 +338,8 @@ FIXME REMOVE!!
     	// If this fails, we do a remote steal followed by an enqueued steal at a random suitable peer.    	
     	
     	// FIXME: size hardcoded to workerCount!
-    	StealRequest sr = new StealRequest(c.identifier(), context, c.getLocalStealStrategy(), c.getRemoteStealStrategy(), pool, workerCount);
+    	StealRequest sr = new StealRequest(c.identifier(), context, c.getLocalStealStrategy(), 
+    			c.getConstellationStealStrategy(), c.getRemoteStealStrategy(), pool, workerCount);
     	
         if (parent != null) { 
         	parent.handleStealRequest(sr);
@@ -633,7 +634,7 @@ FIXME REMOVE!!
         		return;
         	}
     		
-    		System.out.println("Forwarding message to new location (relocated): " + cid);
+    		//System.out.println("Forwarding message to new location (relocated): " + cid);
     		
     		// NOTE: this should always return null!
         	cid = st.deliverEventMessage(am);
@@ -645,7 +646,7 @@ FIXME REMOVE!!
         	}        	
     	} else { 
     		// it has been exported
-    		System.out.println("Forwarding message to new location (exported): " + cid);
+    		//System.out.println("Forwarding message to new location (exported): " + cid);
     		parent.handleApplicationMessage(am, true);
     	}
     }

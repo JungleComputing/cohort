@@ -27,6 +27,8 @@ import java.util.Properties;
 
 public class SingleThreadedConstellation extends Thread {
 
+    private static final boolean PRINT_ACTIVITY = false;
+	
     private static final boolean PROFILE = true;
     private static final boolean THROTTLE_STEALS = true;
     private static final int DEFAULT_STEAL_DELAY = 50;
@@ -335,6 +337,10 @@ public class SingleThreadedConstellation extends Thread {
         return wrapper.getLocalStealStrategy();
     }
 
+    StealStrategy getConstellationStealStrategy() { 
+        return wrapper.getConstellationStealStrategy();
+    }
+    
     StealStrategy getRemoteStealStrategy() { 
         return wrapper.getRemoteStealStrategy();
     }
@@ -358,12 +364,12 @@ public class SingleThreadedConstellation extends Thread {
 
 				if (a.isRestrictedToLocal()) {
 					
-					System.out.println("ST: " + identifier + " sumbit " + id + " to restricted.");
+					//System.out.println("ST: " + identifier + " sumbit " + id + " to restricted.");
 					
 					restricted.enqueue(ar);	
 				} else { 
 					
-					System.out.println("ST: " + identifier + " sumbit " + id + " to fresh.");
+					//System.out.println("ST: " + identifier + " sumbit " + id + " to fresh.");
 					
 					fresh.enqueue(ar);
 				}
@@ -372,7 +378,7 @@ public class SingleThreadedConstellation extends Thread {
 			synchronized (this) {
 				lookup.put(ar.identifier(), ar);
 				
-				System.out.println("ST: " + identifier + " sumbit " + id + " to wrong.");
+				//System.out.println("ST: " + identifier + " sumbit " + id + " to wrong.");
 				
 				wrongContext.enqueue(ar);
 			}
@@ -479,7 +485,7 @@ public class SingleThreadedConstellation extends Thread {
     		tmp = trim(tmp, offset);
     	}
     	
-    	System.out.println("ST: " + identifier + " returning " + offset + " stolen jobs to " + src);
+    	//System.out.println("ST: " + identifier + " returning " + offset + " stolen jobs to " + src);
     	
     	// Next, remote activities from lookup, and mark and register them as relocated or stolen/exported
     	registerLeavingActivities(tmp, offset, src, local);
@@ -524,7 +530,7 @@ public class SingleThreadedConstellation extends Thread {
     			wrapper.addPrivateActivity(ar);
     		}
 
-    		System.out.println("ST: " + identifier + " Pushed from relocated");
+    		//System.out.println("ST: " + identifier + " Pushed from relocated");
     		return true;
 		}
 		
@@ -534,7 +540,7 @@ public class SingleThreadedConstellation extends Thread {
     		if (ar != null) { 
     			lookup.remove(ar.identifier());
     			wrapper.addPrivateActivity(ar);
-    			System.out.println("ST: " + identifier + " Pushed from restricted");
+    			//System.out.println("ST: " + identifier + " Pushed from restricted");
         		return true;
     		}
     	}
@@ -545,7 +551,7 @@ public class SingleThreadedConstellation extends Thread {
     		if (ar != null) { 
     			lookup.remove(ar.identifier());
     			wrapper.addPrivateActivity(ar);
-    			System.out.println("ST: " + identifier + " Pushed from stolen");
+    			//System.out.println("ST: " + identifier + " Pushed from stolen");
     			return true;
     		}
     	}
@@ -556,7 +562,7 @@ public class SingleThreadedConstellation extends Thread {
     		if (ar != null) { 
     			lookup.remove(ar.identifier());
     			wrapper.addPrivateActivity(ar);
-    		    System.out.println("ST: " + identifier + " Pushed from fresh");
+    		   // System.out.println("ST: " + identifier + " Pushed from fresh");
     			return true;
     		}
     	}
@@ -612,7 +618,7 @@ public class SingleThreadedConstellation extends Thread {
     	
     	// The target activity may be in one of my local queues
     	
-    	System.out.println("ST: " + identifier + " Delivering message from " + m.source + " to " + m.event.target);
+    	//System.out.println("ST: " + identifier + " Delivering message from " + m.source + " to " + m.event.target);
     	
     	Event e = m.event;
 
@@ -620,7 +626,7 @@ public class SingleThreadedConstellation extends Thread {
     
     	if (tmp != null) { 
     		tmp.enqueue(e);
-    		System.out.println("ST: " + identifier + " success");
+    	//	System.out.println("ST: " + identifier + " success");
         	return null;
     	}
     	
@@ -628,7 +634,7 @@ public class SingleThreadedConstellation extends Thread {
     	ConstellationIdentifier cid = relocatedActivities.lookup(e.target);
     	
     	if (cid != null) { 
-    		System.out.println("ST: " + identifier + " relocated to " + cid);
+    	//	System.out.println("ST: " + identifier + " relocated to " + cid);
     		return cid;
     	}
     
@@ -636,12 +642,12 @@ public class SingleThreadedConstellation extends Thread {
     	cid = exportedActivities.lookup(e.target);
     	
     	if (cid != null) { 
-    		System.out.println("ST: " + identifier + " exported to " + cid);
+    	//	System.out.println("ST: " + identifier + " exported to " + cid);
     		return cid;
     	}
     	
     	// If not, is should be in the queue of my executor
-		System.out.println("ST: " + identifier + " posted");
+	//System.out.println("ST: " + identifier + " posted");
         postEventMessage(m);
         return null;
     }
@@ -895,7 +901,7 @@ public class SingleThreadedConstellation extends Thread {
             		// lookup in the relocated/exported tables while we are removing activities 
             		// from the executor's queue.
 				
-            		StealStrategy tmp = s.isLocal() ? s.localStrategy : s.remoteStrategy;
+            		StealStrategy tmp = s.isLocal() ? s.constellationStrategy : s.remoteStrategy;
             		
             		// NOTE: a is allowed to be null
             		a = wrapper.steal(s.context, tmp, s.isLocal(), stealSize, s.source);
@@ -1030,7 +1036,7 @@ public class SingleThreadedConstellation extends Thread {
 
     	long t3 = System.currentTimeMillis();
 
-    	if (jobs > 0) { 
+    	if (PRINT_ACTIVITY && jobs > 0) { 
     		if (t2-idlestart > 0) { 
     			out.println("IDLE from " + (idlestart-start) + " to " + (t2-start) + " total " + (t2-idlestart));
     		}
