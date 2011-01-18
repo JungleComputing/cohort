@@ -11,6 +11,15 @@ public class SimpleExecutor extends Executor {
 		super(pool, stealFrom, c, local, constellation, remote);
 	}
 	
+	public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c) { 
+		super(pool, stealFrom, c, StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
+	}
+	
+	public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c, 
+			StealStrategy st) { 
+		super(pool, stealFrom, c, st, st, st);
+	}
+	
 	public SimpleExecutor() { 
 		super(StealPool.WORLD, StealPool.WORLD, UnitWorkerContext.DEFAULT, 
 				StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);

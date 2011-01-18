@@ -522,14 +522,14 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     
     public boolean forward(StealReply sr) { 
     	
-        System.out.println("POOL:FORWARD StealReply from " + sr.source + " to " + sr.target);
+     //   System.out.println("POOL:FORWARD StealReply from " + sr.source + " to " + sr.target);
     	
     	return forward(sr, OPCODE_STEAL_REPLY);
     }
 
     public boolean forward(EventMessage em) { 
 
-    	System.out.println("POOL:FORWARD EventMessage from " + em.source + " to " + em.target + " target " + em.event.target);
+    //	System.out.println("POOL:FORWARD EventMessage from " + em.source + " to " + em.target + " target " + em.event.target);
             	
     	return forward(em, OPCODE_EVENT_MESSAGE);
     }
@@ -707,7 +707,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     
     public IbisIdentifier lookupRank(int rank) { 
 
-    	System.out.println("Lookup of rank " + rank);
+    //	System.out.println("Lookup of rank " + rank);
     	
         IbisIdentifier tmp;
         
