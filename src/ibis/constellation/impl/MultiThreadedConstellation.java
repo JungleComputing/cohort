@@ -449,7 +449,9 @@ FIXME REMOVE!!
             
             for (int i=0;i<workerCount;i++) {
             	for (int j=0;j<workerCount;j++) {
-            		poolMatrix[i][j] = tmp[i].overlap(tmp[j]); 
+//            		poolMatrix[i][j] = tmp[i].overlap(tmp[j]);
+            		// Timo: I think you meant this:
+            		poolMatrix[i][j] = workers[i].stealsFrom().overlap(tmp[j]);
             	}
             }
         

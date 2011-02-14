@@ -997,7 +997,10 @@ public class SingleThreadedConstellation extends Thread {
         }
     }
     
-    void deliverWrongContext(ActivityRecord a) { 
+    void deliverWrongContext(ActivityRecord a) {
+    	//Timo: we should add it to the lookup as well
+    	lookup.put(a.identifier(), a);
+    	
         wrongContext.enqueue(a);
     }
     
