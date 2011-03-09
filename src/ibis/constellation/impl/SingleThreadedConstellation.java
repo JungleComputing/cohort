@@ -589,7 +589,10 @@ public class SingleThreadedConstellation extends Thread {
     			if (a != null) { 
     				// two options here: either the job is stolen (from a remote constellation) or 
     				// relocated (from a peer in our local constellation). Stolen jobs may be 
-    				// relocated later, but relocated jobs must be executed by this executor.  
+    				// relocated later, but relocated jobs must be executed by this executor.
+    				
+    				//Timo: Add it to lookup as well!
+    				lookup.put(a.identifier(), a);
     				if (a.isRelocated()) { 
     					relocated.insertLast(a);
     				} else { 
@@ -813,6 +816,7 @@ public class SingleThreadedConstellation extends Thread {
                     logger.warn("WARNING: Failed to deliver message from " 
                             + m.source + " / " + m.event.source + " to " 
                             + m.target + " / " + m.event.target + " (resending)");
+                    //logger.warn("message contents: " + m.event.toString());
                 
                 	handleEvent(m.event);
                 }
@@ -1200,18 +1204,18 @@ public class SingleThreadedConstellation extends Thread {
         final long activitiesInvoked = wrapper.getActivitiesInvoked();
    
         final long activitiesSubmitted = wrapper.getActivitiesSubmitted();
-        final long activitiesAdded = wrapper.getActivitiesSubmitted();
+        final long activitiesAdded = wrapper.getActivitiesAdded();
         
         final long wrongContextSubmitted = wrapper.getWrongContextSubmitted();
         final long wrongContextAdded = wrapper.getWrongContextAdded();
-        final long wrongContextDiscovered = wrapper.getWrongContextDicovered();
+        final long wrongContextDiscovered = wrapper.getWrongContextDiscovered();
              
         final long steals = wrapper.getSteals();
         final long stealSuccessIn = wrapper.getStealSuccess();
         final long stolen = wrapper.getStolen();
         
         final double comp = (100.0 * computationTime) / totalTime;
-        final double fact = ((double) activitiesInvoked) / activitiesSubmitted;
+        final double fact = ((double) activitiesInvoked) / (activitiesSubmitted + activitiesAdded);
 
         final double eventPerc = (100.0 * eventTime) / totalTime;
         final double activePerc = (100.0 * activeTime) / totalTime;
