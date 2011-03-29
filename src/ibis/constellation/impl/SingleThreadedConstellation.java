@@ -953,7 +953,7 @@ public class SingleThreadedConstellation extends Thread {
         
         long pauseTime = deadline - System.currentTimeMillis();
         
-        if (deadline > 0) { 
+        if (pauseTime > 0) { 
 
             boolean wake = havePendingRequests || getDone(); 
 
