@@ -32,7 +32,12 @@ public class OrWorkerContext extends WorkerContext {
 	}
 
 	public UnitWorkerContext get(int index) {
-		return unitContexts[index];
+
+		if (index >= 0 && index < unitContexts.length) { 
+			return unitContexts[index];
+		} else { 
+			return null;
+		}
 	}
 	
 	public UnitWorkerContext[] getContexts() {

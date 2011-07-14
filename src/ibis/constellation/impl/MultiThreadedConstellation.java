@@ -402,10 +402,12 @@ FIXME REMOVE!!
                 for (int j=0;j<o.size();j++) { 
                     UnitWorkerContext u = o.get(i);
 
-                    String name = u.name;
+                    if (u != null) { 
+                    	String name = u.name;
 
-                    if (!map.containsKey(name)) { 
-                        map.put(name, u);
+                    	if (!map.containsKey(name)) { 
+                    		map.put(name, u);
+                    	}
                     }
                 }
             }
