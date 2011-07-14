@@ -60,7 +60,7 @@ public class ExecutorWrapper implements Constellation {
     private long wrongContextSubmitted;
     private long wrongContextAdded;
 
-    private long wrongContextDicovered;
+    private long wrongContextDiscovered;
 
     private long activitiesInvoked;
 
@@ -452,8 +452,8 @@ public class ExecutorWrapper implements Constellation {
         return wrongContextAdded;
     }
 
-    long getWrongContextDicovered() { 
-        return wrongContextDicovered;
+    long getWrongContextDiscovered() { 
+        return wrongContextDiscovered;
     }
 
     long getActivitiesInvoked() { 
