@@ -52,7 +52,10 @@ public class SingleThreadedConstellation extends Thread {
     
     // Work that has a context that is not supported by our local executor.
     private final WorkQueue wrongContext;
-
+    
+    // Work that may not leave this machine, but has a context that is not supported by our local executor. 
+    private final WorkQueue restrictedWrongContext;
+    
     // Work that is relocated. Only our local executor may run it. 
     private final CircularBuffer relocated = new CircularBuffer(1);
     
@@ -219,7 +222,8 @@ public class SingleThreadedConstellation extends Thread {
         restricted = new SmartSortedWorkQueue("ST(" + identifier + ")-restricted");
         fresh = new SmartSortedWorkQueue("ST(" + identifier + ")-fresh");
         wrongContext = new SmartSortedWorkQueue("ST(" + identifier + ")-wrong");
-        
+        restrictedWrongContext = new SmartSortedWorkQueue("ST(" + identifier + ")-restrictedwrong");
+                        
         super.setName("SingleThreadedConstellation " + identifier.id);
         
         String outfile = p.getProperty("ibis.constellation.outputfile");
@@ -378,9 +382,11 @@ public class SingleThreadedConstellation extends Thread {
 			synchronized (this) {
 				lookup.put(ar.identifier(), ar);
 				
-				//System.out.println("ST: " + identifier + " sumbit " + id + " to wrong.");
-				
-				wrongContext.enqueue(ar);
+				if (a.isRestrictedToLocal()) {
+					restrictedWrongContext.enqueue(ar);	
+				} else { 
+					wrongContext.enqueue(ar);
+				}
 			}
 		}
 
@@ -460,7 +466,12 @@ public class SingleThreadedConstellation extends Thread {
     	int offset = wrongContext.steal(context, s, tmp, 0, size);
     		
     	if (local) {
-    		// Only peers from our own constellation are allowed to steal restricted or stolen jobs.    		
+    		
+    		// Only peers from our own constellation are allowed to steal restricted or stolen jobs.
+    		if (offset < size) { 
+    			offset += restrictedWrongContext.steal(context, s, tmp, offset, size-offset); 
+    		}
+    		
     		if (offset < size) { 
     			offset += restricted.steal(context, s, tmp, offset, size-offset); 
     		}
@@ -881,7 +892,12 @@ public class SingleThreadedConstellation extends Thread {
             } else {
             	synchronized (this) {
             		lookup.put(ar.identifier(), ar);
-            		wrongContext.enqueue(ar);
+            		
+            		if (ar.isRestrictedToLocal()) { 
+            			restrictedWrongContext.enqueue(ar);	
+            		} else { 
+            			wrongContext.enqueue(ar);
+            		}
             	}
             }
     	}    	
@@ -1005,7 +1021,11 @@ public class SingleThreadedConstellation extends Thread {
     	//Timo: we should add it to the lookup as well
     	lookup.put(a.identifier(), a);
     	
-        wrongContext.enqueue(a);
+    	if (a.isRestrictedToLocal()) { 
+    		restrictedWrongContext.enqueue(a);
+    	} else { 
+    		wrongContext.enqueue(a);
+    	}
     }
     
     private long start;
