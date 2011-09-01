@@ -29,7 +29,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private static final byte OPCODE_EVENT_MESSAGE         = 10;
     private static final byte OPCODE_STEAL_REQUEST         = 11;
     private static final byte OPCODE_STEAL_REPLY           = 12;
-        
+
     private static final byte OPCODE_POOL_REGISTER_REQUEST = 43;
     private static final byte OPCODE_POOL_UPDATE_REQUEST   = 44;
     private static final byte OPCODE_POOL_UPDATE_REPLY     = 45;
@@ -37,30 +37,30 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private static final byte OPCODE_RANK_REGISTER_REQUEST = 53;
     private static final byte OPCODE_RANK_LOOKUP_REQUEST   = 54;
     private static final byte OPCODE_RANK_LOOKUP_REPLY     = 55;
-    
+
     private DistributedConstellation owner;
 
     private final PortType portType = new PortType(
-            PortType.COMMUNICATION_FIFO, 
-            PortType.COMMUNICATION_RELIABLE, 
-            PortType.SERIALIZATION_OBJECT, 
+            PortType.COMMUNICATION_FIFO,
+            PortType.COMMUNICATION_RELIABLE,
+            PortType.SERIALIZATION_OBJECT,
             PortType.RECEIVE_AUTO_UPCALLS,
-            PortType.RECEIVE_TIMEOUT, 
+            PortType.RECEIVE_TIMEOUT,
             PortType.CONNECTION_MANY_TO_ONE);
 
     private static final IbisCapabilities ibisCapabilities =
         new IbisCapabilities(
                 IbisCapabilities.MALLEABLE,
                 IbisCapabilities.TERMINATION,
-                IbisCapabilities.ELECTIONS_STRICT,                  
+                IbisCapabilities.ELECTIONS_STRICT,
                 IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
     private final ReceivePort rp;
 
-    private final HashMap<IbisIdentifier, SendPort> sendports = 
+    private final HashMap<IbisIdentifier, SendPort> sendports =
         new HashMap<IbisIdentifier, SendPort>();
 
-    private final HashMap<Integer, IbisIdentifier> locationCache = 
+    private final HashMap<Integer, IbisIdentifier> locationCache =
         new HashMap<Integer, IbisIdentifier>();
 
     private final DistributedConstellationIdentifierFactory cidFactory;
@@ -86,21 +86,21 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
     private LinkedList<Message> pending = new LinkedList<Message>();
 
-    class PoolUpdater extends Thread { 
+    class PoolUpdater extends Thread {
 
-        private static final long MIN_DELAY = 1000;        
+        private static final long MIN_DELAY = 1000;
         private static final long MAX_DELAY = 10000;
 
-        private long deadline = 0; 
+        private long deadline = 0;
         private long currentDelay = MIN_DELAY;
         private boolean done;
 
-        private ArrayList<String> tags = new ArrayList<String>();         
+        private ArrayList<String> tags = new ArrayList<String>();
         private ArrayList<PoolInfo> updates = new ArrayList<PoolInfo>();
 
         public synchronized void addTag(String tag) {
             if (!tags.contains(tag)) {
-                tags.add(tag);  
+                tags.add(tag);
             }
         }
 
@@ -109,13 +109,13 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         }
 
         public synchronized void enqueueUpdate(PoolInfo info) {
-            updates.add(info);            
+            updates.add(info);
             notifyAll();
         }
 
         public synchronized PoolInfo dequeueUpdate() {
 
-            if (updates.size() == 0) { 
+            if (updates.size() == 0) {
                 return null;
             }
 
@@ -123,48 +123,48 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             return updates.remove(updates.size()-1);
         }
 
-        private synchronized boolean getDone() { 
+        private synchronized boolean getDone() {
             return done;
         }
 
-        public synchronized void done() { 
+        public synchronized void done() {
             done = true;
         }
 
-        private void processUpdates() { 
+        private void processUpdates() {
 
             PoolInfo update = dequeueUpdate();
 
-            if (update == null) { 
-                // No updates 
+            if (update == null) {
+                // No updates
                 currentDelay += MIN_DELAY;
                 return;
-            } 
+            }
 
             currentDelay = MIN_DELAY;
 
-            while (update != null) { 
+            while (update != null) {
                 performUpdate(update);
                 update = dequeueUpdate();
             }
         }
 
-        private void sendUpdateRequests() { 
+        private void sendUpdateRequests() {
 
-            String [] pools = getTags(); 
+            String [] pools = getTags();
 
             for (int i=0;i<pools.length;i++) {
-                requestUpdate(pools[i]);                
+                requestUpdate(pools[i]);
             }
         }
 
-        private void waitUntilDeadLine() { 
+        private void waitUntilDeadLine() {
 
             long sleep = deadline-System.currentTimeMillis();
 
-            if (sleep > 0) { 
-                try { 
-                    synchronized (this) { 
+            if (sleep > 0) {
+                try {
+                    synchronized (this) {
                         wait(sleep);
                     }
                 } catch (Exception e) {
@@ -173,18 +173,18 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             }
         }
 
-        public void run() { 
+        public void run() {
 
-            while (!getDone()) { 
+            while (!getDone()) {
 
                 processUpdates();
 
                 long now = System.currentTimeMillis();
 
-                if (now >= deadline) { 
-                    sendUpdateRequests();                    
+                if (now >= deadline) {
+                    sendUpdateRequests();
 
-                    deadline = now + currentDelay; 
+                    deadline = now + currentDelay;
                 }
 
                 waitUntilDeadLine();
@@ -195,9 +195,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private HashMap<String, PoolInfo> pools = new HashMap<String, PoolInfo>();
     private PoolUpdater updater = new PoolUpdater();
 
-    public Pool(final DistributedConstellation owner, final Properties p) throws Exception { 
+    public Pool(final DistributedConstellation owner, final Properties p) throws Exception {
 
-        this.owner = owner; 
+        this.owner = owner;
         this.logger = ConstellationLogger.getLogger(Pool.class, null);
 
         ibis = IbisFactory.createIbis(ibisCapabilities, p, true, this, portType);
@@ -211,15 +211,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         if (tmp.equalsIgnoreCase("auto") || tmp.equalsIgnoreCase("true")) {
             // Elect a server
             master = ibis.registry().elect("Constellation Master");
-        } else if (tmp.equalsIgnoreCase("false")) { 
+        } else if (tmp.equalsIgnoreCase("false")) {
             master = ibis.registry().getElectionResult("Constellation Master");
-        } 
+        }
 
         if (master == null) {
             throw new Exception("Failed to find master!");
         }
 
-        // We determine our rank here. This rank should only be used for 
+        // We determine our rank here. This rank should only be used for
         // debugging purposes!
         tmp = System.getProperty("ibis.constellation.rank");
 
@@ -228,12 +228,12 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
                 rank = Long.parseLong(tmp);
             } catch (Exception e) {
                 System.err.println("Failed to parse rank: " + tmp);
-                rank = -1;            
+                rank = -1;
             }
-        } 
+        }
 
-        if (rank == -1) { 
-            rank = ibis.registry().getSequenceNumber("constellation-pool-" 
+        if (rank == -1) {
+            rank = ibis.registry().getSequenceNumber("constellation-pool-"
                     + master.toString());
         }
 
@@ -246,49 +246,49 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         cidFactory = new DistributedConstellationIdentifierFactory(rank);
 
         locationCache.put((int)rank, local);
-        
+
         // Register my rank at the master
-        if (!isMaster) { 
+        if (!isMaster) {
             forwardInt(master, OPCODE_RANK_REGISTER_REQUEST, (int)rank);
         }
     }
 
-    protected void setLogger(ConstellationLogger logger) { 
+    protected void setLogger(ConstellationLogger logger) {
         this.logger = logger;
         logger.info("Cohort master is " + master + " rank is " + rank);
     }
 
-    public void activate() { 
+    public void activate() {
         logger.warn("Activating POOL on " + ibis.identifier());
 
-        synchronized (this) { 
+        synchronized (this) {
             active = true;
         }
 
         processPendingMessages();
     }
 
-    private void processPendingMessages() { 
+    private void processPendingMessages() {
 
-        while (pending.size() > 0) { 
+        while (pending.size() > 0) {
             Message m = pending.removeFirst();
 
-            if (m instanceof StealRequest) { 
+            if (m instanceof StealRequest) {
 
                 logger.warn("POOL processing PENDING StealRequest from " + m.source);
                 owner.deliverRemoteStealRequest((StealRequest)m);
 
-            } else if (m instanceof EventMessage) { 
+            } else if (m instanceof EventMessage) {
 
                 logger.warn("POOL processing PENDING ApplicationMessage from " + m.source);
                 owner.deliverRemoteEvent((EventMessage)m);
 /*
-            } else if (m instanceof UndeliverableEvent) { 
+            } else if (m instanceof UndeliverableEvent) {
 
                 logger.warn("POOL processing PENDING UndeliverableEvent from " + m.source);
                 owner.deliverUndeliverableEvent((UndeliverableEvent)m);
 */
-            } else { 
+            } else {
                 // Should never happen!
                 logger.warn("POOL DROP unknown pending message ! " + m);
             }
@@ -301,25 +301,25 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
      *///
 
-    public DistributedConstellationIdentifierFactory getCIDFactory() { 
+    public DistributedConstellationIdentifierFactory getCIDFactory() {
         return cidFactory;
     }
 
-    public boolean isLocal(ConstellationIdentifier id) { 
+    public boolean isLocal(ConstellationIdentifier id) {
         return (rank << 32 ^ id.id) == 0;
     }
 
     private SendPort getSendPort(IbisIdentifier id) {
 
         // TODO: not fault tolerant!!!
-        if (id.equals(ibis.identifier())) { 
+        if (id.equals(ibis.identifier())) {
             logger.fatal("POOL Sending to myself!", new Exception());
         }
 
         synchronized (sendports) {
             SendPort sp = sendports.get(id);
 
-            if (sp == null) { 
+            if (sp == null) {
 
                 logger.warn("Connecting to " + id + " from " + ibis.identifier());
 
@@ -330,7 +330,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
                     sp.connect(id, "constellation");
                 } catch (IOException e) {
 
-                    try { 
+                    try {
                         sp.close();
                     } catch (Exception e2) {
                         // ignored ?
@@ -368,7 +368,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
     public void joined(IbisIdentifier id) {
 
-        //synchronized (others) { 
+        //synchronized (others) {
         //    if (!id.equals(local)) {
         //        others.add(id);
         //        logger.warn("JOINED " + id);
@@ -378,7 +378,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
     public void left(IbisIdentifier id) {
 
-        //synchronized (locationCache) { 
+        //synchronized (locationCache) {
         //    others.remove(id);
         //}
 
@@ -393,15 +393,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
     public void poolTerminated(IbisIdentifier id) {
         // ignored
-    }            
+    }
 
-    public void terminate() throws IOException { 
-        if (isMaster) { 
+    public void terminate() throws IOException {
+        if (isMaster) {
             ibis.registry().terminate();
-        } else { 
+        } else {
             ibis.registry().waitUntilTerminated();
-        }        
-    }         
+        }
+    }
 
     public void cleanup() {
 
@@ -409,7 +409,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             ibis.end();
         } catch (IOException e) {
             e.printStackTrace();
-        }        
+        }
     }
 
     public long getRank() {
@@ -427,7 +427,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
             int size = others.size();
 
-            if (size == 0) { 
+            if (size == 0) {
                 return null;
             }
 
@@ -435,28 +435,28 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         }
     }
      */
-    
-    private IbisIdentifier translate(ConstellationIdentifier cid) { 
-        int rank = (int)((cid.id >> 32) & 0xffffffff);        
+
+    private IbisIdentifier translate(ConstellationIdentifier cid) {
+        int rank = (int)((cid.id >> 32) & 0xffffffff);
         return lookupRank(rank);
     }
 
-    private boolean doForward(IbisIdentifier id, byte opcode, Object data) { 
+    private boolean doForward(IbisIdentifier id, byte opcode, Object data) {
 
-        SendPort s = getSendPort(id); 
+        SendPort s = getSendPort(id);
 
-        if (s == null) { 
-            logger.warn("POOL failed to connect to " + id); 
+        if (s == null) {
+            logger.warn("POOL failed to connect to " + id);
             return false;
         }
 
-        try { 
+        try {
             WriteMessage wm = s.newMessage();
             wm.writeByte(opcode);
             wm.writeObject(data);
             wm.finish();
         } catch (Exception e) {
-            logger.warn("POOL lost communication to " + id, e); 
+            logger.warn("POOL lost communication to " + id, e);
             return false;
         }
 
@@ -467,23 +467,23 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return true;
     }
 
-    private boolean forward(IbisIdentifier id, byte opcode, int data1, Object data2) { 
+    private boolean forward(IbisIdentifier id, byte opcode, int data1, Object data2) {
 
-        SendPort s = getSendPort(id); 
+        SendPort s = getSendPort(id);
 
-        if (s == null) { 
-            logger.warn("POOL failed to connect to " + id); 
+        if (s == null) {
+            logger.warn("POOL failed to connect to " + id);
             return false;
         }
 
-        try { 
+        try {
             WriteMessage wm = s.newMessage();
             wm.writeByte(opcode);
             wm.writeInt(data1);
             wm.writeObject(data2);
             wm.finish();
         } catch (Exception e) {
-            logger.warn("POOL lost communication to " + id, e); 
+            logger.warn("POOL lost communication to " + id, e);
             return false;
         }
 
@@ -494,22 +494,22 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return true;
     }
 
-    private boolean forwardInt(IbisIdentifier id, byte opcode, int data) { 
+    private boolean forwardInt(IbisIdentifier id, byte opcode, int data) {
 
-        SendPort s = getSendPort(id); 
+        SendPort s = getSendPort(id);
 
-        if (s == null) { 
-            logger.warn("POOL failed to connect to " + id); 
+        if (s == null) {
+            logger.warn("POOL failed to connect to " + id);
             return false;
         }
 
-        try { 
+        try {
             WriteMessage wm = s.newMessage();
             wm.writeByte(opcode);
             wm.writeInt(data);
             wm.finish();
         } catch (Exception e) {
-            logger.warn("POOL lost communication to " + id, e); 
+            logger.warn("POOL lost communication to " + id, e);
             return false;
         }
 
@@ -519,35 +519,35 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
         return true;
     }
-    
-    public boolean forward(StealReply sr) { 
-    	
+
+    public boolean forward(StealReply sr) {
+
      //   System.out.println("POOL:FORWARD StealReply from " + sr.source + " to " + sr.target);
-    	
-    	return forward(sr, OPCODE_STEAL_REPLY);
+
+        return forward(sr, OPCODE_STEAL_REPLY);
     }
 
-    public boolean forward(EventMessage em) { 
+    public boolean forward(EventMessage em) {
 
-    //	System.out.println("POOL:FORWARD EventMessage from " + em.source + " to " + em.target + " target " + em.event.target);
-            	
-    	return forward(em, OPCODE_EVENT_MESSAGE);
+    //    System.out.println("POOL:FORWARD EventMessage from " + em.source + " to " + em.target + " target " + em.event.target);
+
+        return forward(em, OPCODE_EVENT_MESSAGE);
     }
-    
-    private boolean forward(Message m, byte opcode) { 
+
+    private boolean forward(Message m, byte opcode) {
 
         ConstellationIdentifier target = m.target;
 
-        if (Debug.DEBUG_COMMUNICATION) { 
+        if (Debug.DEBUG_COMMUNICATION) {
             logger.info("POOL FORWARD Message from " + m.source + " to " + m.target + " " + m);
         }
 
         IbisIdentifier id = translate(target);
 
-        if (id == null) { 
-        	System.out.println("POOL failed to translate " + target + " to an IbisIdentifier");
+        if (id == null) {
+            System.out.println("POOL failed to translate " + target + " to an IbisIdentifier");
 
-        	logger.warn("POOL failed to translate " + target 
+            logger.warn("POOL failed to translate " + target
                     + " to an IbisIdentifier");
             return false;
         }
@@ -555,18 +555,18 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return doForward(id, opcode, m);
     }
 
-    public boolean forwardToMaster(StealRequest m) { 
+    public boolean forwardToMaster(StealRequest m) {
         return doForward(master, OPCODE_STEAL_REQUEST, m);
     }
 
     /*
-    public boolean randomForward(Message m) { 
+    public boolean randomForward(Message m) {
 
         IbisIdentifier rnd = selectRandomTarget();
 
-        if (rnd == null) { 
+        if (rnd == null) {
             logger.warning("POOL failed to randomly select target: " +
-            "no other cohorts found"); 
+            "no other cohorts found");
             return false;
         }
 
@@ -575,48 +575,48 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return true;
     }
      */
-    
+
     public ConstellationIdentifier selectTarget() {
         return null;
     }
 
-    private void addPendingMessage(Message m) { 
+    private void addPendingMessage(Message m) {
 
         /*
         if (m instanceof StealReply) {
-            StealReply sr = (StealReply) m; 
+            StealReply sr = (StealReply) m;
 
-            if (!sr.isEmpty()) { 
+            if (!sr.isEmpty()) {
                 logger.warn("POOL(INACTIVE) SAVING StealReply with WORK from " + m.source);
                 pending.add(m);
             } else {
                 logger.warn("POOL(INACTIVE) DROPPING Empty stealReply from " + m.source);
             }
-        } else if (m instanceof ApplicationMessage) { 
+        } else if (m instanceof ApplicationMessage) {
             logger.warn("POOL(INACTIVE) SAVING ApplicationMessage from " + m.source);
             pending.add(m);
-        } else if (m instanceof UndeliverableEvent) { 
+        } else if (m instanceof UndeliverableEvent) {
             logger.warn("POOL(INACTIVE) SAVING UndeliverableEvent from " + m.source);
-            pending.add(m);        
-        } else { 
+            pending.add(m);
+        } else {
             logger.warn("POOL(INACTIVE) DROPPING Message from " + m.source );
         }*/
 
         pending.add(m);
     }
 
-    private boolean handleMessage(Message m, ReadMessage rm) throws IOException { 
+    private boolean handleMessage(Message m, ReadMessage rm) throws IOException {
 
-        if (m instanceof StealRequest) { 
-            // This method may result in a nested call to send. Therefore we 
-            // need to finish the ReadMessage first to allow 'stealing' of the  
+        if (m instanceof StealRequest) {
+            // This method may result in a nested call to send. Therefore we
+            // need to finish the ReadMessage first to allow 'stealing' of the
             // upcall thread.
 
-            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) {
                 logger.info("POOL RECEIVE StealRequest from " + m.source);
             }
 
-            if (rm != null) { 
+            if (rm != null) {
                 rm.finish();
             }
 
@@ -624,17 +624,17 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             owner.deliverRemoteStealRequest((StealRequest)m);
             return true;
 
-/*            
-        } else if (m instanceof LookupRequest) { 
-            // This method may result in a nested call to send. Therefore we 
-            // need to finish the ReadMessage first to allow 'stealing' of the  
+/*
+        } else if (m instanceof LookupRequest) {
+            // This method may result in a nested call to send. Therefore we
+            // need to finish the ReadMessage first to allow 'stealing' of the
             // upcall thread.
 
-            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_LOOKUP) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_LOOKUP) {
                 logger.info("POOL RECEIVE LookupRequest from " + m.source);
             }
 
-            if (rm != null) { 
+            if (rm != null) {
                 rm.finish();
             }
             owner.deliverRemoteLookupRequest((LookupRequest)m);
@@ -642,38 +642,38 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 */
         } else if (m instanceof StealReply) {
 
-            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) {
                 logger.info("POOL RECEIVE StealReply from " + m.source);
             }
 
             owner.deliverRemoteStealReply((StealReply)m);
 
 /*
-        } else if (m instanceof LookupReply) { 
+        } else if (m instanceof LookupReply) {
 
-            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_LOOKUP) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_LOOKUP) {
                 logger.info("POOL RECEIVE LookupReply from " + m.source);
             }
 
             owner.deliverRemoteLookupReply((LookupReply)m);
 */
-        } else if (m instanceof EventMessage) { 
+        } else if (m instanceof EventMessage) {
 
-            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) {
                 logger.info("POOL RECEIVE EventMessage from " + m.source);
             }
 
             owner.deliverRemoteEvent((EventMessage)m);
 /*
-        } else if (m instanceof UndeliverableEvent) { 
+        } else if (m instanceof UndeliverableEvent) {
 
-            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) {
                 logger.info("POOL RECEIVE UndeliverableEvent from " + m.source);
             }
 
             owner.deliverUndeliverableEvent((UndeliverableEvent)m);
 */
-        } else { 
+        } else {
             // Should never happen!
             logger.warn("POOL DROP unknown message type! " + m);
         }
@@ -681,84 +681,84 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         return false;
     }
 
-    private void registerRank(int rank, IbisIdentifier src) { 
-        
-        synchronized (locationCache) {             
+    private void registerRank(int rank, IbisIdentifier src) {
+
+        synchronized (locationCache) {
             IbisIdentifier old = locationCache.put(rank, src);
-            
-            if (old != null) { 
+
+            if (old != null) {
                 // sanity check
-                
-                if (!old.equals(src)) { 
-                    logger.error("ERROR: Location cache overwriting rank " 
-                            + rank + " with different id! " 
+
+                if (!old.equals(src)) {
+                    logger.error("ERROR: Location cache overwriting rank "
+                            + rank + " with different id! "
                             + old + " != " + src);
-                }                
+                }
             }
         }
     }
-    
-    private IbisIdentifier lookupRankLocally(int rank) { 
 
-        synchronized (locationCache) { 
+    private IbisIdentifier lookupRankLocally(int rank) {
+
+        synchronized (locationCache) {
             return locationCache.get(rank);
         }
     }
-    
-    public IbisIdentifier lookupRank(int rank) { 
 
-    //	System.out.println("Lookup of rank " + rank);
-    	
+    public IbisIdentifier lookupRank(int rank) {
+
+    //    System.out.println("Lookup of rank " + rank);
+
         IbisIdentifier tmp;
-        
+
         // Do a local lookup
-        synchronized (locationCache) { 
+        synchronized (locationCache) {
             tmp = locationCache.get(rank);
         }
-        
+
         // Return if we have a result, or if there is no one that we can ask
-        if (tmp != null || isMaster) { 
+        if (tmp != null || isMaster) {
             return tmp;
         }
-        
+
         // Forward a request to the master for the 'IbisID' of 'rank'
         forwardInt(master, OPCODE_RANK_LOOKUP_REQUEST, rank);
-        
+
         return null;
     }
-    
-    private void lookupRankRequest(int rank, IbisIdentifier src) { 
-        
+
+    private void lookupRankRequest(int rank, IbisIdentifier src) {
+
         IbisIdentifier tmp = lookupRankLocally(rank);
 
-        if (tmp == null) { 
-            logger.warn("Location lookup for rank "  
+        if (tmp == null) {
+            logger.warn("Location lookup for rank "
                     + rank + " returned null!");
         }
-        
+
         forward(src, OPCODE_RANK_LOOKUP_REPLY, rank, tmp);
     }
-    
+
     public void upcall(ReadMessage rm) throws IOException, ClassNotFoundException {
 
         byte opcode = rm.readByte();
 
         switch (opcode) {
-        case OPCODE_STEAL_REQUEST: 
+        case OPCODE_STEAL_REQUEST:
         {
             StealRequest m = (StealRequest) rm.readObject();
 
-            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) { 
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) {
                 logger.info("POOL RECEIVE StealRequest from " + m.source);
             }
 
             rm.finish();
-            
+
             m.setRemote();
             owner.deliverRemoteStealRequest(m);
         }
         break;
-        
+
         case OPCODE_STEAL_REPLY:
         {
             StealReply m = (StealReply) rm.readObject();
@@ -767,47 +767,47 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             synchronized (this) {
                 received++;
 
-                if (!active) { 
+                if (!active) {
                     logger.warn("POOL Received message while inactive!", new Exception());
                     addPendingMessage(m);
                     return;
                 }
             }
-            
-        	if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) { 
+
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_STEAL) {
                 logger.info("POOL RECEIVE StealReply from " + m.source);
             }
 
             owner.deliverRemoteStealReply(m);
         }
         break;
-        	
+
         case OPCODE_EVENT_MESSAGE:
         {
-        	EventMessage m = (EventMessage) rm.readObject();
+            EventMessage m = (EventMessage) rm.readObject();
 
             // FIXME: EXPENSIVE!
             synchronized (this) {
                 received++;
 
-                if (!active) { 
+                if (!active) {
                     logger.warn("POOL Received message while inactive!", new Exception());
                     addPendingMessage(m);
                     return;
                 }
             }
-            
-            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) { 
+
+            if (Debug.DEBUG_COMMUNICATION || Debug.DEBUG_EVENTS) {
                 logger.info("POOL RECEIVE EventMessage from " + m.source);
             }
 
             rm.finish();
-            
+
             owner.deliverRemoteEvent((EventMessage)m);
         }
         break;
-        
-        case OPCODE_POOL_REGISTER_REQUEST: {            
+
+        case OPCODE_POOL_REGISTER_REQUEST: {
             String tag = (String) rm.readObject();
             IbisIdentifier source = rm.origin().ibisIdentifier();
             performRegisterWithPool(source, tag);
@@ -818,9 +818,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             String tag = (String) rm.readObject();
             IbisIdentifier source = rm.origin().ibisIdentifier();
             performRegisterWithPool(source, tag);
-            rm.finish();            
-            performUpdateRequest(source, tag);            
-        }        
+            rm.finish();
+            performUpdateRequest(source, tag);
+        }
         break;
 
         case OPCODE_POOL_UPDATE_REPLY: {
@@ -829,7 +829,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         }
         break;
 
-        case OPCODE_RANK_REGISTER_REQUEST: {            
+        case OPCODE_RANK_REGISTER_REQUEST: {
             int rank = rm.readInt();
             IbisIdentifier source = rm.origin().ibisIdentifier();
             registerRank(rank, source);
@@ -839,9 +839,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         case OPCODE_RANK_LOOKUP_REQUEST: {
             int rank = rm.readInt();
             IbisIdentifier source = rm.origin().ibisIdentifier();
-            rm.finish();            
-            lookupRankRequest(rank, source);            
-        }        
+            rm.finish();
+            lookupRankRequest(rank, source);
+        }
         break;
 
         case OPCODE_RANK_LOOKUP_REPLY: {
@@ -850,31 +850,31 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             registerRank(rank, id);
         }
         break;
-        
-        default: 
+
+        default:
             logger.error("Received unknown message opcode: " + opcode);
         }
 
         /*
-        if (m instanceof CombinedMessage) { 
+        if (m instanceof CombinedMessage) {
 
             Message [] messages = ((CombinedMessage)m).getMessages();
 
-            for (int i=0;i<messages.length;i++) { 
+            for (int i=0;i<messages.length;i++) {
                 boolean rmFinished = handleMessage(messages[i], rm);
 
-                if (rmFinished) { 
+                if (rmFinished) {
                     rm = null;
                 }
             }
         } else {
-            handleMessage(m, rm); 
+            handleMessage(m, rm);
         }
-         */        
+         */
     }
 
     /*
-    public void broadcast(Message m) { 
+    public void broadcast(Message m) {
 
         // This seems to produce many problems...
         int size = 0;
@@ -883,7 +883,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             size = others.size();
         }
 
-        for (int i=0;i<size;i++) { 
+        for (int i=0;i<size;i++) {
 
             IbisIdentifier tmp = null;
 
@@ -893,26 +893,17 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
                 }
             }
 
-            if (tmp == null) { 
-                logger.warning("POOL failed to retrieve Ibis " + i); 
-            } else { 
+            if (tmp == null) {
+                logger.warning("POOL failed to retrieve Ibis " + i);
+            } else {
                 forward(tmp, OPCODE_MESSAGE, m);
             }
         }
     }*/
 
-    public boolean randomForwardToPool(StealRequest sr) {
+    public boolean randomForwardToPool(StealPool pool, StealRequest sr) {
 
-        //	System.out.println("RANDOM FORWARD TO POOL " + sr.pool.getTag());
-
-        // NOTE: We know the pool is not NULL or NONE.
-        StealPool pool = sr.pool;
-
-        if (pool.isSet()) {             
-            StealPool [] tmp = pool.set();            
-            pool = tmp[random.nextInt(tmp.length)];                        
-        }
-
+        // NOTE: We know the pool sp is not NULL or NONE, and not a set
         PoolInfo info = null;
 
         synchronized (pools) {
@@ -921,22 +912,32 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
         IbisIdentifier id = null;
 
-        if (info != null) { 
+        if (info != null) {
             id = info.selectRandom(random);
         }
 
-        if (id == null) { 
-            logger.warn("Failed to randomly select node in pool " + pool.getTag()); 
+        if (id == null) {
+            logger.warn("Failed to randomly select node in pool " + pool.getTag());
             return false;
         }
 
-        if (id.equals(local)) { 
+        if (id.equals(local)) {
             return false;
         }
 
         return doForward(id, OPCODE_STEAL_REQUEST, sr);
-    } 
+    }
 
+    public StealPool randomlySelectPool(StealPool pool) {
+
+        // NOTE: We know the pool is not NULL or NONE.
+        if (pool.isSet()) {
+            StealPool [] tmp = pool.set();
+            pool = tmp[random.nextInt(tmp.length)];
+        }
+
+        return pool;
+    }
 
     private void performRegisterWithPool(IbisIdentifier id, String tag) {
 
@@ -948,13 +949,13 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             tmp = pools.get(tag);
         }
 
-        if (tmp == null) { 
-            logger.warn("Failed to find pool " + tag + " to register " + id); 
-            System.err.println("Failed to find pool " + tag + " to register " + id); 
+        if (tmp == null) {
+            logger.warn("Failed to find pool " + tag + " to register " + id);
+            System.err.println("Failed to find pool " + tag + " to register " + id);
             return;
         }
 
-        tmp.addMember(id);        
+        tmp.addMember(id);
     }
 
     private void performUpdateRequest(IbisIdentifier id, String tag) {
@@ -965,8 +966,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             tmp = pools.get(tag);
         }
 
-        if (tmp == null) { 
-            logger.warn("Failed to find pool " + tag + " to register " + id); 
+        if (tmp == null) {
+            logger.warn("Failed to find pool " + tag + " to register " + id);
             return;
         }
 
@@ -988,7 +989,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         doForward(master, OPCODE_POOL_UPDATE_REQUEST, tag);
     }
 
-    public void registerWithPool(String tag) { 
+    public void registerWithPool(String tag) {
 
         // NOTE: We know that tag is not NULL, WORLD or NONE.
 
@@ -1004,25 +1005,25 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
             IbisIdentifier id = reg.elect(electTag);
 
-            // NOTE: there may be a race here between the election and the hashmap!! 
-            boolean master = id.equals(ibis.identifier()); 
+            // NOTE: there may be a race here between the election and the hashmap!!
+            boolean master = id.equals(ibis.identifier());
 
             System.err.println("Master for POOL " + electTag + " is " + id + " " + master);
 
-            if (master) { 
+            if (master) {
 
                 synchronized (pools) {
 
                     PoolInfo info = pools.get(tag);
 
-                    if (info != null) { 
+                    if (info != null) {
                         System.err.println("Hit race in pool registration!");
-                    } else { 
+                    } else {
                         info = new PoolInfo(tag, id, master);
                         pools.put(tag, info);
                     }
                 }
-            } else { 
+            } else {
                 requestRegisterWithPool(id, tag);
             }
 
@@ -1034,13 +1035,13 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         }
     }
 
-    public void followPool(String tag) { 
+    public void followPool(String tag) {
 
         // NOTE: race condition between elect and hashmap.add!
         try {
             // Simple case: we own the pool or already follow it.
             synchronized (pools) {
-                if (pools.containsKey(tag)) { 
+                if (pools.containsKey(tag)) {
                     return;
                 }
             }
@@ -1059,8 +1060,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
             System.err.println("Found master for POOL " + electTag + " " + id + " " + master);
 
-            if (master) { 
-                // Assuming the pools are static and registered in 
+            if (master) {
+                // Assuming the pools are static and registered in
                 // the right order this should not happen
                 logger.error("INTERNAL ERROR: election of follow pool returned self!");
                 return;
@@ -1082,24 +1083,24 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
 
-    private void performUpdate(PoolInfo info) { 
+    private void performUpdate(PoolInfo info) {
 
         synchronized (pools) {
             PoolInfo tmp = pools.get(info.tag);
 
-            if (tmp == null) { 
+            if (tmp == null) {
                 logger.warn("Received spurious pool update! " + info.tag);
                 System.err.println("Received spurious pool update! " + info.tag);
                 return;
             }
 
-            if (info.timestamp > tmp.timestamp) { 
+            if (info.timestamp > tmp.timestamp) {
                 pools.put(info.tag, info);
             }
         }
     }
 
-    private void requestUpdate(String tag) { 
+    private void requestUpdate(String tag) {
 
         IbisIdentifier master = null;
 
@@ -1108,7 +1109,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         synchronized (pools) {
             PoolInfo tmp = pools.get(tag);
 
-            if (tmp == null) { 
+            if (tmp == null) {
                 logger.warn("Cannot request update for " + tag + ": unknown pool!");
                 System.err.println("Cannot request update for " + tag + ": unknown pool!");
                 return;
@@ -1124,7 +1125,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     /*
         byte opcode = rm.readByte();
 
-        switch (opcode) { 
+        switch (opcode) {
         case EVENT:
             Event e = (Event) rm.readObject();
             parent.deliverEvent(e);
@@ -1144,16 +1145,16 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             }
             break;
 
-        case STEALREPLY: 
+        case STEALREPLY:
             StealReply reply = (StealReply) rm.readObject();
             parent.incomingStealReply(reply);
 
             synchronized (this) {
                 messagesReceived++;
 
-                if (reply.work == null) { 
+                if (reply.work == null) {
                     no_workReceived++;
-                } else { 
+                } else {
                     workReceived++;
                 }
             }

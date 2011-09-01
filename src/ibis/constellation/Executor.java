@@ -7,114 +7,118 @@ import java.io.Serializable;
 
 public abstract class Executor implements Serializable {
 
-	private static final long serialVersionUID = 6808516395963593310L;
+    private static final long serialVersionUID = 6808516395963593310L;
 
-	// NOTE: These are final for now... 
-	private final WorkerContext context;
-	
-	private final StealStrategy localStealStrategy;
-	private final StealStrategy constellationStealStrategy;
-	private final StealStrategy remoteStealStrategy;
-	
-	private final StealPool myPool;
-	private final StealPool stealsFrom;
+    // NOTE: These are final for now...
+    protected final WorkerContext context;
 
-	private ExecutorWrapper owner = null;
+    protected final StealStrategy localStealStrategy;
+    protected final StealStrategy constellationStealStrategy;
+    protected final StealStrategy remoteStealStrategy;
 
-	protected Executor(StealPool myPool, StealPool stealsFrom, WorkerContext context, 
-			StealStrategy localStealStrategy, StealStrategy constellationStealStrategy, 
-			StealStrategy remoteStealStrategy) { 
+    protected final StealPool myPool;
+    protected final StealPool stealsFrom;
 
-		if (myPool == null) { 
-			this.myPool = StealPool.NONE;
-		} else { 
-			this.myPool = myPool;
-		}
+    private ExecutorWrapper owner = null;
 
-		if (stealsFrom == null) { 
-			this.stealsFrom = StealPool.NONE;
-		} else { 
-			this.stealsFrom = stealsFrom;
-		}
+    protected Executor(StealPool myPool, StealPool stealsFrom, WorkerContext context,
+            StealStrategy localStealStrategy, StealStrategy constellationStealStrategy,
+            StealStrategy remoteStealStrategy) {
 
-		if (context == null) { 
-			this.context = UnitWorkerContext.DEFAULT;
-		} else {
-			this.context = context;
-		}
-		
-		if (localStealStrategy == null) { 
-			this.localStealStrategy = StealStrategy.ANY;
-		} else { 
-			this.localStealStrategy = localStealStrategy;
-		}
-		
-		if (constellationStealStrategy == null) { 
-			this.constellationStealStrategy = StealStrategy.ANY;
-		} else { 
-			this.constellationStealStrategy = constellationStealStrategy;
-		}
-				
-		if (remoteStealStrategy == null) { 
-			this.remoteStealStrategy = StealStrategy.ANY;
-		} else { 
-			this.remoteStealStrategy = remoteStealStrategy;
-		}
-	}
+        if (myPool == null) {
+            this.myPool = StealPool.NONE;
+        } else {
+            this.myPool = myPool;
+        }
 
-	protected Executor() { 
-		this(StealPool.WORLD, StealPool.WORLD, UnitWorkerContext.DEFAULT, 
-				StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
-	}
+        if (stealsFrom == null) {
+            this.stealsFrom = StealPool.NONE;
+        } else {
+            this.stealsFrom = stealsFrom;
+        }
 
-	protected boolean processActivity() { 
-		return false;
-	}
+        if (context == null) {
+            this.context = UnitWorkerContext.DEFAULT;
+        } else {
+            this.context = context;
+        }
 
-	protected boolean processActivities() { 
-		return owner.processActitivies();
-	}
+        if (localStealStrategy == null) {
+            this.localStealStrategy = StealStrategy.ANY;
+        } else {
+            this.localStealStrategy = localStealStrategy;
+        }
 
-	public StealStrategy getLocalStealStrategy() { 
-		return localStealStrategy;
-	}
-	
-	public StealStrategy getConstellationStealStrategy() { 
-		return constellationStealStrategy;
-	}
+        if (constellationStealStrategy == null) {
+            this.constellationStealStrategy = StealStrategy.ANY;
+        } else {
+            this.constellationStealStrategy = constellationStealStrategy;
+        }
 
-	public StealStrategy getRemoteStealStrategy() { 
-		return remoteStealStrategy;
-	}
+        if (remoteStealStrategy == null) {
+            this.remoteStealStrategy = StealStrategy.ANY;
+        } else {
+            this.remoteStealStrategy = remoteStealStrategy;
+        }
+    }
 
-	public ActivityIdentifier submit(Activity job) {
-		return owner.submit(job);
-	}
+    protected Executor() {
+        this(StealPool.WORLD, StealPool.WORLD, UnitWorkerContext.DEFAULT,
+                StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
+    }
 
-	public void send(Event e) {
-		owner.send(e);
-	}
+    protected boolean processActivity() {
+        return false;
+    }
 
-	public WorkerContext getContext() { 
-		return context;
-	}
+    protected boolean processActivities() {
+        return owner.processActitivies();
+    }
 
-	public synchronized void connect(ExecutorWrapper owner) throws Exception {
+    public StealStrategy getLocalStealStrategy() {
+        return localStealStrategy;
+    }
 
-		if (this.owner != null) { 
-			throw new Exception("Executor already connected!");
-		}
+    public StealStrategy getConstellationStealStrategy() {
+        return constellationStealStrategy;
+    }
 
-		this.owner = owner;		
-	}
+    public StealStrategy getRemoteStealStrategy() {
+        return remoteStealStrategy;
+    }
 
-	public StealPool belongsTo() {
-		return myPool;
-	}
+    public ActivityIdentifier submit(Activity job) {
+        return owner.submit(job);
+    }
 
-	public StealPool stealsFrom() {
-		return stealsFrom;
-	}
+    public ConstellationIdentifier identifier() {
+        return owner.identifier();
+    }
 
-	public abstract void run();
+    public void send(Event e) {
+        owner.send(e);
+    }
+
+    public WorkerContext getContext() {
+        return context;
+    }
+
+    public synchronized void connect(ExecutorWrapper owner) throws Exception {
+
+        if (this.owner != null) {
+            throw new Exception("Executor already connected!");
+        }
+
+        this.owner = owner;
+    }
+
+    public StealPool belongsTo() {
+        return myPool;
+    }
+
+    public StealPool stealsFrom() {
+        return stealsFrom;
+    }
+
+    public abstract void run();
 }

@@ -4,58 +4,69 @@ import ibis.constellation.context.UnitWorkerContext;
 
 public class SimpleExecutor extends Executor {
 
-	private static final long serialVersionUID = -2498570099898761363L;
+    private static final long serialVersionUID = -2498570099898761363L;
 
-	public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c, 
-			StealStrategy local, StealStrategy constellation, StealStrategy remote) { 
-		super(pool, stealFrom, c, local, constellation, remote);
-	}
-	
-	public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c) { 
-		super(pool, stealFrom, c, StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
-	}
-	
-	public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c, 
-			StealStrategy st) { 
-		super(pool, stealFrom, c, st, st, st);
-	}
-	
-	public SimpleExecutor() { 
-		super(StealPool.WORLD, StealPool.WORLD, UnitWorkerContext.DEFAULT, 
-				StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
-	}
-	
-	public SimpleExecutor(WorkerContext wc) { 
-		super(StealPool.WORLD, StealPool.WORLD, wc, 
-				StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
-	}
-	
-	public SimpleExecutor(WorkerContext wc, StealStrategy s) { 
-		super(StealPool.WORLD, StealPool.WORLD, wc, s, s, s);
-	}
-	
-	public SimpleExecutor(WorkerContext wc, StealStrategy local, 
-			StealStrategy constellation, StealStrategy remote) { 
-		super(StealPool.WORLD, StealPool.WORLD, wc, local, constellation, remote);
-	}
-	
-	public SimpleExecutor(WorkerContext wc, StealStrategy local, StealStrategy remote) { 
-		super(StealPool.WORLD, StealPool.WORLD, wc, local, remote, remote);
-	}
-	
-	@Override
-	public void run() {
-		
-		System.out.println("Starting Executor!");
-		
-		boolean done = false;
-		
-		while (!done) { 
-			done = processActivities();
-		}
-		
-		System.out.println("Executor done!");
-		
-	}
+    public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c,
+            StealStrategy local, StealStrategy constellation, StealStrategy remote) {
+        super(pool, stealFrom, c, local, constellation, remote);
+    }
+
+    public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c) {
+        super(pool, stealFrom, c, StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
+    }
+
+    public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c,
+            StealStrategy st) {
+        super(pool, stealFrom, c, st, st, st);
+    }
+
+    public SimpleExecutor() {
+        super(StealPool.WORLD, StealPool.WORLD, UnitWorkerContext.DEFAULT,
+                StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
+    }
+
+    public SimpleExecutor(WorkerContext wc) {
+        super(StealPool.WORLD, StealPool.WORLD, wc,
+                StealStrategy.ANY, StealStrategy.ANY, StealStrategy.ANY);
+    }
+
+    public SimpleExecutor(WorkerContext wc, StealStrategy s) {
+        super(StealPool.WORLD, StealPool.WORLD, wc, s, s, s);
+    }
+
+    public SimpleExecutor(WorkerContext wc, StealStrategy local,
+            StealStrategy constellation, StealStrategy remote) {
+        super(StealPool.WORLD, StealPool.WORLD, wc, local, constellation, remote);
+    }
+
+    public SimpleExecutor(WorkerContext wc, StealStrategy local, StealStrategy remote) {
+        super(StealPool.WORLD, StealPool.WORLD, wc, local, remote, remote);
+    }
+
+    @Override
+    public void run() {
+
+        StringBuilder sb = new StringBuilder("Starting Executor: " +
+                identifier() + "\n");
+
+        sb.append("        context: " + context + "\n");
+        sb.append("           pool: " + myPool + "\n");
+        sb.append("    steals from: " + myPool + "\n");
+        sb.append("          local: " + localStealStrategy + "\n");
+        sb.append("  constellation: " + constellationStealStrategy + "\n");
+        sb.append("         remote: " + remoteStealStrategy + "\n");
+        sb.append("--------------------------");
+
+        System.out.println(sb.toString());
+
+        boolean done = false;
+
+        while (!done) {
+            done = processActivities();
+        }
+
+        System.out.println("Executor done!");
+
+    }
 
 }

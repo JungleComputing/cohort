@@ -50,6 +50,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
         if (tmp == null) { 
             return null;
         }
+
+        // FIXME: SANITY CHECK -- should not happen ?
+        if (tmp.size() == 0) { 
+        	System.err.println("EEP(getUnit1): unit.get returned null unexpectedly!");
+        	return null;
+        }
         
         ActivityRecord a;
         
@@ -59,6 +65,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
         	a = (ActivityRecord) tmp.removeTail();
         }
     	
+        // FIXME: SANITY CHECK -- should not happen ?
+        if (a == null) { 
+        	System.err.println("EEP(getUnit1): removeHead/Tail returned null unexpectedly!");
+        	return null;
+        }
+        
         if (tmp.size() == 0) { 
             unit.remove(name);
         }
@@ -76,10 +88,15 @@ public class SmartSortedWorkQueue extends WorkQueue {
         SortedList tmp = unit.get(c.name);
 
         if (tmp == null) { 
-        //	System.out.println(id + "   GetUnit " + c.name + " empty! " + unit.size() + " " + unit.keySet());
             return null;
         }
 
+        // FIXME: SANITY CHECK -- should not happen ?
+        if (tmp.size() == 0) { 
+        	System.err.println("EEP(getUnit2): unit.get returned null unexpectedly!");
+        	return null;
+        }
+        
         ActivityRecord a = null;
         
         switch (s.strategy) { 
@@ -98,8 +115,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
         	break;
         }
         
-       // System.out.println(id + "   GetUnit " + c.name + " succeeded!");
-        
+        // FIXME: SANITY CHECK -- should not happen ?
+        if (a == null) { 
+        	System.err.println("EEP(getUnit2): removeHead/Tail/Range returned null unexpectedly!");
+        	return null;
+        }
+                
         if (tmp.size() == 0) { 
             unit.remove(c.name);
         }
@@ -119,6 +140,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
     		return null;
     	}
 
+        // FIXME: SANITY CHECK -- should not happen ?
+        if (tmp.size() == 0) { 
+        	System.err.println("EEP(getOr1): or.get returned null unexpectedly!");
+        	return null;
+        }
+    	
     	ActivityRecord a = null;
     	
     	if (head) {
@@ -131,6 +158,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
             or.remove(name);
         }
 
+        // FIXME: SANITY CHECK -- should not happen ?
+        if (a == null) { 
+        	System.err.println("EEP(getOr1): removeHead/Tail returned null unexpectedly!");
+        	return null;
+        }
+    	
         // Remove entry for this ActivityRecord from all lists.... 
         UnitActivityContext[] all = ((OrActivityContext) a.activity.getContext()).getContexts();
 
@@ -164,6 +197,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
             return null;
         }
 
+        if (tmp.size() == 0) { 
+        	System.err.println("EEP(getOr2): or.get returned null unexpectedly!");
+        	return null;
+        }
+    	
+        
     //	System.out.println(id + "   GetOR NOT empty!");            		
         
         ActivityRecord a = null;
@@ -184,6 +223,12 @@ public class SmartSortedWorkQueue extends WorkQueue {
         	break;
         }
 
+        // FIXME: SANITY CHECK -- should not happen ?
+        if (a == null) { 
+        	System.err.println("EEP(getOr2): removeHead/Tail returned null unexpectedly!");
+        	return null;
+        }
+    	        
         if (tmp.size() == 0) { 
             or.remove(c.name);
         }
