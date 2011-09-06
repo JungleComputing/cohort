@@ -38,10 +38,6 @@ public class StealReply extends Message {
             final ActivityRecord [] work) {
         super(source, target);
 
-        if (work == null || work.length == 0) {
-            throw new IllegalArgumentException("Work may not be empty!");
-        }
-
         this.pool = pool;
         this.work = work;
         this.context = context;

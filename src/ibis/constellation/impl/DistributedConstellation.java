@@ -7,12 +7,14 @@ import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
+import ibis.constellation.context.OrWorkerContext;
 import ibis.constellation.context.UnitWorkerContext;
 import ibis.constellation.extra.ConstellationIdentifierFactory;
 import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.Properties;
 
 public class DistributedConstellation {
@@ -50,14 +52,58 @@ public class DistributedConstellation {
 
     private long stealReplyDeadLine;
 
-    private boolean pendingSteal = false;
+    // private boolean pendingSteal = false;
 
     private final int stealing;
 
     private final long start;
 
-
     private final Facade facade = new Facade();
+
+    private class PendingSteal {
+
+        final String pool;
+
+        final HashMap<String, Long> deadlines = new HashMap<String, Long>();
+
+        PendingSteal(String pool)  {
+            this.pool = pool;
+        }
+
+        boolean setPending(UnitWorkerContext c, boolean value) {
+
+            if (!value) {
+                // Reset the pending value for this context. We don't care if
+                // if was set or not.
+                deadlines.remove(c.name);
+                return false;
+            }
+
+            long time = System.currentTimeMillis();
+
+            Long deadline = deadlines.get(c.name);
+
+            if (deadline == null) {
+                // No pending set for this context. so set it.
+                deadlines.put(c.name, time + REMOTE_STEAL_TIMEOUT);
+                return false;
+            }
+
+            if (time < deadline.longValue()) {
+                // Pending set for this context, and the deadline has not passed
+                // yet, so we're not allowed to steal.
+                return true;
+            }
+
+            // Pending set for this context, but the deadline has passed, so we
+            // are allowed to reset it.
+            deadlines.put(c.name, time + REMOTE_STEAL_TIMEOUT);
+            return false;
+        }
+    }
+
+    private final HashMap<String, PendingSteal> stealThrottle =
+            new HashMap<String, PendingSteal>();
 
     private class Facade implements Constellation {
 
@@ -256,46 +302,41 @@ public class DistributedConstellation {
     private synchronized boolean setPendingSteal(StealPool pool,
             WorkerContext context, boolean value) {
 
-        // TODO: NEW implementation:
-        //
-        // Per non-set StealPool we check for each of the contexts if a steal
-        // request is pending. If one of the context is not pending yet,
-        // we record the steal for all context and allow the request.
-        //
-        //
-        // NOTE: old implementation below!
+        // Per (singular) StealPool we check for each of the contexts if a steal
+        // request is pending. If one of the context is not pending yet, we
+        // record the steal for all context and allow the request.
 
+        PendingSteal tmp = stealThrottle.get(pool.getTag());
 
+        if (tmp == null) {
+            // When the stealpool is not in use, we create it, provided that we
+            // are not setting the value to false.
 
-        // When we are setting the value to false, we don't care about
-        // the deadline.
-        if (!value) {
-            boolean tmp = pendingSteal;
-            pendingSteal = false;
-            stealReplyDeadLine = 0;
-            return tmp;
+            if (!value) {
+                return false;
+            }
+
+            tmp = new PendingSteal(pool.getTag());
+            stealThrottle.put(pool.getTag(), tmp);
         }
 
-        long time = System.currentTimeMillis();
+        boolean result = true;
 
-        // When we are changing the value from false to true, we also
-        // need to set the deadline.
-        if (!pendingSteal) {
-            pendingSteal = true;
-            stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
-            return false;
+        if (context.isOr()) {
+
+            OrWorkerContext ow = (OrWorkerContext) context;
+
+            for (int i=0;i<ow.size();i++) {
+                UnitWorkerContext uw = ow.get(i);
+                boolean r = tmp.setPending(uw, value);
+                result = result && r;
+            }
+
+        } else {
+            result = tmp.setPending((UnitWorkerContext) context, value);
         }
 
-        // When the old value was true but the deadline has passed, we act as
-        // if the value was false to begin with
-        if (time > stealReplyDeadLine) {
-            pendingSteal = true;
-            stealReplyDeadLine = time + REMOTE_STEAL_TIMEOUT;
-            return false;
-        }
-
-        // Otherwise, we leave the value and deadline unchanged
-        return true;
+        return result;
     }
 
     ConstellationIdentifier identifier() {
