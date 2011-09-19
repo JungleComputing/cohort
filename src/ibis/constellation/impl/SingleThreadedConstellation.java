@@ -758,7 +758,7 @@ public class SingleThreadedConstellation extends Thread {
                 }
             }
 
-            System.out.println("Steal request queued: " + s.source);
+            // System.out.println("Steal request queued: " + s.source);
             incoming.stealRequests.put(s.source, s);
         }
         //havePendingRequests = true;
@@ -986,7 +986,7 @@ public class SingleThreadedConstellation extends Thread {
 
                     tmp = System.currentTimeMillis() - tmp;
 
-                    System.out.println("Sleep took " + tmp);
+                  //  System.out.println("Sleep took " + tmp);
                 } catch (Exception e) {
                     // ignored
                 }
