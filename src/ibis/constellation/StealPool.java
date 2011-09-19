@@ -88,6 +88,24 @@ public class StealPool implements Serializable {
     public StealPool [] set() {
         return set;
     }
+    
+    @Override
+    public String toString() {
+    	
+    	if (isWorld) { 
+    		return "WORLD";
+    	}
+    	
+    	if (isNone) { 
+    		return "NONE";
+    	}
+    	
+    	if (isSet) { 
+    		return Arrays.toString(set);
+    	}
+    	
+    	return tag;    	
+    }
 
     /*
     @Override

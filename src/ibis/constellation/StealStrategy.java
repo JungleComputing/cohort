@@ -76,4 +76,23 @@ public class StealStrategy implements Serializable {
 		this.start = start;
 		this.end = end;
 	}
+	
+	@Override
+    public String toString() {
+
+		switch (strategy) { 
+		case _BIGGEST:
+			return "BIGGEST";
+		case _SMALLEST:
+			return "SMALLEST";
+		case _ANY:
+			return "ANY";
+		case _VALUE: 
+			return "VALUE(" + start + ")";
+		case _RANGE:
+			return "RANGE(" + start + " - " + end + ")";
+		default:
+			return "UNKNOWN";
+		}
+	}
 }

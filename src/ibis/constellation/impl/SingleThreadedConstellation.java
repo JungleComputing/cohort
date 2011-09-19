@@ -753,8 +753,8 @@ public class SingleThreadedConstellation extends Thread {
                 StealRequest tmp = incoming.stealRequests.get(s.source);
 
                 if (tmp != null) {
-                    logger.warn("Steal request overtaken: " + s.source);
-                    System.out.println("Steal request overtaken: " + s.source);
+                    logger.info("Steal request overtaken: " + s.source);
+                    //System.out.println("Steal request overtaken: " + s.source);
                 }
             }
 
