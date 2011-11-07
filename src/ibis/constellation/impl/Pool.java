@@ -256,6 +256,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         if (!isMaster) {
             forwardInt(master, OPCODE_RANK_REGISTER_REQUEST, (int)rank);
         }
+        
+        // Start the updater thread...
+        updater.start();
     }
 
     protected void setLogger(ConstellationLogger logger) {
