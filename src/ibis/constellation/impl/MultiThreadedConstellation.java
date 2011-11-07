@@ -303,7 +303,7 @@ FIXME REMOVE!!
         return false;
     }
 
-    ActivityRecord [] handleStealRequest(SingleThreadedConstellation c) {
+    ActivityRecord [] handleStealRequest(SingleThreadedConstellation c, int stealSize) {
         // a steal request from below
 
         final WorkerContext context = c.getContext();
@@ -336,10 +336,9 @@ FIXME REMOVE!!
 
         // If this fails, we do a remote steal followed by an enqueued steal at a random suitable peer.
 
-        // FIXME: size hardcoded to workerCount!
         StealRequest sr = new StealRequest(c.identifier(), context,
                 c.getLocalStealStrategy(), c.getConstellationStealStrategy(),
-                c.getRemoteStealStrategy(), pool, workerCount);
+                c.getRemoteStealStrategy(), pool, stealSize);
 
         if (parent != null) {
             parent.handleStealRequest(sr);
@@ -400,7 +399,7 @@ FIXME REMOVE!!
                 OrWorkerContext o = (OrWorkerContext) tmp;
 
                 for (int j=0;j<o.size();j++) {
-                    UnitWorkerContext u = o.get(i);
+                    UnitWorkerContext u = o.get(j);
 
                     if (u != null) {
                         String name = u.name;

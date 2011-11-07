@@ -929,7 +929,7 @@ public class SingleThreadedConstellation extends Thread {
                     StealStrategy tmp = s.isLocal() ? s.constellationStrategy : s.remoteStrategy;
 
                     // NOTE: a is allowed to be null
-                    a = wrapper.steal(s.context, tmp, s.isLocal(), stealSize, s.source);
+                    a = wrapper.steal(s.context, tmp, s.isLocal(), s.size, s.source);
 
                     if (a != null) {
                         // We have a result. Register the leaving activities.
@@ -1104,7 +1104,7 @@ public class SingleThreadedConstellation extends Thread {
                                 + " with context " + getContext());
                     }
 
-                    ActivityRecord [] result = parent.handleStealRequest(this);
+                    ActivityRecord [] result = parent.handleStealRequest(this, stealSize);
 
                     if (result != null) {
 
