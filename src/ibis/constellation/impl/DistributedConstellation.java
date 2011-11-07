@@ -541,13 +541,18 @@ public class DistributedConstellation {
 
             for (int i=0;i<set.length;i++) {
 
-                if (!set[i].isWorld()) {
-                    pool.registerWithPool(set[i].getTag());
+            	// TODO: Why do we care if the stealpool is world ? 
+                //if (!set[i].isWorld()) {
+            
+            	if (!set[i].isNone()) {
+            	   pool.registerWithPool(set[i].getTag());
                 }
             }
 
         } else {
-            pool.registerWithPool(belongsTo.getTag());
+        	if (!belongsTo.isNone()) { 
+        		pool.registerWithPool(belongsTo.getTag());
+        	}
         }
     }
 
