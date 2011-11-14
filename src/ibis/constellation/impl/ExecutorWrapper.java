@@ -132,14 +132,7 @@ public class ExecutorWrapper implements Constellation {
         size = relocated.size();
 
         if (size > 0) {
-        	
-        	ActivityRecord ar = (ActivityRecord) relocated.removeFirst();
-        	
-        //	System.out.println("EW: " + identifier + " dequeue " + ar.identifier() + " from relocated!");
-        	
-        	return ar;
-        	
-        	//return (ActivityRecord) relocated.removeFirst();
+        	return (ActivityRecord) relocated.removeFirst();
         }
 
         // Next see if there are any activities that cannot  
@@ -225,6 +218,7 @@ public class ExecutorWrapper implements Constellation {
     			fresh.enqueue(ar);
     		}
     	} else {
+    		// TODO: shouldn't we batch these calls.
     		parent.deliverWrongContext(ar);
     	}
 
