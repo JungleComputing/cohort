@@ -125,7 +125,7 @@ public class MultiThreadedConstellation {
         incomingWorkers = new ArrayList<SingleThreadedConstellation>();
         myContext = UnitWorkerContext.DEFAULT;
         
-        String tmp = p.getProperty("ibis.constellation.steal.localsize");
+        String tmp = p.getProperty("ibis.constellation.stealsize.local");
 
         if (tmp != null && tmp.length() > 0) {
             localStealSize = Integer.parseInt(tmp);
@@ -133,7 +133,9 @@ public class MultiThreadedConstellation {
         	localStealSize = 1;
         }
         
-        logger.info("Starting MultiThreadedCohort " + identifier);
+
+        logger.warn("MultiThreaded: steal size set to " + localStealSize);
+        logger.info("Starting MultiThreadedConstellation " + identifier);
         
         parent.register(this);
         
