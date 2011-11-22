@@ -157,8 +157,8 @@ public class StealPool implements Serializable {
 
                 for (int j=0;j<s2.length;j++) {
 
-                    if (!s2[i].isNone()) {
-                        tmp.add(s2[i]);
+                    if (!s2[j].isNone()) {
+                        tmp.add(s2[j]);
                     }
                 }
             } else {

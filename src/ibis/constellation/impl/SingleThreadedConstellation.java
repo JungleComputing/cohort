@@ -461,7 +461,6 @@ public class SingleThreadedConstellation extends Thread {
             return 0;
         }
 
-
         if (!pool.overlap(wrapper.belongsTo())) {
             return 0;
         }

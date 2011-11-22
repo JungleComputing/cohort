@@ -51,6 +51,8 @@ public class MultiThreadedConstellation {
 
     private final ConstellationLogger logger;
 
+    private final int localStealSize;
+    
     class Facade implements Constellation {
 
         @Override
@@ -122,10 +124,19 @@ public class MultiThreadedConstellation {
 
         incomingWorkers = new ArrayList<SingleThreadedConstellation>();
         myContext = UnitWorkerContext.DEFAULT;
+        
+        String tmp = p.getProperty("ibis.constellation.steal.localsize");
 
+        if (tmp != null && tmp.length() > 0) {
+            localStealSize = Integer.parseInt(tmp);
+        } else {
+        	localStealSize = 1;
+        }
+        
         logger.info("Starting MultiThreadedCohort " + identifier);
-
+        
         parent.register(this);
+        
     }
 
     int next = 0;
@@ -325,17 +336,15 @@ FIXME REMOVE!!
 
             if (tmp != c && poolMatrix[rank][tmp.getRank()]) {
 
-                // FIXME: size hardcoded to 1!
-                int size = tmp.attemptSteal(result, context, c.getConstellationStealStrategy(), pool, c.identifier(), 1, true);
+                int size = tmp.attemptSteal(result, context, c.getConstellationStealStrategy(), pool, c.identifier(), localStealSize, true);
 
-                if (size == 1) {
+                if (size > 0) {
                     return result;
                 }
             }
         }
 
         // If this fails, we do a remote steal followed by an enqueued steal at a random suitable peer.
-
         StealRequest sr = new StealRequest(c.identifier(), context,
                 c.getLocalStealStrategy(), c.getConstellationStealStrategy(),
                 c.getRemoteStealStrategy(), pool, stealSize);
