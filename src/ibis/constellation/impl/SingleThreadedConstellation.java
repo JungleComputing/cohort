@@ -269,8 +269,12 @@ public class SingleThreadedConstellation extends Thread {
         logger.warn("SingleThreaded: sleepTime set to " + sleepTime + " ms.");
         */
 
-        tmp = p.getProperty("ibis.constellation.steal.size");
+        tmp = p.getProperty("ibis.constellation.stealsize");
 
+        if (tmp == null) { 
+        	tmp = p.getProperty("ibis.constellation.steal.size");
+        }
+        
         if (tmp != null && tmp.length() > 0) {
             stealSize = Integer.parseInt(tmp);
         } else {

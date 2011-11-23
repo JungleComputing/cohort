@@ -330,7 +330,7 @@ FIXME REMOVE!!
         final int rnd = selectRandomWorker();
         final int rank = c.getRank();
 
-        ActivityRecord [] result = new ActivityRecord[1];
+        ActivityRecord [] result = new ActivityRecord[localStealSize];
 
         for (int i=0;i<workerCount;i++) {
 
