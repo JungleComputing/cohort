@@ -35,18 +35,17 @@ public class ExecutorWrapper implements Constellation {
 
     private final Executor executor;
 
-    private final WorkerContext myContext; 
-    
-    private final StealStrategy localStealStrategy; 
-    private final StealStrategy constellationStealStrategy;     
-    private final StealStrategy remoteStealStrategy; 
-    
-    private HashMap<ActivityIdentifier, ActivityRecord> lookup = 
-        new HashMap<ActivityIdentifier, ActivityRecord>();
+    private final WorkerContext myContext;
+
+    private final StealStrategy localStealStrategy;
+    private final StealStrategy constellationStealStrategy;
+    private final StealStrategy remoteStealStrategy;
+
+    private HashMap<ActivityIdentifier, ActivityRecord> lookup = new HashMap<ActivityIdentifier, ActivityRecord>();
 
     private final WorkQueue restricted;
     private final WorkQueue fresh;
-    
+
     private CircularBuffer runnable = new CircularBuffer(1);
     private CircularBuffer relocated = new CircularBuffer(1);
 
@@ -74,24 +73,28 @@ public class ExecutorWrapper implements Constellation {
 
     private ActivityRecord current;
 
-    ExecutorWrapper(SingleThreadedConstellation parent, Executor executor, Properties p, 
-            ConstellationIdentifier identifier, ConstellationLogger logger) throws Exception {
+    ExecutorWrapper(SingleThreadedConstellation parent, Executor executor,
+            Properties p, ConstellationIdentifier identifier,
+            ConstellationLogger logger) throws Exception {
         this.parent = parent;
         this.identifier = identifier;
         this.generator = parent.getActivityIdentifierFactory(identifier);
         this.logger = logger;
         this.executor = executor;
 
-        QUEUED_JOB_LIMIT = Integer.parseInt(p.getProperty("ibis.cohort.queue.limit", "" + QUEUED_JOB_LIMIT));
+        QUEUED_JOB_LIMIT = Integer.parseInt(p.getProperty(
+                "ibis.cohort.queue.limit", "" + QUEUED_JOB_LIMIT));
 
         System.out.println("Executor set job limit to " + QUEUED_JOB_LIMIT);
 
-        restricted = new SmartSortedWorkQueue("ExecutorWrapper(" + identifier + ")-restricted");
-        fresh = new SmartSortedWorkQueue("ExecutorWrapper(" + identifier + ")-fresh");
+        restricted = new SmartSortedWorkQueue("ExecutorWrapper(" + identifier
+                + ")-restricted");
+        fresh = new SmartSortedWorkQueue("ExecutorWrapper(" + identifier
+                + ")-fresh");
 
         executor.connect(this);
         myContext = executor.getContext();
-        
+
         localStealStrategy = executor.getLocalStealStrategy();
         constellationStealStrategy = executor.getConstellationStealStrategy();
         remoteStealStrategy = executor.getRemoteStealStrategy();
@@ -109,9 +112,9 @@ public class ExecutorWrapper implements Constellation {
             runnable.remove(ar);
         }
     }
-  
+
     public void done() {
-        if (lookup.size() > 0) {        
+        if (lookup.size() > 0) {
             logger.warn("Quiting Constellation with " + lookup.size()
                     + " activities in queue");
         }
@@ -119,9 +122,9 @@ public class ExecutorWrapper implements Constellation {
 
     private ActivityRecord dequeue() {
 
-    	// Try to dequeue an activity that we can run. 
-    	
-    	// First see if any suspended activities have woken up.    	
+        // Try to dequeue an activity that we can run.
+
+        // First see if any suspended activities have woken up.
         int size = runnable.size();
 
         if (size > 0) {
@@ -132,21 +135,21 @@ public class ExecutorWrapper implements Constellation {
         size = relocated.size();
 
         if (size > 0) {
-        	return (ActivityRecord) relocated.removeFirst();
+            return (ActivityRecord) relocated.removeFirst();
         }
 
-        // Next see if there are any activities that cannot  
+        // Next see if there are any activities that cannot
         // leave this constellation
         size = restricted.size();
 
-        if (size > 0) { 
+        if (size > 0) {
             return restricted.steal(myContext, localStealStrategy);
         }
 
         // Finally, see if there are any fresh activities.
         size = fresh.size();
 
-        if (size > 0) { 
+        if (size > 0) {
             return fresh.steal(myContext, localStealStrategy);
         }
 
@@ -159,7 +162,7 @@ public class ExecutorWrapper implements Constellation {
             return generator.createActivityID(expectsEvents);
         } catch (Exception e) {
             // Oops, we ran out of IDs. Get some more from our parent!
-            if (parent != null) { 
+            if (parent != null) {
                 generator = parent.getActivityIdentifierFactory(identifier);
             }
         }
@@ -174,76 +177,77 @@ public class ExecutorWrapper implements Constellation {
         // return new MTIdentifier(nextID++);
     }
 
-    void addPrivateActivity(ActivityRecord a) { 
-    	// add an activity that only I am allowed to run, either because 
-    	// it is relocated, or because we have just obtained it and we don't 
-    	// want anyone else to steal it from us.
-    	
-		// System.out.println("ExectutorWrapper got private activity " + a.identifier());
-		
-		lookup.put(a.identifier(), a);
-    	relocated.insertLast(a);    	
+    void addPrivateActivity(ActivityRecord a) {
+        // add an activity that only I am allowed to run, either because
+        // it is relocated, or because we have just obtained it and we don't
+        // want anyone else to steal it from us.
+
+        // System.out.println("ExectutorWrapper got private activity " +
+        // a.identifier());
+
+        lookup.put(a.identifier(), a);
+        relocated.insertLast(a);
     }
-        
-    protected ActivityRecord lookup(ActivityIdentifier id) { 
+
+    protected ActivityRecord lookup(ActivityIdentifier id) {
         return lookup.get(id);
     }
 
     public ActivityIdentifier submit(Activity a) {
 
-    	activitiesSubmitted++;
+        activitiesSubmitted++;
 
-    	ActivityIdentifier id = createActivityID(a.expectsEvents());
-    	a.initialize(id);
+        ActivityIdentifier id = createActivityID(a.expectsEvents());
+        a.initialize(id);
 
-    	ActivityRecord ar = new ActivityRecord(a);
-    	ActivityContext c = a.getContext();
+        ActivityRecord ar = new ActivityRecord(a);
+        ActivityContext c = a.getContext();
 
-/*
-    	if (restricted.size() + fresh.size() >= QUEUED_JOB_LIMIT) {
-    		// If we have too much work on our hands we push it to out parent. Added bonus 
-    		// is that others can access it without interrupting me.
-    		
-    		System.out.println("Executor SHOULD push work to parent! " + restricted.size() + " " + fresh.size());
-    	}
-*/
-  
-    	if (c.satisfiedBy(myContext, StealStrategy.ANY)) { 
+        /*
+         * if (restricted.size() + fresh.size() >= QUEUED_JOB_LIMIT) { // If we
+         * have too much work on our hands we push it to out parent. Added bonus
+         * // is that others can access it without interrupting me.
+         * 
+         * System.out.println("Executor SHOULD push work to parent! " +
+         * restricted.size() + " " + fresh.size()); }
+         */
 
-    		lookup.put(a.identifier(), ar);
+        if (c.satisfiedBy(myContext, StealStrategy.ANY)) {
 
-    		if (ar.isRestrictedToLocal()) { 
-    			restricted.enqueue(ar);
-    		} else { 
-    			fresh.enqueue(ar);
-    		}
-    	} else {
-    		// TODO: shouldn't we batch these calls.
-    		parent.deliverWrongContext(ar);
-    	}
+            lookup.put(a.identifier(), ar);
 
-    	return id;
+            if (ar.isRestrictedToLocal()) {
+                restricted.enqueue(ar);
+            } else {
+                fresh.enqueue(ar);
+            }
+        } else {
+            // TODO: shouldn't we batch these calls.
+            parent.deliverWrongContext(ar);
+        }
+
+        return id;
     }
 
     public void send(Event e) {
 
         long start, end;
 
-        if (PROFILE) { 
+        if (PROFILE) {
             start = System.currentTimeMillis();
         }
 
         if (Debug.DEBUG_EVENTS) {
-            logger.info("SEND EVENT " + e.source + " to " 
-                    + e.target + " at " + start);
+            logger.info("SEND EVENT " + e.source + " to " + e.target + " at "
+                    + start);
         }
 
         // First check if the activity is local.
         ActivityRecord ar = lookup.get(e.target);
-    	
-    	if (ar != null) { 
-		
-    		messagesInternal++;
+
+        if (ar != null) {
+
+            messagesInternal++;
 
             ar.enqueue(e);
 
@@ -251,22 +255,22 @@ public class ExecutorWrapper implements Constellation {
 
             if (change) {
                 runnable.insertLast(ar);
-            }		
-            
-            if (PROFILE) { 
+            }
+
+            if (PROFILE) {
                 end = System.currentTimeMillis();
-                messagesTime += (end-start);        
-            }   
-            
+                messagesTime += (end - start);
+            }
+
             return;
-		}
+        }
 
-    	// Activity is not local, so let our parent handle it.
-    	parent.handleEvent(e);    	   
+        // Activity is not local, so let our parent handle it.
+        parent.handleEvent(e);
 
-        if (PROFILE) { 
+        if (PROFILE) {
             end = System.currentTimeMillis();
-            messagesTime += (end-start);        
+            messagesTime += (end - start);
         }
     }
 
@@ -276,74 +280,80 @@ public class ExecutorWrapper implements Constellation {
 
         if (ar != null) {
 
-        	ar.enqueue(e);
+            ar.enqueue(e);
 
-        	boolean change = ar.setRunnable();
-        	
-        	if (change) {
-        		runnable.insertLast(ar);
-        	}
+            boolean change = ar.setRunnable();
 
-         //   System.out.println("EW: queued event for " + e.target);
+            if (change) {
+                runnable.insertLast(ar);
+            }
 
-        	return true;
+            // System.out.println("EW: queued event for " + e.target);
+
+            return true;
         }
-        
-        System.out.println("ERROR: Cannot deliver event: Failed to find activity " + e.target);
-        logger.error("ERROR: Cannot deliver event: Failed to find activity " + e.target);
+
+        System.out
+                .println("ERROR: Cannot deliver event: Failed to find activity "
+                        + e.target);
+        logger.error("ERROR: Cannot deliver event: Failed to find activity "
+                + e.target);
 
         return false;
     }
-   
-    protected ActivityRecord [] steal(WorkerContext context, StealStrategy s, boolean allowRestricted, int count, ConstellationIdentifier source) {
+
+    protected ActivityRecord[] steal(WorkerContext context, StealStrategy s,
+            boolean allowRestricted, int count, ConstellationIdentifier source) {
 
         // logger.warn("In STEAL on BASE " + context + " " + count);
 
         steals++;
 
-        ActivityRecord [] result = new ActivityRecord[count];
+        ActivityRecord[] result = new ActivityRecord[count];
 
-        // FIXME: Optimize this!!!        
-        for (int i=0;i<count;i++) { 
+        // FIXME: Optimize this!!!
+        for (int i = 0; i < count; i++) {
             result[i] = doSteal(context, s, allowRestricted);
 
-            if (result[i] == null) { 
+            if (result[i] == null) {
 
-            	if (i == 0) { 
+                if (i == 0) {
                     return null;
-                } else { 
+                } else {
                     stolenJobs += i;
-                    stealSuccess++;                    
+                    stealSuccess++;
                     return result;
-                }            
-            } 
+                }
+            }
         }
 
-        //  logger.warn("STEAL(" + count + ") only produced ALL results");
+        // logger.warn("STEAL(" + count + ") only produced ALL results");
 
         stolenJobs += count;
-        stealSuccess++;                    
+        stealSuccess++;
         return result;
     }
 
-    private ActivityRecord doSteal(WorkerContext context, StealStrategy s, boolean allowRestricted) {
+    private ActivityRecord doSteal(WorkerContext context, StealStrategy s,
+            boolean allowRestricted) {
 
-        if (Debug.DEBUG_STEAL) { 
-            logger.info("STEAL BASE(" + identifier + "): activities F: " 
-                    + fresh.size() + " W: " + /*wrongContext.size() +*/ " R: " 
+        if (Debug.DEBUG_STEAL) {
+            logger.info("STEAL BASE(" + identifier + "): activities F: "
+                    + fresh.size() + " W: " + /* wrongContext.size() + */" R: "
                     + runnable.size() + " L: " + lookup.size());
         }
-       
-        if (allowRestricted) { 
+
+        if (allowRestricted) {
 
             ActivityRecord r = restricted.steal(context, s);
 
-            if (r != null) { 
+            if (r != null) {
 
-            	// Sanity check -- should not happen!
-                if (r.isStolen()) { 
-                    logger.warn("INTERNAL ERROR: return stolen job " + identifier);
-                }   
+                // Sanity check -- should not happen!
+                if (r.isStolen()) {
+                    logger.warn("INTERNAL ERROR: return stolen job "
+                            + identifier);
+                }
 
                 lookup.remove(r.identifier());
 
@@ -354,17 +364,17 @@ public class ExecutorWrapper implements Constellation {
                 return r;
             }
 
-            // If restricted fails we try the regular queue 
+            // If restricted fails we try the regular queue
         }
 
         ActivityRecord r = fresh.steal(context, s);
 
-        if (r != null) { 
+        if (r != null) {
 
-        	// Sanity check -- should not happen!
-            if (r.isStolen()) { 
+            // Sanity check -- should not happen!
+            if (r.isStolen()) {
                 logger.error("INTERNAL ERROR: return stolen job " + identifier);
-            }   
+            }
 
             lookup.remove(r.identifier());
 
@@ -378,7 +388,7 @@ public class ExecutorWrapper implements Constellation {
         return null;
     }
 
-    private void process(ActivityRecord tmp) { 
+    private void process(ActivityRecord tmp) {
 
         long start, end;
 
@@ -392,7 +402,7 @@ public class ExecutorWrapper implements Constellation {
 
         tmp.run();
 
-        if (PROFILE) { 
+        if (PROFILE) {
             end = System.currentTimeMillis();
 
             computationTime += end - start;
@@ -404,7 +414,7 @@ public class ExecutorWrapper implements Constellation {
             runnable.insertFirst(tmp);
         } else if (tmp.isDone()) {
             cancel(tmp.identifier());
-        } 
+        }
 
         current = null;
     }
@@ -413,10 +423,10 @@ public class ExecutorWrapper implements Constellation {
 
         ActivityRecord tmp = dequeue();
 
-        // NOTE: the queue is guaranteed to only contain activities that we can 
-        //       run. Whenever new activities are added or the the context of 
-        //       this cohort changes we filter out all activities that do not 
-        //       match. 
+        // NOTE: the queue is guaranteed to only contain activities that we can
+        // run. Whenever new activities are added or the the context of
+        // this cohort changes we filter out all activities that do not
+        // match.
 
         if (tmp != null) {
             process(tmp);
@@ -426,55 +436,55 @@ public class ExecutorWrapper implements Constellation {
         return false;
     }
 
-    long getComputationTime() { 
+    long getComputationTime() {
         return computationTime;
     }
 
-    long getActivitiesSubmitted() { 
+    long getActivitiesSubmitted() {
         return activitiesSubmitted;
     }
 
-    long getActivitiesAdded() { 
+    long getActivitiesAdded() {
         return activitiesAdded;
     }
 
-    long getWrongContextSubmitted() { 
+    long getWrongContextSubmitted() {
         return wrongContextSubmitted;
     }
 
-    long getWrongContextAdded() { 
+    long getWrongContextAdded() {
         return wrongContextAdded;
     }
 
-    long getWrongContextDiscovered() { 
+    long getWrongContextDiscovered() {
         return wrongContextDiscovered;
     }
 
-    long getActivitiesInvoked() { 
+    long getActivitiesInvoked() {
         return activitiesInvoked;
     }
 
-    long getMessagesInternal() { 
+    long getMessagesInternal() {
         return messagesInternal;
     }
 
-    long getMessagesExternal() { 
+    long getMessagesExternal() {
         return messagesExternal;
     }
 
-    long getMessagesTime() { 
+    long getMessagesTime() {
         return messagesTime;
     }
 
-    long getSteals() { 
+    long getSteals() {
         return steals;
     }
 
-    long getStealSuccess() { 
+    long getStealSuccess() {
         return stealSuccess;
     }
 
-    long getStolen() { 
+    long getStolen() {
         return stolenJobs;
     }
 
@@ -489,27 +499,25 @@ public class ExecutorWrapper implements Constellation {
     public WorkerContext getContext() {
         return myContext;
     }
-    
-    public StealStrategy getLocalStealStrategy() { 
+
+    public StealStrategy getLocalStealStrategy() {
         return localStealStrategy;
     }
 
-    public StealStrategy getConstellationStealStrategy() { 
+    public StealStrategy getConstellationStealStrategy() {
         return constellationStealStrategy;
     }
-    
-    public StealStrategy getRemoteStealStrategy() { 
+
+    public StealStrategy getRemoteStealStrategy() {
         return remoteStealStrategy;
     }
-    
-    public boolean activate() { 
-/*
-        if (parent != null) { 
-            return true;
-        }
 
-        while (process());
-*/
+    public boolean activate() {
+        /*
+         * if (parent != null) { return true; }
+         * 
+         * while (process());
+         */
         return false;
     }
 
@@ -519,11 +527,11 @@ public class ExecutorWrapper implements Constellation {
 
     public void runExecutor() {
 
-        try { 
+        try {
             executor.run();
         } catch (Exception e) {
             logger.error("Executor terminated unexpectedly!", e);
-        }		
+        }
     }
 
     StealPool belongsTo() {

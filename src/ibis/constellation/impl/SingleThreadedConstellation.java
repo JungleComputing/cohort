@@ -697,7 +697,7 @@ public class SingleThreadedConstellation extends Thread {
     }
 
     void handleEvent(Event e) {
-        // An event pushed up by our executor. We now the
+        // An event pushed up by our executor. We know the
         // executor itself does not contain the target activity
 
         ConstellationIdentifier cid = null;
@@ -866,45 +866,49 @@ public class SingleThreadedConstellation extends Thread {
         for (int i=0;i<a.length;i++) {
 
             ActivityRecord ar = a[i];
-            ActivityContext c = ar.getContext();
+            
+            if (ar != null) { 
 
-            if (ar.isRelocated()) {
-                // We should unset the relocation flag if an activity is returned.
-                ar.setRelocated(false);
-                relocated.remove(ar.identifier());
-            } else if (ar.isStolen()) {
+                ActivityContext c = ar.getContext();
 
-                // Sanity check -- should never fire! FIXME --remove!
-                if (!ar.identifier().getOrigin().equals(identifier)) {
-                    System.out.println("INTERNAL ERROR: resetting stolen  ");
-                }
+                if (ar.isRelocated()) {
+                    // We should unset the relocation flag if an activity is returned.
+                    ar.setRelocated(false);
+                    relocated.remove(ar.identifier());
+                } else if (ar.isStolen()) {
 
-                // We should unset the stolen flag if an activity is returned.
-                ar.setStolen(false);
-                exportedActivities.remove(ar.identifier());
-            }
-
-            if (c.satisfiedBy(wrapper.getContext(), StealStrategy.ANY)) {
-
-                synchronized (this) {
-                    lookup.put(ar.identifier(), ar);
-
-                    if (ar.isRestrictedToLocal()) {
-                        restricted.enqueue(ar);
-                    } else if (ar.isStolen()) {
-                        stolen.enqueue(ar);
-                    } else {
-                        fresh.enqueue(ar);
+                    // Sanity check -- should never fire! FIXME --remove!
+                    if (!ar.identifier().getOrigin().equals(identifier)) {
+                        System.out.println("INTERNAL ERROR: resetting stolen  ");
                     }
-                }
-            } else {
-                synchronized (this) {
-                    lookup.put(ar.identifier(), ar);
 
-                    if (ar.isRestrictedToLocal()) {
-                        restrictedWrongContext.enqueue(ar);
-                    } else {
-                        wrongContext.enqueue(ar);
+                    // We should unset the stolen flag if an activity is returned.
+                    ar.setStolen(false);
+                    exportedActivities.remove(ar.identifier());
+                }
+
+                if (c.satisfiedBy(wrapper.getContext(), StealStrategy.ANY)) {
+
+                    synchronized (this) {
+                        lookup.put(ar.identifier(), ar);
+
+                        if (ar.isRestrictedToLocal()) {
+                            restricted.enqueue(ar);
+                        } else if (ar.isStolen()) {
+                            stolen.enqueue(ar);
+                        } else {
+                            fresh.enqueue(ar);
+                        }
+                    }
+                } else {
+                    synchronized (this) {
+                        lookup.put(ar.identifier(), ar);
+
+                        if (ar.isRestrictedToLocal()) {
+                            restrictedWrongContext.enqueue(ar);
+                        } else {
+                            wrongContext.enqueue(ar);
+                        }
                     }
                 }
             }

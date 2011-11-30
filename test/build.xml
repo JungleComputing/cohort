@@ -27,7 +27,7 @@
 
 		<javac destdir="${builddir}" 
                        srcdir="${srcdir}" 
-                       target="1.6" 
+                       target="1.7" 
                        debug="true" 
                        classpathref="default.classpath" 
                        includeantruntime="false"/>

@@ -12,41 +12,52 @@ public class TestLoop extends Activity {
     private final ActivityIdentifier parent;
     
     private final long count;
+    private final int concurrent;
     private final int spawns;
     
-    private int i;
+    private int pending;
+    private int done;
     
     private long start;
     private long end;
     
-    public TestLoop(ActivityIdentifier parent, long count, int spawns) {
-        super(UnitActivityContext.DEFAULT, true, true);
+    public TestLoop(ActivityIdentifier parent, long count, int concurrent, int spawns) {
+        super(new UnitActivityContext("TEST", 3), true, true);
         this.parent = parent;
         this.count = count;
+        this.concurrent = concurrent;
         this.spawns = spawns;
     }
 
     @Override
     public void initialize() throws Exception {
-        
         start = System.currentTimeMillis();
         
-        executor.submit(new SingleTest(identifier(), spawns));
+        for (int i=0;i<concurrent;i++) {
+            pending++;
+            executor.submit(new SingleTest(identifier(), spawns));
+        }
+        
         suspend();
     }
 
     @Override
     public void process(Event e) throws Exception {
 
-        i++;
+        done++;
         
-        if (i == count) {             
+        if (done == count) {             
             end = System.currentTimeMillis();            
             finish();
-        } else {
+            return;
+        } 
+        
+        if (pending < count) { 
+            pending++;
             executor.submit(new SingleTest(identifier(), spawns));
-            suspend();
         }
+            
+        suspend();
     }
 
     @Override
@@ -54,7 +65,7 @@ public class TestLoop extends Activity {
         
         double timeSatin = (double) (end - start) / 1000.0;
         double cost =  ((double) (end - start) * 1000.0) / (spawns * count);
-                
+ 
         System.out.println("spawn = " + timeSatin + " s, time/spawn = " + cost + " us/spawn" );
         
         executor.send(new Event(identifier(), parent, null));
