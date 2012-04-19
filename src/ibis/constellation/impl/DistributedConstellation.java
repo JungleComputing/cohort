@@ -446,7 +446,7 @@ public class DistributedConstellation {
 
             if (Debug.DEBUG_STEAL) {
                 logger.info("D RANDOM FORWARD steal request from child "
-                        + sr.source  + " to POOL " + sr.pool.getTag());
+                        + sr.source  + " to POOL " + sp.getTag());
             }
 
         }

@@ -65,7 +65,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
     private final Ibis ibis;
     private final IbisIdentifier local;
-    private IbisIdentifier master;
+    private final IbisIdentifier master;
 
     private long rank = -1;
 
@@ -215,6 +215,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
             master = ibis.registry().elect("Constellation Master");
         } else if (tmp.equalsIgnoreCase("false")) {
             master = ibis.registry().getElectionResult("Constellation Master");
+        } else {
+        	master = null;
         }
 
         if (master == null) {
@@ -603,7 +605,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         IbisIdentifier tmp = locationCache.get(info.rank);
 
         if (tmp == null) {
-            logger.warn("Location lookup for rank " + rank + " returned null!");
+            logger.warn("Location lookup for rank " + rank + " returned null! Dropping reply");
+            //Timo: drop reply, sender will retry automatically, and does not handle null replies well.
+            return;
         }
 
         doForward(info.id, OPCODE_RANK_LOOKUP_REPLY, new RankInfo(info.rank,
@@ -960,7 +964,6 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
                 return;
             }
 
-            master = tmp.master;
         }
 
         requestUpdate(tmp.master, tag, tmp.currentTimeStamp());

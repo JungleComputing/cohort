@@ -51,7 +51,7 @@ public class SimpleExecutor extends Executor {
 
         sb.append("        context: " + context + "\n");
         sb.append("           pool: " + myPool + "\n");
-        sb.append("    steals from: " + myPool + "\n");
+        sb.append("    steals from: " + stealsFrom + "\n");
         sb.append("          local: " + localStealStrategy + "\n");
         sb.append("  constellation: " + constellationStealStrategy + "\n");
         sb.append("         remote: " + remoteStealStrategy + "\n");
