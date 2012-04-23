@@ -416,7 +416,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     public void cleanup() {
-
+    	updater.done();
         try {
             ibis.end();
         } catch (IOException e) {
