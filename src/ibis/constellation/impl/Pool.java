@@ -216,7 +216,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
         } else if (tmp.equalsIgnoreCase("false")) {
             master = ibis.registry().getElectionResult("Constellation Master");
         } else {
-        	master = null;
+            master = null;
         }
 
         if (master == null) {
