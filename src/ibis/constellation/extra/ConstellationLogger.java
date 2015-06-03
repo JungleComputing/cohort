@@ -4,16 +4,18 @@ import ibis.constellation.ConstellationIdentifier;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 public class ConstellationLogger extends Logger {
     private static String FQCN = ConstellationLogger.class.getName() + ".";
+    private static LoggerFactory factory = new ConstellationLoggerFactory();
 
     /**
      * Constructor.
      * 
      * Don't use directly. User getLogger(...) instead.
      */
-    private ConstellationLogger(String name) {
+    ConstellationLogger(String name) {
 	super(name);
     }
 
@@ -36,10 +38,11 @@ public class ConstellationLogger extends Logger {
 	    ConstellationIdentifier identifier) {
 
 	if (identifier == null) {
-	    return (ConstellationLogger) Logger.getLogger(name);
+	    return (ConstellationLogger) Logger.getLogger(name, factory);
 	}
 
-	return (ConstellationLogger) Logger.getLogger(name + '.' + identifier);
+	return (ConstellationLogger) Logger.getLogger(name + '.' + identifier,
+		factory);
     }
 
 }
