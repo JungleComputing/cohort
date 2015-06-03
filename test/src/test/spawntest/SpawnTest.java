@@ -2,7 +2,6 @@ package test.spawntest;
 
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationFactory;
-import ibis.constellation.Executor;
 import ibis.constellation.SimpleExecutor;
 import ibis.constellation.SingleEventCollector;
 import ibis.constellation.StealStrategy;
@@ -17,33 +16,36 @@ public class SpawnTest {
     private static final int COUNT = 1000;
     private static final int REPEAT = 5;
     private static final int CONCURRENT = 100;
-    
+
     public static void main(String[] args) {
 
-        try {
-            Constellation c = ConstellationFactory.createConstellation(
-                    new SimpleExecutor(
-                            new UnitWorkerContext("TEST"),
-                            StealStrategy.SMALLEST, StealStrategy.BIGGEST, StealStrategy.BIGGEST));
+	try {
+	    Constellation c = ConstellationFactory
+		    .createConstellation(new SimpleExecutor(
+			    new UnitWorkerContext("TEST"),
+			    StealStrategy.SMALLEST, StealStrategy.BIGGEST,
+			    StealStrategy.BIGGEST));
 
-            c.activate();
+	    c.activate();
 
-            if (c.isMaster()) {
-                for (int i = 0; i < REPEAT; i++) {
-                    SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("TEST"));
-                    c.submit(a);
-                    c.submit(new TestLoop(a.identifier(), COUNT, CONCURRENT, SPAWNS_PER_SYNC));
-                    a.waitForEvent();
-                }
-            } 
-            
-            c.done();
+	    if (c.isMaster()) {
+		for (int i = 0; i < REPEAT; i++) {
+		    SingleEventCollector a = new SingleEventCollector(
+			    new UnitActivityContext("TEST"));
+		    c.submit(a);
+		    c.submit(new TestLoop(a.identifier(), COUNT, CONCURRENT,
+			    SPAWNS_PER_SYNC));
+		    a.waitForEvent();
+		}
+	    }
 
-        } catch (Exception e) {
-            System.err.println("Oops: " + e);
-            e.printStackTrace(System.err);
-            System.exit(1);
-        }
+	    c.done();
+
+	} catch (Exception e) {
+	    System.err.println("Oops: " + e);
+	    e.printStackTrace(System.err);
+	    System.exit(1);
+	}
     }
 
 }

@@ -83,7 +83,7 @@ public class ExecutorWrapper implements Constellation {
         this.executor = executor;
 
         QUEUED_JOB_LIMIT = Integer.parseInt(p.getProperty(
-                "ibis.cohort.queue.limit", "" + QUEUED_JOB_LIMIT));
+                "ibis.constellation.queue.limit", "" + QUEUED_JOB_LIMIT));
 
         System.out.println("Executor set job limit to " + QUEUED_JOB_LIMIT);
 

@@ -242,7 +242,9 @@ public class SingleThreadedConstellation extends Thread {
 	this.logger = ConstellationLogger.getLogger(
 		SingleThreadedConstellation.class, identifier);
 
-	logger.warn("Starting SingleThreadedConstellation: " + identifier);
+	if (logger.isInfoEnabled()) {
+	    logger.info("Starting SingleThreadedConstellation: " + identifier);
+	}
 
 	String tmp = p.getProperty("ibis.constellation.steal.delay");
 
@@ -252,10 +254,13 @@ public class SingleThreadedConstellation extends Thread {
 	    stealDelay = DEFAULT_STEAL_DELAY;
 	}
 
-	logger.warn("SingleThreaded: steal delay set to " + stealDelay + " ms.");
+	if (logger.isInfoEnabled()) {
+	    logger.info("SingleThreaded: steal delay set to " + stealDelay
+		    + " ms.");
+	}
 
 	/*
-	 * String tmp = p.getProperty("ibis.cohort.sleep");
+	 * String tmp = p.getProperty("ibis.constellation.sleep");
 	 * 
 	 * if (tmp != null && tmp.length() > 0) { sleepTime =
 	 * Integer.parseInt(tmp); } else { sleepTime = 1000; }
@@ -276,7 +281,9 @@ public class SingleThreadedConstellation extends Thread {
 	    stealSize = 1;
 	}
 
-	logger.warn("SingleThreaded: steal size set to " + stealSize);
+	if (logger.isInfoEnabled()) {
+	    logger.info("SingleThreaded: steal size set to " + stealSize);
+	}
 
 	tmp = p.getProperty("ibis.constellation.steal.ignorereplies");
 
@@ -286,8 +293,10 @@ public class SingleThreadedConstellation extends Thread {
 	    ignoreEmptyStealReplies = DEFAULT_IGNORE_EMPTY_STEAL_REPLIES;
 	}
 
-	logger.warn("SingleThreaded: ignore empty steal replies set to "
-		+ ignoreEmptyStealReplies);
+	if (logger.isInfoEnabled()) {
+	    logger.info("SingleThreaded: ignore empty steal replies set to "
+		    + ignoreEmptyStealReplies);
+	}
 
 	if (PROFILE) {/*
 		       * profileTime = System.currentTimeMillis();
@@ -461,6 +470,10 @@ public class SingleThreadedConstellation extends Thread {
 
 	// First steal from the activities that I cannot run myself.
 	int offset = wrongContext.steal(context, s, tmp, 0, size);
+	if (logger.isDebugEnabled() && offset > 0) {
+	    logger.debug("Stole " + offset + " jobs from wrongContext of "
+		    + identifier.id + ", size = " + wrongContext.size());
+	}
 
 	if (local) {
 
@@ -526,9 +539,10 @@ public class SingleThreadedConstellation extends Thread {
 
     void deliverStealRequest(StealRequest sr) {
 	// steal request (possibly remote) to enqueue and handle later
-	logger.info("S REMOTE STEAL REQUEST from " + sr.source + " context "
-		+ sr.context);
-
+	if (logger.isInfoEnabled()) {
+	    logger.info("S REMOTE STEAL REQUEST from " + sr.source
+		    + " context " + sr.context);
+	}
 	postStealRequest(sr);
     }
 
@@ -739,7 +753,7 @@ public class SingleThreadedConstellation extends Thread {
 
 	if (cid.equals(identifier)) {
 	    // the target is local, which means we have lost a local activity
-	    logger.error("ERROR: activity " + e.target
+	    logger.error("Activity " + e.target
 		    + " does no longer exist! (event dropped)");
 	    return;
 	}
@@ -764,13 +778,11 @@ public class SingleThreadedConstellation extends Thread {
 
 	synchronized (incoming) {
 
-	    if (Debug.DEBUG_STEAL) {
+	    if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
 		StealRequest tmp = incoming.stealRequests.get(s.source);
 
 		if (tmp != null) {
 		    logger.info("Steal request overtaken: " + s.source);
-		    // System.out.println("Steal request overtaken: " +
-		    // s.source);
 		}
 	    }
 
@@ -817,7 +829,7 @@ public class SingleThreadedConstellation extends Thread {
 
     private void swapEventQueues() {
 
-	if (Debug.DEBUG_SUBMIT) {
+	if (Debug.DEBUG_SUBMIT && logger.isInfoEnabled()) {
 	    logger.info("Processing events while idle!\n" + incoming.print()
 		    + "\n" + processing.print());
 	}
@@ -844,14 +856,15 @@ public class SingleThreadedConstellation extends Thread {
 
 		if (!wrapper.queueEvent(m.event)) {
 		    // Failed to deliver event locally. Check if the activity is
-		    // now in
-		    // one of the local queues. If not, return to parent.
-
-		    logger.warn("WARNING: Failed to deliver message from "
-			    + m.source + " / " + m.event.source + " to "
-			    + m.target + " / " + m.event.target
-			    + " (resending)");
-		    // logger.warn("message contents: " + m.event.toString());
+		    // now in one of the local queues. If not, return to parent.
+		    if (logger.isInfoEnabled()) {
+			logger.info("Failed to deliver message from "
+				+ m.source + " / " + m.event.source + " to "
+				+ m.target + " / " + m.event.target
+				+ " (resending)");
+			// logger.info("message contents: " +
+			// m.event.toString());
+		    }
 
 		    handleEvent(m.event);
 		}
@@ -893,8 +906,7 @@ public class SingleThreadedConstellation extends Thread {
 
 		    // Sanity check -- should never fire! FIXME --remove!
 		    if (!ar.identifier().getOrigin().equals(identifier)) {
-			System.out
-				.println("INTERNAL ERROR: resetting stolen  ");
+			logger.error("INTERNAL ERROR: resetting stolen");
 		    }
 
 		    // We should unset the stolen flag if an activity is
@@ -1058,6 +1070,10 @@ public class SingleThreadedConstellation extends Thread {
 	    restrictedWrongContext.enqueue(a);
 	} else {
 	    wrongContext.enqueue(a);
+	    if (logger.isDebugEnabled()) {
+		logger.debug("Added job to wronContext queue; length = "
+			+ wrongContext.size());
+	    }
 	}
     }
 
@@ -1124,7 +1140,7 @@ public class SingleThreadedConstellation extends Thread {
 
 		if (nextDeadline == 0) {
 
-		    if (Debug.DEBUG_STEAL) {
+		    if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
 			logger.info("GENERATING STEAL REQUEST at " + identifier
 				+ " with context " + getContext());
 		    }

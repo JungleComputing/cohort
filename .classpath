@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="external/ibis-util-2.2.jar"/>
 	<classpathentry kind="lib" path="external/ipl-2.2.jar"/>
 	<classpathentry kind="lib" path="external/log4j-1.2.13.jar"/>
+	<classpathentry kind="lib" path="external/slf4j-api-1.5.3.jar"/>
 	<classpathentry kind="output" path="build-eclipse"/>
 </classpath>
