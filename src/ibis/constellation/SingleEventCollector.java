@@ -1,8 +1,13 @@
 package ibis.constellation;
 
 import ibis.constellation.context.UnitActivityContext;
+import ibis.constellation.extra.ConstellationLogger;
+
+import org.apache.log4j.Logger;
 
 public class SingleEventCollector extends Activity {
+
+    public static final Logger logger = ConstellationLogger.getLogger(SingleEventCollector.class);
 
     private static final long serialVersionUID = -538414301465754654L;
 
@@ -31,7 +36,7 @@ public class SingleEventCollector extends Activity {
     public synchronized void process(Event e) throws Exception {
 
         if (verbose) {
-            System.out.println("SINGLE EVENT COLLECTOR ( " + identifier()
+            logger.info("SINGLE EVENT COLLECTOR ( " + identifier()
                     + ") GOT RESULT!");
         }
 

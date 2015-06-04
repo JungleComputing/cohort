@@ -1,8 +1,13 @@
 package ibis.constellation;
 
 import ibis.constellation.context.UnitActivityContext;
+import ibis.constellation.extra.ConstellationLogger;
+
+import org.apache.log4j.Logger;
 
 public class MultiEventCollector extends Activity {
+
+    public static final Logger logger = ConstellationLogger.getLogger(MultiEventCollector.class);
 
     private static final long serialVersionUID = -538414301465754654L;
    
@@ -27,8 +32,10 @@ public class MultiEventCollector extends Activity {
     @Override
     public synchronized void process(Event e) throws Exception {
 
-    	System.out.println("MultiEventCollector: received event " 
-    			+ count + " of " + events.length);
+        if (logger.isInfoEnabled()) {
+            logger.info("MultiEventCollector: received event " 
+                            + count + " of " + events.length);
+        }
     	
         events[count++] = e;
         

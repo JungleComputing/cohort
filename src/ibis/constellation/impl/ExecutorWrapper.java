@@ -85,7 +85,9 @@ public class ExecutorWrapper implements Constellation {
         QUEUED_JOB_LIMIT = Integer.parseInt(p.getProperty(
                 "ibis.constellation.queue.limit", "" + QUEUED_JOB_LIMIT));
 
-        System.out.println("Executor set job limit to " + QUEUED_JOB_LIMIT);
+        if (logger.isInfoEnabled()) {
+            logger.info("Executor set job limit to " + QUEUED_JOB_LIMIT);
+        }
 
         restricted = new SmartSortedWorkQueue("ExecutorWrapper(" + identifier
                 + ")-restricted");
@@ -182,9 +184,6 @@ public class ExecutorWrapper implements Constellation {
         // it is relocated, or because we have just obtained it and we don't
         // want anyone else to steal it from us.
 
-        // System.out.println("ExectutorWrapper got private activity " +
-        // a.identifier());
-
         lookup.put(a.identifier(), a);
         relocated.insertLast(a);
     }
@@ -208,8 +207,6 @@ public class ExecutorWrapper implements Constellation {
          * have too much work on our hands we push it to out parent. Added bonus
          * // is that others can access it without interrupting me.
          * 
-         * System.out.println("Executor SHOULD push work to parent! " +
-         * restricted.size() + " " + fresh.size()); }
          */
 
         if (c.satisfiedBy(myContext, StealStrategy.ANY)) {
@@ -288,14 +285,9 @@ public class ExecutorWrapper implements Constellation {
                 runnable.insertLast(ar);
             }
 
-            // System.out.println("EW: queued event for " + e.target);
-
             return true;
         }
 
-        System.out
-                .println("ERROR: Cannot deliver event: Failed to find activity "
-                        + e.target);
         logger.error("ERROR: Cannot deliver event: Failed to find activity "
                 + e.target);
 

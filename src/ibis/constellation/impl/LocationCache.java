@@ -4,9 +4,12 @@ import java.util.HashMap;
 
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ConstellationIdentifier;
+import ibis.constellation.extra.ConstellationLogger;
+import org.apache.log4j.Logger;
 
 public class LocationCache {
     
+    public static Logger logger = ConstellationLogger.getLogger(LocationCache.class);
     private HashMap<ActivityIdentifier, Entry> map = 
         new HashMap<ActivityIdentifier, Entry>();
     
@@ -73,7 +76,7 @@ public class LocationCache {
             map.put(a, new Entry(c, count));
         } else if (tmp.count == count && !tmp.id.equals(c)) { 
             // SANITY CHECK
-            System.err.println("ERROR:  Inconsistency discovered in " 
+            logger.error("nconsistency discovered in " 
                         + "LocactionCache: " + tmp.id + "/" + tmp.count 
                         + " != " + c + "/" + count);
         }

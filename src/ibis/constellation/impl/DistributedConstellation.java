@@ -161,6 +161,15 @@ public class DistributedConstellation {
 
     public DistributedConstellation(Properties p) throws Exception {
 
+	// Init communication here...
+	pool = new Pool(this, p);
+
+	cidFactory = pool.getCIDFactory();
+	identifier = cidFactory.generateConstellationIdentifier();
+
+	logger = ConstellationLogger.getLogger(DistributedConstellation.class,
+		identifier);
+
 	String tmp = p.getProperty("ibis.constellation.remotesteal.throttle");
 
 	if (tmp != null) {
@@ -168,7 +177,7 @@ public class DistributedConstellation {
 	    try {
 		REMOTE_STEAL_THROTTLE = Boolean.parseBoolean(tmp);
 	    } catch (Exception e) {
-		System.err.println("Failed to parse "
+		logger.error("Failed to parse "
 			+ "ibis.constellation.remotesteal.throttle: " + tmp);
 	    }
 	}
@@ -180,7 +189,7 @@ public class DistributedConstellation {
 	    try {
 		REMOTE_STEAL_TIMEOUT = Long.parseLong(tmp);
 	    } catch (Exception e) {
-		System.err.println("Failed to parse "
+		logger.error("Failed to parse "
 			+ "ibis.constellation.remotesteal.timeout: " + tmp);
 	    }
 	}
@@ -211,15 +220,6 @@ public class DistributedConstellation {
 	}
 
 	myContext = UnitWorkerContext.DEFAULT;
-
-	// Init communication here...
-	pool = new Pool(this, p);
-
-	cidFactory = pool.getCIDFactory();
-	identifier = cidFactory.generateConstellationIdentifier();
-
-	logger = ConstellationLogger.getLogger(DistributedConstellation.class,
-		identifier);
 
 	delivery = new DeliveryThread(this);
 	delivery.start();

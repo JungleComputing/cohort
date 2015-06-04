@@ -2,7 +2,11 @@ package ibis.constellation.extra;
 
 import ibis.constellation.impl.ActivityRecord;
 
+import org.apache.log4j.Logger;
+
 public class SortedList {
+
+    public static Logger log = ConstellationLogger.getLogger(SortedList.class);
 
     static class Node {
 	Node next;
@@ -96,7 +100,7 @@ public class SortedList {
 	}
 
 	// When we run out of nodes we insert at the end -- SHOULD NOT HAPPEN!--
-	System.err.println("EEEP: sorted list screwed up!!!");
+	log.error("Sorted list screwed up!!!");
 
 	n.prev = tail;
 	tail.next = n;

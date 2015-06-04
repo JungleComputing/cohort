@@ -5,11 +5,15 @@ import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.extra.CircularBuffer;
+import ibis.constellation.extra.ConstellationLogger;
 
 import java.io.Serializable;
 
+import org.apache.log4j.Logger;
+
 public class ActivityRecord implements Serializable { 
 
+    public static final Logger logger = ConstellationLogger.getLogger(ActivityRecord.class);
     private static final long serialVersionUID = 6938326535791839797L;
 
     static final int INITIALIZING = 1;
@@ -56,13 +60,8 @@ public class ActivityRecord implements Serializable {
     int pendingEvents() { 
 
         if (queue == null || queue.size() == 0) { 
-
-            //   System.out.println("   PENDING EVENTS 0");
-
             return 0;
         }
-
-        //System.out.println("   PENDING EVENTS " + queue.size());
 
         return queue.size();
     }
@@ -138,8 +137,6 @@ public class ActivityRecord implements Serializable {
 
             case INITIALIZING: 
 
-                //System.err.println("Activity INITIALIZING " + activity.identifier());
-                
                 activity.initialize();
 
                 if (activity.mustSuspend()) { 
@@ -186,8 +183,6 @@ public class ActivityRecord implements Serializable {
             case FINISHING: 
                 activity.cleanup();
                 
-          //      System.err.println("Activity DONE " + activity.identifier());
-                
                 state = DONE;
                 break;
 
@@ -201,9 +196,8 @@ public class ActivityRecord implements Serializable {
                 throw new IllegalStateException("INTERNAL ERROR: Running activity with unknown state!");
             }
 
-        } catch (Exception e) { 
-            System.err.println("Activity failed: " + e);
-            e.printStackTrace(System.err);
+        } catch (Throwable e) { 
+            logger.error("Activity failed: ", e);
             state = ERROR;
         }
 

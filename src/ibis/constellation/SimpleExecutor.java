@@ -1,9 +1,13 @@
 package ibis.constellation;
 
 import ibis.constellation.context.UnitWorkerContext;
+import ibis.constellation.extra.ConstellationLogger;
+
+import org.apache.log4j.Logger;
 
 public class SimpleExecutor extends Executor {
 
+    public static final Logger logger = ConstellationLogger.getLogger(SimpleExecutor.class);
     private static final long serialVersionUID = -2498570099898761363L;
 
     public SimpleExecutor(StealPool pool, StealPool stealFrom, WorkerContext c,
@@ -46,18 +50,20 @@ public class SimpleExecutor extends Executor {
     @Override
     public void run() {
 
-        StringBuilder sb = new StringBuilder("Starting Executor: " +
-                identifier() + "\n");
+        if (logger.isInfoEnabled()) {
+            StringBuilder sb = new StringBuilder("\nStarting Executor: " +
+                    identifier() + "\n");
 
-        sb.append("        context: " + context + "\n");
-        sb.append("           pool: " + myPool + "\n");
-        sb.append("    steals from: " + stealsFrom + "\n");
-        sb.append("          local: " + localStealStrategy + "\n");
-        sb.append("  constellation: " + constellationStealStrategy + "\n");
-        sb.append("         remote: " + remoteStealStrategy + "\n");
-        sb.append("--------------------------");
+            sb.append("        context: " + context + "\n");
+            sb.append("           pool: " + myPool + "\n");
+            sb.append("    steals from: " + stealsFrom + "\n");
+            sb.append("          local: " + localStealStrategy + "\n");
+            sb.append("  constellation: " + constellationStealStrategy + "\n");
+            sb.append("         remote: " + remoteStealStrategy + "\n");
+            sb.append("--------------------------");
 
-        System.out.println(sb.toString());
+            logger.info(sb.toString());
+        }
 
         boolean done = false;
 
@@ -65,7 +71,7 @@ public class SimpleExecutor extends Executor {
             done = processActivities();
         }
 
-        System.out.println("Executor done!");
+        logger.info("Executor done!");
 
     }
 

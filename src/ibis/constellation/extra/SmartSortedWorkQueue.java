@@ -13,8 +13,12 @@ import ibis.constellation.impl.ActivityRecord;
 
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 public class SmartSortedWorkQueue extends WorkQueue {
 
+    public static final Logger log = ConstellationLogger
+	    .getLogger(SmartSortedWorkQueue.class);
     // We maintain two lists here, which reflect the relative complexity of
     // the context associated with the jobs:
     //
@@ -50,8 +54,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	// FIXME: SANITY CHECK -- should not happen ?
 	if (tmp.size() == 0) {
-	    System.err
-		    .println("EEP(getUnit1): unit.get returned null unexpectedly!");
+	    log.error("(getUnit1): unit.get returned null unexpectedly!");
 	    return null;
 	}
 
@@ -65,8 +68,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	// FIXME: SANITY CHECK -- should not happen ?
 	if (a == null) {
-	    System.err
-		    .println("EEP(getUnit1): removeHead/Tail returned null unexpectedly!");
+	    log.error("(getUnit1): removeHead/Tail returned null unexpectedly!");
 	    return null;
 	}
 
@@ -91,8 +93,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	// FIXME: SANITY CHECK -- should not happen ?
 	if (tmp.size() == 0) {
-	    System.err
-		    .println("EEP(getUnit2): unit.get returned null unexpectedly!");
+	    log.error("(getUnit2): unit.get returned null unexpectedly!");
 	    return null;
 	}
 
@@ -116,8 +117,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	// FIXME: SANITY CHECK -- should not happen ?
 	if (a == null) {
-	    System.err
-		    .println("EEP(getUnit2): removeHead/Tail/Range returned null unexpectedly!");
+	    log.error("(getUnit2): removeHead/Tail/Range returned null unexpectedly!");
 	    return null;
 	}
 
@@ -142,8 +142,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	// FIXME: SANITY CHECK -- should not happen ?
 	if (tmp.size() == 0) {
-	    System.err
-		    .println("EEP(getOr1): or.get returned null unexpectedly!");
+	    log.error("(getOr1): or.get returned null unexpectedly!");
 	    return null;
 	}
 
@@ -161,8 +160,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	// FIXME: SANITY CHECK -- should not happen ?
 	if (a == null) {
-	    System.err
-		    .println("EEP(getOr1): removeHead/Tail returned null unexpectedly!");
+	    log.error("(getOr1): removeHead/Tail returned null unexpectedly!");
 	    return null;
 	}
 
@@ -196,17 +194,13 @@ public class SmartSortedWorkQueue extends WorkQueue {
 	SortedList tmp = or.get(c.name);
 
 	if (tmp == null) {
-	    // System.out.println(id + "   GetOR empty!");
 	    return null;
 	}
 
 	if (tmp.size() == 0) {
-	    System.err
-		    .println("EEP(getOr2): or.get returned null unexpectedly!");
+	    log.error("(getOr2): or.get returned null unexpectedly!");
 	    return null;
 	}
-
-	// System.out.println(id + "   GetOR NOT empty!");
 
 	ActivityRecord a = null;
 
@@ -228,8 +222,7 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	// FIXME: SANITY CHECK -- should not happen ?
 	if (a == null) {
-	    System.err
-		    .println("EEP(getOr2): removeHead/Tail returned null unexpectedly!");
+	    log.error("(getOr2): removeHead/Tail returned null unexpectedly!");
 	    return null;
 	}
 
@@ -283,8 +276,6 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
     private void enqueueUnit(UnitActivityContext c, ActivityRecord a) {
 
-	// System.out.println(id + "    ENQUEUE UNIT: " + c);
-
 	SortedList tmp = unit.get(c.name);
 
 	if (tmp == null) {
@@ -299,8 +290,6 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
     private void enqueueOr(OrActivityContext c, ActivityRecord a) {
 
-	// System.out.println(id + "    ENQUEUE OR: " + c);
-
 	for (int i = 0; i < c.size(); i++) {
 
 	    UnitActivityContext uc = c.get(i);
@@ -313,8 +302,6 @@ public class SmartSortedWorkQueue extends WorkQueue {
 	    }
 
 	    tmp.insert(a, uc.rank);
-
-	    // System.out.println(id + "    ENQUEUE " + uc.name);
 	}
 
 	size++;
@@ -326,8 +313,6 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	ActivityContext c = a.activity.getContext();
 
-	// System.out.println(id + "   1 ENQUEUE " + c);
-
 	if (c.isUnit()) {
 	    enqueueUnit((UnitActivityContext) c, a);
 	    return;
@@ -338,13 +323,11 @@ public class SmartSortedWorkQueue extends WorkQueue {
 	    return;
 	}
 
-	System.out.println(id + "EEP: ran into unknown Context Type ! " + c);
+	log.error(id + "EEP: ran into unknown Context Type ! " + c);
     }
 
     @Override
     public ActivityRecord steal(WorkerContext c, StealStrategy s) {
-
-	// System.out.println(id + "   STEAL: " + c);
 
 	if (c.isUnit()) {
 
@@ -361,25 +344,17 @@ public class SmartSortedWorkQueue extends WorkQueue {
 
 	if (c.isOr()) {
 
-	    // System.out.println(id + "  STEAL is OR");
-
 	    OrWorkerContext o = (OrWorkerContext) c;
 
 	    for (int i = 0; i < o.size(); i++) {
 
 		UnitWorkerContext ctx = o.get(i);
 
-		// System.out.println(id + "   STEAL attempt from unit with " +
-		// ctx);
-
 		ActivityRecord a = getUnit(ctx, s);
 
 		if (a != null) {
 		    return a;
 		}
-
-		// System.out.println(id + "   STEAL attempt from or with " +
-		// ctx);
 
 		a = getOr(ctx, s);
 

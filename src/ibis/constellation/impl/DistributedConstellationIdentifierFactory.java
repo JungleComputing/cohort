@@ -19,17 +19,6 @@ public class DistributedConstellationIdentifierFactory implements ConstellationI
     }
     
     public boolean isLocal(ConstellationIdentifier cid) { 
-    	
-    	/*
-    	boolean local = ((cid.id >> 32) & 0xffffffff) == rank; 
-    	
-    	if (!local) { 
-    		System.out.println("!local -"  + cid + "- " + ((cid.id >> 32) & 0xffffffff) + " " + rank);
-    	}
-    	
-    	return local;
-    	*/
-    	
     	return ((cid.id >> 32) & 0xffffffff) == rank;
     }
 }

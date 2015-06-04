@@ -4,7 +4,6 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
-import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
@@ -77,65 +76,6 @@ public class SingleThreadedConstellation extends Thread {
     private int rank;
 
     private boolean active;
-
-    class Facade implements Constellation {
-
-	@Override
-	public ActivityIdentifier submit(Activity a) {
-	    return performSubmit(a);
-	}
-
-	@Override
-	public void send(Event e) {
-	    performSend(e);
-	}
-
-	@Override
-	public void cancel(ActivityIdentifier aid) {
-	    performCancel(aid);
-	}
-
-	@Override
-	public boolean activate() {
-
-	    if (parent == null) {
-		return performActivate();
-	    }
-
-	    return false;
-	}
-
-	@Override
-	public void done() {
-	    if (parent == null) {
-		performDone();
-	    }
-
-	    throw new IllegalStateException(
-		    "Cannot shut down this constellation");
-	}
-
-	@Override
-	public boolean isMaster() {
-
-	    if (parent == null) {
-		return true;
-	    }
-
-	    // FIXME: not correct ?
-	    return false;
-	}
-
-	@Override
-	public ConstellationIdentifier identifier() {
-	    return identifier;
-	}
-
-	@Override
-	public WorkerContext getContext() {
-	    return wrapper.getContext();
-	}
-    }
 
     private static class PendingRequests {
 
@@ -222,6 +162,9 @@ public class SingleThreadedConstellation extends Thread {
 
 	super.setName("SingleThreadedConstellation " + identifier.id);
 
+	this.logger = ConstellationLogger.getLogger(
+		SingleThreadedConstellation.class, identifier);
+
 	String outfile = p.getProperty("ibis.constellation.outputfile");
 
 	if (outfile != null) {
@@ -231,16 +174,13 @@ public class SingleThreadedConstellation extends Thread {
 		out = new PrintStream(new BufferedOutputStream(
 			new FileOutputStream(filename)));
 	    } catch (Exception e) {
-		System.out.println("Failed to open output file " + outfile);
+		logger.error("Failed to open output file " + outfile);
 		out = System.out;
 	    }
 
 	} else {
 	    out = System.out;
 	}
-
-	this.logger = ConstellationLogger.getLogger(
-		SingleThreadedConstellation.class, identifier);
 
 	if (logger.isInfoEnabled()) {
 	    logger.info("Starting SingleThreadedConstellation: " + identifier);
@@ -459,8 +399,8 @@ public class SingleThreadedConstellation extends Thread {
 
 	// sanity check
 	if (src.equals(identifier)) {
-	    System.out.println("INTERAL ERROR: attemp steal from self!");
-	    new Exception().printStackTrace(System.out);
+	    logger.error("INTERAL ERROR: attemp steal from self!",
+		    new Throwable());
 	    return 0;
 	}
 
@@ -770,9 +710,8 @@ public class SingleThreadedConstellation extends Thread {
 
 	// sanity check
 	if (s.source.equals(identifier)) {
-	    System.out
-		    .println("INTERAL ERROR: posted steal request from self!");
-	    new Exception().printStackTrace(System.out);
+	    logger.error("INTERAL ERROR: posted steal request from self!",
+		    new Throwable());
 	    return;
 	}
 
@@ -1114,16 +1053,14 @@ public class SingleThreadedConstellation extends Thread {
 
 	if (PRINT_ACTIVITY && jobs > 0) {
 	    if (t2 - idlestart > 0) {
-		out.println("IDLE from " + (idlestart - start) + " to "
+		logger.info("IDLE from " + (idlestart - start) + " to "
 			+ (t2 - start) + " total " + (t2 - idlestart));
 	    }
 
 	    idlestart = t3;
 
-	    out.println("ACTIVE from " + (t2 - start) + " to " + (t3 - start)
+	    logger.info("ACTIVE from " + (t2 - start) + " to " + (t3 - start)
 		    + " total " + (t3 - t2) + " jobs " + jobs);
-
-	    out.flush();
 	}
 
 	while (!more && !havePendingRequests) {
