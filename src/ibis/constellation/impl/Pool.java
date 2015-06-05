@@ -438,11 +438,12 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     public void terminate() throws IOException {
+        Stats stats = owner.getStats();
 	if (isMaster) {
 	    ibis.registry().terminate();
+            stats.setSyncInfo(syncInfo);
 	} else {
 	    ibis.registry().waitUntilTerminated();
-	    Stats stats = owner.getStats();
 	    doForward(master, OPCODE_STATISTICS, stats);
 	}
     }

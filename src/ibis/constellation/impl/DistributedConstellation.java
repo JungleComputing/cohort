@@ -143,6 +143,9 @@ public class DistributedConstellation {
 
 	@Override
 	public void done() {
+	    if (logger.isInfoEnabled()) {
+		logger.info("Calling performDone");
+	    }
 	    performDone();
 	}
 
@@ -267,7 +270,21 @@ public class DistributedConstellation {
 	    logger.warn("Failed to terminate pool!", e);
 	}
 
+	if (logger.isInfoEnabled()) {
+	    logger.info("Sleeping, waiting for stats of other nodes");
+	}
+
 	subConstellation.done();
+
+	try {
+	    Thread.sleep(5000);
+	} catch (Throwable e) {
+	    // ignore
+	}
+	if (logger.isInfoEnabled()) {
+	    logger.info("Printing statistics");
+	}
+	stats.printStats();
 
 	printStatistics();
 

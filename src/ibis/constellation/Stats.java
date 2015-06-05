@@ -16,10 +16,16 @@ public class Stats implements java.io.Serializable {
 
     private final String hostId;
 
+    private transient TimeSyncInfo syncInfo;
+
     // This is the public interface to the rest of the framework.
     public Stats(String hostId) {
 	this.hostId = hostId;
 	timers = Collections.synchronizedList(new ArrayList<CTimer>());
+    }
+
+    public void setSyncInfo(TimeSyncInfo syncInfo) {
+        this.syncInfo = syncInfo;
     }
 
     public synchronized void add(Stats s) {
@@ -31,12 +37,12 @@ public class Stats implements java.io.Serializable {
      * conclusion phase process all statistics. The statistics from all other
      * nodes have already been added to this.
      */
-    public void printStats(TimeSyncInfo timeSyncInfo) {
+    public void printStats() {
 	System.out.print("\n-------------------------------");
 	System.out.print(" STATISTICS ");
 	System.out.println("-------------------------------");
 
-	normalize(timeSyncInfo);
+	normalize(syncInfo);
 
 	CTimer timer = getTotalMCTimer();
 	timer.filterOverall();
@@ -46,7 +52,7 @@ public class Stats implements java.io.Serializable {
 
 	printDataTransfers();
 
-	printPlotData(timeSyncInfo);
+	printPlotData();
     }
 
     void addTimer(CTimer timer) {
@@ -114,7 +120,7 @@ public class Stats implements java.io.Serializable {
 	}
     }
 
-    private void printPlotData(TimeSyncInfo tsi) {
+    private void printPlotData() {
 	CTimer temp = getTotalMCTimer();
 	temp.filterOverall();
 	write(temp, "gantt.data", false);
