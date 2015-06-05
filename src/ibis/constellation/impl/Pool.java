@@ -1,9 +1,11 @@
 package ibis.constellation.impl;
 
 import ibis.constellation.ConstellationIdentifier;
+import ibis.constellation.Stats;
 import ibis.constellation.StealPool;
 import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
+import ibis.constellation.extra.TimeSyncInfo;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
@@ -38,6 +40,11 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private static final byte OPCODE_RANK_REGISTER_REQUEST = 53;
     private static final byte OPCODE_RANK_LOOKUP_REQUEST = 54;
     private static final byte OPCODE_RANK_LOOKUP_REPLY = 55;
+
+    private static final byte OPCODE_REQUEST_TIME = 63;
+    private static final byte OPCODE_SEND_TIME = 64;
+
+    private static final byte OPCODE_STATISTICS = 73;
 
     private DistributedConstellation owner;
 
@@ -79,6 +86,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     // private StealPoolInfo poolInfo = new StealPoolInfo();
 
     private LinkedList<Message> pending = new LinkedList<Message>();
+
+    private final HashMap<IbisIdentifier, Long> times = new HashMap<IbisIdentifier, Long>();
+    private final TimeSyncInfo syncInfo;
 
     class PoolUpdater extends Thread {
 
@@ -256,6 +266,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	if (!isMaster) {
 	    doForward(master, OPCODE_RANK_REGISTER_REQUEST, new RankInfo(
 		    (int) rank, local));
+	    syncInfo = null;
+	} else {
+	    syncInfo = new TimeSyncInfo(master.name());
 	}
 
 	// Start the updater thread...
@@ -429,6 +442,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    ibis.registry().terminate();
 	} else {
 	    ibis.registry().waitUntilTerminated();
+	    Stats stats = owner.getStats();
+	    doForward(master, OPCODE_STATISTICS, stats);
 	}
     }
 
@@ -638,6 +653,12 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 		tmp));
     }
 
+    public void getTimeOfOther(IbisIdentifier id) {
+	long myTime = System.currentTimeMillis();
+	times.put(id, new Long(myTime));
+	doForward(id, OPCODE_REQUEST_TIME, null);
+    }
+
     @Override
     public void upcall(ReadMessage rm) throws IOException,
 	    ClassNotFoundException {
@@ -648,6 +669,26 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	rm.finish();
 
 	switch (opcode) {
+	case OPCODE_STATISTICS:
+	    owner.getStats().add((Stats) data);
+	    break;
+	case OPCODE_REQUEST_TIME:
+	    doForward(source, OPCODE_SEND_TIME,
+		    new Long(System.currentTimeMillis()));
+	    break;
+	case OPCODE_SEND_TIME: {
+	    long l = ((Long) data).longValue();
+	    Long myTime = times.get(source);
+	    if (myTime == null) {
+		logger.warn("Ignored roque time answer");
+		break;
+	    }
+	    long interval = System.currentTimeMillis() - myTime.longValue();
+	    long half = interval / 2;
+	    long offset = myTime.longValue() + half - l;
+	    syncInfo.put(source.name(), new Long(offset));
+	}
+	    break;
 	case OPCODE_STEAL_REQUEST: {
 	    StealRequest m = (StealRequest) data;
 	    registerRank(m.source, source);
@@ -701,6 +742,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    break;
 
 	case OPCODE_RANK_REGISTER_REQUEST:
+	    registerRank((RankInfo) data);
+	    getTimeOfOther(source);
+	    break;
+
 	case OPCODE_RANK_LOOKUP_REPLY: {
 	    registerRank((RankInfo) data);
 	}
@@ -1002,11 +1047,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	requestUpdate(tmp.master, tag, tmp.currentTimeStamp());
     }
 
+    public String getId() {
+	return local.name();
+    }
+
     /*
      * byte opcode = rm.readByte();
      * 
-     * switch (opcode) { case EVENT: Event e = (Event) rm.readObject();
-     * parent.deliverEvent(e);
+     * switch (opcode) { case EVENT: TimerEvent e = (TimerEvent)
+     * rm.readObject(); parent.deliverEvent(e);
      * 
      * synchronized (this) { messagesReceived++; eventsReceived++; } break;
      * 

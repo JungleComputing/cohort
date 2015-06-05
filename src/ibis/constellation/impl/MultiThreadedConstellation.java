@@ -188,7 +188,7 @@ public class MultiThreadedConstellation {
 	SingleThreadedConstellation st = getWorker(cid);
 
 	if (st == null) {
-	    logger.error("Event target " + m.target
+	    logger.error("TimerEvent target " + m.target
 		    + " cannot be found (event dropped)");
 	    return null;
 	}
@@ -235,7 +235,7 @@ public class MultiThreadedConstellation {
 	} else {
 
 	    if (parent == null) {
-		logger.error("Event target " + m.target
+		logger.error("TimerEvent target " + m.target
 			+ " cannot be found (event dropped)");
 		return;
 	    }

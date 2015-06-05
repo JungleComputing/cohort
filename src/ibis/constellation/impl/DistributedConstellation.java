@@ -5,6 +5,7 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
+import ibis.constellation.Stats;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.OrWorkerContext;
@@ -104,6 +105,8 @@ public class DistributedConstellation {
 
     private final HashMap<String, PendingSteal> stealThrottle = new HashMap<String, PendingSteal>();
 
+    private final Stats stats;
+
     private class Facade implements Constellation {
 
 	/* Following methods implement the Constellation interface */
@@ -156,6 +159,11 @@ public class DistributedConstellation {
 	@Override
 	public WorkerContext getContext() {
 	    return handleGetContext();
+	}
+
+	@Override
+	public Stats getStats() {
+	    return stats;
 	}
     }
 
@@ -236,6 +244,8 @@ public class DistributedConstellation {
 	    logger.info("Starting DistributedConstellation " + identifier
 		    + " / " + myContext);
 	}
+
+	stats = new Stats(pool.getId());
     }
 
     private boolean performActivate() {
@@ -392,7 +402,7 @@ public class DistributedConstellation {
     }
 
     void deliverRemoteEvent(EventMessage re) {
-	// Event from network.
+	// TimerEvent from network.
 	//
 	// This method is called from an finished upcall. Therefore it
 	// may block for a long period of time or communicate.
@@ -584,5 +594,9 @@ public class DistributedConstellation {
 	} else {
 	    pool.followPool(stealsFrom.getTag());
 	}
+    }
+
+    public Stats getStats() {
+	return stats;
     }
 }

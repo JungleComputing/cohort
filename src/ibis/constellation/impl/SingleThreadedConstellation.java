@@ -1051,7 +1051,7 @@ public class SingleThreadedConstellation extends Thread {
 
 	long t3 = System.currentTimeMillis();
 
-	if (PRINT_ACTIVITY && jobs > 0) {
+	if (jobs > 0 && PRINT_ACTIVITY) {
 	    if (t2 - idlestart > 0) {
 		logger.info("IDLE from " + (idlestart - start) + " to "
 			+ (t2 - start) + " total " + (t2 - idlestart));

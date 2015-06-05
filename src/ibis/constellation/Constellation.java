@@ -2,20 +2,21 @@ package ibis.constellation;
 
 public interface Constellation {
 
-	public ActivityIdentifier submit(Activity job);
+    public ActivityIdentifier submit(Activity job);
 
-	public void send(Event e);    
+    public void send(Event e);
 
-	public void cancel(ActivityIdentifier activity);
+    public void cancel(ActivityIdentifier activity);
 
-	public boolean activate();
+    public boolean activate();
 
-	public void done();
-	
-	public boolean isMaster();
+    public void done();
 
-	public ConstellationIdentifier identifier();
+    public boolean isMaster();
 
-	public WorkerContext getContext();
+    public ConstellationIdentifier identifier();
 
+    public WorkerContext getContext();
+
+    public Stats getStats();
 }
