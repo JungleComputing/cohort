@@ -438,17 +438,21 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     public void terminate() throws IOException {
-	Stats stats = owner.getStats();
 	if (isMaster) {
+	    Stats stats = owner.getStats();
 	    ibis.registry().terminate();
 	    stats.setSyncInfo(syncInfo);
 	} else {
 	    ibis.registry().waitUntilTerminated();
-	    if (logger.isInfoEnabled()) {
-		logger.info("Sending statistics to master");
-	    }
-	    doForward(master, OPCODE_STATISTICS, stats);
 	}
+    }
+
+    public void sendStats() {
+	Stats stats = owner.getStats();
+	if (logger.isInfoEnabled()) {
+	    logger.info("Sending statistics to master");
+	}
+	doForward(master, OPCODE_STATISTICS, stats);
     }
 
     public void cleanup() {

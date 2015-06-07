@@ -307,6 +307,7 @@ public class DistributedConstellation {
 
 	    printStatistics();
 	} else {
+	    pool.sendStats();
 	    try {
 		Thread.sleep(1000);
 	    } catch (Throwable e) {
