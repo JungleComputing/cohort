@@ -4,6 +4,7 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
+import ibis.constellation.Concluder;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
@@ -117,6 +118,10 @@ public class ExecutorWrapper implements Constellation {
     }
 
     public void done() {
+	done(null);
+    }
+
+    public void done(Concluder concluder) {
 	if (lookup.size() > 0) {
 	    logger.warn("Quiting Constellation with " + lookup.size()
 		    + " activities in queue");

@@ -10,6 +10,8 @@ public interface Constellation {
 
     public boolean activate();
 
+    public void done(Concluder concluder);
+
     public void done();
 
     public boolean isMaster();

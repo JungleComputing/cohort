@@ -311,10 +311,10 @@ public class CTimer implements java.io.Serializable {
 	for (TimerEvent event : events) {
 	    if (event.getStart() >= 0 && event.getEnd() < endFilter) {
 		filtered.add(event);
+	    } else {
+		System.out.println("Filtered out event: " + event);
 	    }
-	    /*
-	     * else { System.out.println("Filtered out event: " + event); }
-	     */
+
 	}
 	this.events = filtered;
     }

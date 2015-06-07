@@ -2,6 +2,7 @@ package ibis.constellation.impl;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Concluder;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
@@ -150,6 +151,14 @@ public class DistributedConstellation {
 	}
 
 	@Override
+	public void done(Concluder concluder) {
+	    if (logger.isInfoEnabled()) {
+		logger.info("Calling performDone");
+	    }
+	    performDone(concluder);
+	}
+
+	@Override
 	public boolean isMaster() {
 	    return pool.isMaster();
 	}
@@ -262,6 +271,10 @@ public class DistributedConstellation {
     }
 
     private void performDone() {
+	performDone(null);
+    }
+
+    private void performDone(Concluder concluder) {
 	try {
 	    // NOTE: this will proceed directly on the master. On other
 	    // instances, it blocks until the master terminates.
@@ -270,24 +283,36 @@ public class DistributedConstellation {
 	    logger.warn("Failed to terminate pool!", e);
 	}
 
-	if (logger.isInfoEnabled()) {
-	    logger.info("Sleeping, waiting for stats of other nodes");
-	}
-
 	subConstellation.done();
 
-	try {
-	    Thread.sleep(5000);
-	} catch (Throwable e) {
-	    // ignore
+	if (concluder != null) {
+	    concluder.conclude();
 	}
-	if (logger.isInfoEnabled()) {
-	    logger.info("Printing statistics");
+
+	if (pool.isMaster()) {
+	    if (logger.isInfoEnabled()) {
+		logger.info("Sleeping, waiting for stats of other nodes");
+	    }
+
+	    try {
+		Thread.sleep(5000);
+	    } catch (Throwable e) {
+		// ignore
+	    }
+
+	    if (logger.isInfoEnabled()) {
+		logger.info("Printing statistics");
+	    }
+	    stats.printStats();
+
+	    printStatistics();
+	} else {
+	    try {
+		Thread.sleep(1000);
+	    } catch (Throwable e) {
+		// ignore
+	    }
 	}
-	stats.printStats();
-
-	printStatistics();
-
 	pool.cleanup();
     }
 

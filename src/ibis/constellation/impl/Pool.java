@@ -438,12 +438,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     public void terminate() throws IOException {
-        Stats stats = owner.getStats();
+	Stats stats = owner.getStats();
 	if (isMaster) {
 	    ibis.registry().terminate();
-            stats.setSyncInfo(syncInfo);
+	    stats.setSyncInfo(syncInfo);
 	} else {
 	    ibis.registry().waitUntilTerminated();
+	    if (logger.isInfoEnabled()) {
+		logger.info("Sending statistics to master");
+	    }
 	    doForward(master, OPCODE_STATISTICS, stats);
 	}
     }
@@ -655,7 +658,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     public void getTimeOfOther(IbisIdentifier id) {
-	long myTime = System.currentTimeMillis();
+	long myTime = System.nanoTime();
 	times.put(id, new Long(myTime));
 	doForward(id, OPCODE_REQUEST_TIME, null);
     }
@@ -674,8 +677,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    owner.getStats().add((Stats) data);
 	    break;
 	case OPCODE_REQUEST_TIME:
-	    doForward(source, OPCODE_SEND_TIME,
-		    new Long(System.currentTimeMillis()));
+	    doForward(source, OPCODE_SEND_TIME, new Long(System.nanoTime()));
 	    break;
 	case OPCODE_SEND_TIME: {
 	    long l = ((Long) data).longValue();
@@ -684,7 +686,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 		logger.warn("Ignored roque time answer");
 		break;
 	    }
-	    long interval = System.currentTimeMillis() - myTime.longValue();
+	    long interval = System.nanoTime() - myTime.longValue();
 	    long half = interval / 2;
 	    long offset = myTime.longValue() + half - l;
 	    syncInfo.put(source.name(), new Long(offset));
