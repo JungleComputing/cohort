@@ -4,7 +4,6 @@ import ibis.constellation.extra.TimeSyncInfo;
 import ibis.util.Timer;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -167,7 +166,7 @@ public class CTimer implements java.io.Serializable {
 	for (T t : index.keySet()) {
 	    CTimer timer = new CTimer(hostId);
 	    timer.events.addAll(index.get(t));
-	    Collections.sort(timer.events);
+	    // Collections.sort(timer.events);
 	    timers.add(timer);
 	}
 	return timers;

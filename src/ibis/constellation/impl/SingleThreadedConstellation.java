@@ -4,9 +4,11 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
+import ibis.constellation.CTimer;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.Executor;
+import ibis.constellation.Stats;
 import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
@@ -112,6 +114,10 @@ public class SingleThreadedConstellation extends Thread {
     private long activeTime;
     private long idleTime;
     private long idleCount;
+
+    private final Stats stats;
+    private final CTimer stealTimer;
+    private final CTimer eventTimer;
 
     // NOTE: these are use for performance debugging...
     /*
@@ -262,6 +268,15 @@ public class SingleThreadedConstellation extends Thread {
 
 	if (parent != null) {
 	    parent.register(this);
+	    stats = parent.getStats();
+	    stealTimer = stats.getTimer("java", identifier().toString(),
+		    "steal", 1000);
+	    eventTimer = stats.getTimer("java", identifier().toString(),
+		    "handleEvents", 1000);
+	} else {
+	    stats = null;
+	    stealTimer = null;
+	    eventTimer = null;
 	}
     }
 
@@ -365,6 +380,7 @@ public class SingleThreadedConstellation extends Thread {
 
 	done = true;
 	havePendingRequests = true;
+	notifyAll();
     }
 
     // ActivityIdentifier deliverSubmit(Activity a) {
@@ -701,8 +717,9 @@ public class SingleThreadedConstellation extends Thread {
 	parent.handleEventMessage(new EventMessage(identifier, cid, e));
     }
 
-    private final void signal() {
+    private synchronized final void signal() {
 	havePendingRequests = true;
+	notifyAll();
 	// thread.interrupt();
     }
 
@@ -1022,12 +1039,20 @@ public class SingleThreadedConstellation extends Thread {
     boolean processActivities() {
 
 	long t1 = System.currentTimeMillis();
+	long t2 = t1;
 
 	if (havePendingRequests) {
-	    processEvents();
-	}
+	    int evnt = -1;
+	    if (eventTimer != null) {
+		evnt = eventTimer.start();
+	    }
 
-	long t2 = System.currentTimeMillis();
+	    processEvents();
+	    if (evnt != -1) {
+		eventTimer.stop(evnt);
+	    }
+	    t2 = System.currentTimeMillis();
+	}
 
 	// NOTE: one problem here is that we cannot tell if we did any work
 	// or not. We would like to know, since this allows us to reset
@@ -1063,8 +1088,24 @@ public class SingleThreadedConstellation extends Thread {
 		    + " total " + (t3 - t2) + " jobs " + jobs);
 	}
 
-	while (!more && !havePendingRequests) {
+	if (stealsFrom() == StealPool.NONE) {
+	    synchronized (this) {
+		while (!havePendingRequests) {
+		    try {
+			wait();
+		    } catch (Throwable e) {
+			// ignore
+		    }
+		}
+	    }
+	    return getDone();
+	}
 
+	int evnt = -1;
+	if (stealTimer != null) {
+	    evnt = stealTimer.start();
+	}
+	while (!more && !havePendingRequests) {
 	    // Our executor has run out of work. See if we can find some.
 
 	    // Check if there is any matching work in one of the local queues...
@@ -1103,6 +1144,9 @@ public class SingleThreadedConstellation extends Thread {
 		    more = pauseUntil(nextDeadline);
 		}
 	    }
+	}
+	if (evnt != -1) {
+	    stealTimer.stop(evnt);
 	}
 
 	long t4 = System.currentTimeMillis();

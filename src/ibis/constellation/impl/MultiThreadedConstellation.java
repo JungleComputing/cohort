@@ -5,6 +5,7 @@ import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Event;
+import ibis.constellation.Stats;
 import ibis.constellation.StealPool;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.context.OrWorkerContext;
@@ -52,6 +53,8 @@ public class MultiThreadedConstellation {
 
     private final int localStealSize;
 
+    private final Stats stats;
+
     public MultiThreadedConstellation(Properties p) throws Exception {
 	this(null, p);
     }
@@ -89,7 +92,11 @@ public class MultiThreadedConstellation {
 	}
 
 	parent.register(this);
+	stats = parent.getStats();
+    }
 
+    public Stats getStats() {
+	return stats;
     }
 
     int next = 0;
