@@ -81,8 +81,12 @@ public class CTimer implements java.io.Serializable {
 	}
     }
 
-    public synchronized void cancel() {
-	events.remove(events.size() - 1);
+    public synchronized void cancel(int evt) {
+	if (evt == events.size() - 1) {
+	    events.remove(evt);
+	} else {
+	    events.get(evt).empty();
+	}
     }
 
     public int start() {
@@ -121,7 +125,7 @@ public class CTimer implements java.io.Serializable {
     public void onlyDataTransfers() {
 	ArrayList<TimerEvent> filtered = new ArrayList<TimerEvent>();
 	for (TimerEvent e : events) {
-	    if (e.hasDataTransfers()) {
+	    if (e != null && e.hasDataTransfers()) {
 		filtered.add(e);
 	    }
 	}
@@ -177,7 +181,7 @@ public class CTimer implements java.io.Serializable {
     public void clean() {
 	ArrayList<TimerEvent> cleaned = new ArrayList<TimerEvent>();
 	for (TimerEvent e : events) {
-	    if (!e.isEmptyEvent()) {
+	    if (e != null && !e.isEmptyEvent()) {
 		cleaned.add(e);
 	    }
 	}

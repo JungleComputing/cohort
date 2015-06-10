@@ -2,7 +2,7 @@ package ibis.constellation;
 
 import ibis.util.Timer;
 
-public class TimerEvent implements java.io.Serializable, Comparable<TimerEvent> {
+public class TimerEvent implements java.io.Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -82,6 +82,13 @@ public class TimerEvent implements java.io.Serializable, Comparable<TimerEvent> 
 	return end - start;
     }
 
+    public void empty() {
+	queued = 0;
+	submitted = 0;
+	start = 0;
+	end = 0;
+    }
+
     public boolean isEmptyEvent() {
 	return queued == 0 && submitted == 0 && start == 0 && end == 0;
     }
@@ -123,49 +130,4 @@ public class TimerEvent implements java.io.Serializable, Comparable<TimerEvent> 
 		Timer.format(submitted / 1000.0), Timer.format(start / 1000.0),
 		Timer.format(end / 1000.0));
     }
-
-    @Override
-    public int compareTo(TimerEvent e) {
-	int v = node.compareTo(e.node);
-	if (v != 0) {
-	    return v;
-	}
-	v = device.compareTo(e.device);
-	if (v != 0) {
-	    return v;
-	}
-	v = thread.compareTo(e.thread);
-	if (v != 0) {
-	    return v;
-	}
-	if (queueIndex != e.queueIndex) {
-	    return queueIndex - e.queueIndex;
-	}
-	v = action.compareTo(e.action);
-	if (v != 0) {
-	    return v;
-	}
-	long vl = queued - e.queued;
-	if (vl != 0) {
-	    return vl < 0 ? -1 : 1;
-	}
-	vl = submitted - e.submitted;
-	if (vl != 0) {
-	    return vl < 0 ? -1 : 1;
-	}
-	vl = start - e.start;
-	if (vl != 0) {
-	    return vl < 0 ? -1 : 1;
-	}
-	vl = end - e.end;
-	if (vl != 0) {
-	    return vl < 0 ? -1 : 1;
-	}
-	vl = nrBytes - e.nrBytes;
-	if (vl != 0) {
-	    return vl < 0 ? -1 : 1;
-	}
-	return 0;
-    }
-
 }

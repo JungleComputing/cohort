@@ -4,6 +4,7 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.ActivityIdentifierFactory;
+import ibis.constellation.CTimer;
 import ibis.constellation.Concluder;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationIdentifier;
@@ -24,7 +25,7 @@ import java.util.Properties;
 
 public class ExecutorWrapper implements Constellation {
 
-    private static final boolean PROFILE = true;
+    private static final boolean PROFILE = false;
 
     private static int QUEUED_JOB_LIMIT = 1000000;
 
@@ -53,7 +54,7 @@ public class ExecutorWrapper implements Constellation {
 
     private ActivityIdentifierFactory generator;
 
-    private long computationTime;
+    private final CTimer computationTimer;
 
     private long activitiesSubmitted;
     private long activitiesAdded;
@@ -63,15 +64,13 @@ public class ExecutorWrapper implements Constellation {
 
     private long wrongContextDiscovered;
 
-    private long activitiesInvoked;
-
     private long steals;
     private long stealSuccess;
     private long stolenJobs;
 
     private long messagesInternal;
     private long messagesExternal;
-    private long messagesTime;
+    private final CTimer messagesTimer;
 
     private ActivityRecord current;
 
@@ -102,8 +101,14 @@ public class ExecutorWrapper implements Constellation {
 	localStealStrategy = executor.getLocalStealStrategy();
 	constellationStealStrategy = executor.getConstellationStealStrategy();
 	remoteStealStrategy = executor.getRemoteStealStrategy();
+	messagesTimer = parent.getStats().getTimer("java",
+		parent.identifier().toString(), "message sending");
+	computationTimer = parent.getStats().getTimer("java",
+		parent.identifier().toString(), "computation");
+
     }
 
+    @Override
     public void cancel(ActivityIdentifier id) {
 
 	ActivityRecord ar = lookup.remove(id);
@@ -117,10 +122,12 @@ public class ExecutorWrapper implements Constellation {
 	}
     }
 
+    @Override
     public void done() {
 	done(null);
     }
 
+    @Override
     public void done(Concluder concluder) {
 	if (lookup.size() > 0) {
 	    logger.warn("Quiting Constellation with " + lookup.size()
@@ -198,6 +205,7 @@ public class ExecutorWrapper implements Constellation {
 	return lookup.get(id);
     }
 
+    @Override
     public ActivityIdentifier submit(Activity a) {
 
 	activitiesSubmitted++;
@@ -231,17 +239,16 @@ public class ExecutorWrapper implements Constellation {
 	return id;
     }
 
+    @Override
     public void send(Event e) {
-
-	long start, end;
+	int evt;
 
 	if (PROFILE) {
-	    start = System.currentTimeMillis();
+	    evt = messagesTimer.start();
 	}
 
 	if (Debug.DEBUG_EVENTS) {
-	    logger.info("SEND EVENT " + e.source + " to " + e.target + " at "
-		    + start);
+	    logger.info("SEND EVENT " + e.source + " to " + e.target);
 	}
 
 	// First check if the activity is local.
@@ -259,20 +266,14 @@ public class ExecutorWrapper implements Constellation {
 		runnable.insertLast(ar);
 	    }
 
-	    if (PROFILE) {
-		end = System.currentTimeMillis();
-		messagesTime += (end - start);
-	    }
-
-	    return;
+	} else {
+	    messagesExternal++;
+	    // Activity is not local, so let our parent handle it.
+	    parent.handleEvent(e);
 	}
 
-	// Activity is not local, so let our parent handle it.
-	parent.handleEvent(e);
-
 	if (PROFILE) {
-	    end = System.currentTimeMillis();
-	    messagesTime += (end - start);
+	    messagesTimer.stop(evt);
 	}
     }
 
@@ -386,25 +387,19 @@ public class ExecutorWrapper implements Constellation {
     }
 
     private void process(ActivityRecord tmp) {
-
-	long start, end;
+	int evt;
 
 	tmp.activity.setExecutor(executor);
-
 	current = tmp;
 
 	if (PROFILE) {
-	    start = System.currentTimeMillis();
+	    evt = computationTimer.start();
 	}
 
 	tmp.run();
 
 	if (PROFILE) {
-	    end = System.currentTimeMillis();
-
-	    computationTime += end - start;
-
-	    activitiesInvoked++;
+	    computationTimer.stop(evt);
 	}
 
 	if (tmp.needsToRun()) {
@@ -433,8 +428,8 @@ public class ExecutorWrapper implements Constellation {
 	return false;
     }
 
-    long getComputationTime() {
-	return computationTime;
+    CTimer getComputationTimer() {
+	return computationTimer;
     }
 
     long getActivitiesSubmitted() {
@@ -457,10 +452,6 @@ public class ExecutorWrapper implements Constellation {
 	return wrongContextDiscovered;
     }
 
-    long getActivitiesInvoked() {
-	return activitiesInvoked;
-    }
-
     long getMessagesInternal() {
 	return messagesInternal;
     }
@@ -469,8 +460,8 @@ public class ExecutorWrapper implements Constellation {
 	return messagesExternal;
     }
 
-    long getMessagesTime() {
-	return messagesTime;
+    CTimer getMessagesTimer() {
+	return messagesTimer;
     }
 
     long getSteals() {
@@ -485,14 +476,17 @@ public class ExecutorWrapper implements Constellation {
 	return stolenJobs;
     }
 
+    @Override
     public ConstellationIdentifier identifier() {
 	return identifier;
     }
 
+    @Override
     public boolean isMaster() {
 	return parent.isMaster();
     }
 
+    @Override
     public WorkerContext getContext() {
 	return myContext;
     }
@@ -509,6 +503,7 @@ public class ExecutorWrapper implements Constellation {
 	return remoteStealStrategy;
     }
 
+    @Override
     public boolean activate() {
 	/*
 	 * if (parent != null) { return true; }

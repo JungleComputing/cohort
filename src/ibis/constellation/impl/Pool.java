@@ -18,6 +18,7 @@ import ibis.ipl.Registry;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,8 +54,12 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_TIMEOUT,
 	    PortType.CONNECTION_MANY_TO_ONE);
 
-    private static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
+    private static final IbisCapabilities openIbisCapabilities = new IbisCapabilities(
 	    IbisCapabilities.MALLEABLE, IbisCapabilities.TERMINATION,
+	    IbisCapabilities.ELECTIONS_STRICT,
+	    IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
+    private static final IbisCapabilities closedIbisCapabilities = new IbisCapabilities(
+	    IbisCapabilities.CLOSED_WORLD, IbisCapabilities.TERMINATION,
 	    IbisCapabilities.ELECTIONS_STRICT,
 	    IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
@@ -207,17 +212,20 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     public Pool(final DistributedConstellation owner, final Properties p)
 	    throws Exception {
 
+	TypedProperties properties = new TypedProperties(p);
 	this.owner = owner;
 	this.logger = ConstellationLogger.getLogger(Pool.class, null);
-
-	ibis = IbisFactory
-		.createIbis(ibisCapabilities, p, true, this, portType);
+	boolean closed = properties.getBooleanProperty(
+		"ibis.constellation.closed", false);
+	ibis = IbisFactory.createIbis(closed ? closedIbisCapabilities
+		: openIbisCapabilities, p, true, this, portType);
 
 	local = ibis.identifier();
 
 	ibis.registry().enableEvents();
 
-	String tmp = p.getProperty("ibis.constellation.master", "auto");
+	String tmp = properties
+		.getProperty("ibis.constellation.master", "auto");
 
 	if (tmp.equalsIgnoreCase("auto") || tmp.equalsIgnoreCase("true")) {
 	    // Elect a server
@@ -273,6 +281,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
 	// Start the updater thread...
 	updater.start();
+	if (closed) {
+	    ibis.registry().waitUntilPoolClosed();
+	}
     }
 
     protected void setLogger(ConstellationLogger logger) {

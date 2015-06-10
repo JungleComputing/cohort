@@ -28,9 +28,10 @@ import java.util.Properties;
 
 public class SingleThreadedConstellation extends Thread {
 
-    private static final boolean PRINT_ACTIVITY = false;
-
-    private static final boolean PROFILE = true;
+    private static final boolean PROFILE = false;
+    private static final boolean PROFILE_ACTIVE = false;
+    private static final boolean PROFILE_EVENTS = false;
+    private static final boolean PROFILE_STEALS = true;
     private static final boolean THROTTLE_STEALS = true;
     private static final int DEFAULT_STEAL_DELAY = 50;
     private static final boolean DEFAULT_IGNORE_EMPTY_STEAL_REPLIES = false;
@@ -110,13 +111,10 @@ public class SingleThreadedConstellation extends Thread {
 
     // private boolean idle = false;
 
-    private long activeTime;
-    private long idleTime;
-    private long idleCount;
-
     private final Stats stats;
     private final CTimer stealTimer;
     private final CTimer eventTimer;
+    private final CTimer activeTimer;
 
     // NOTE: these are use for performance debugging...
     /*
@@ -260,11 +258,6 @@ public class SingleThreadedConstellation extends Thread {
 		       */
 	}
 
-	wrapper = new ExecutorWrapper(this, executor, p, identifier, logger);
-
-	myPool = wrapper.belongsTo();
-	stealPool = wrapper.stealsFrom();
-
 	if (parent != null) {
 	    parent.register(this);
 	    stats = parent.getStats();
@@ -272,13 +265,23 @@ public class SingleThreadedConstellation extends Thread {
 		    "steal");
 	    eventTimer = stats.getTimer("java", identifier().toString(),
 		    "handleEvents");
+	    activeTimer = stats.getTimer("java", identifier().toString(),
+		    "active");
 	} else {
 	    stats = null;
 	    stealTimer = new CTimer("unknown", "java", identifier().toString(),
 		    "steal");
 	    eventTimer = new CTimer("unknown", "java", identifier().toString(),
 		    "handleEvents");
+	    activeTimer = new CTimer("unknown", "java",
+		    identifier().toString(), "active");
 	}
+
+	wrapper = new ExecutorWrapper(this, executor, p, identifier, logger);
+
+	myPool = wrapper.belongsTo();
+	stealPool = wrapper.stealsFrom();
+
     }
 
     void setRank(int rank) {
@@ -1050,19 +1053,20 @@ public class SingleThreadedConstellation extends Thread {
     boolean processActivities() {
 
 	if (havePendingRequests) {
-	    int evnt = -1;
-	    if (eventTimer != null) {
+	    int evnt = 0;
+	    if (PROFILE_EVENTS) {
 		evnt = eventTimer.start();
 	    }
-
 	    processEvents();
-	    if (evnt != -1) {
+	    if (PROFILE_EVENTS) {
 		eventTimer.stop(evnt);
 	    }
 	}
 
-	long t2 = System.currentTimeMillis();
-
+	int act = 0;
+	if (PROFILE_ACTIVE) {
+	    act = activeTimer.start();
+	}
 	// NOTE: one problem here is that we cannot tell if we did any work
 	// or not. We would like to know, since this allows us to reset
 	// several variables (e.g., sleepIndex)
@@ -1083,18 +1087,12 @@ public class SingleThreadedConstellation extends Thread {
 	    }
 	}
 
-	long t3 = System.currentTimeMillis();
-
-	if (jobs > 0 && PRINT_ACTIVITY) {
-	    if (t2 - idlestart > 0) {
-		logger.info("IDLE from " + (idlestart - start) + " to "
-			+ (t2 - start) + " total " + (t2 - idlestart));
+	if (PROFILE_ACTIVE) {
+	    if (jobs > 0) {
+		activeTimer.stop(act);
+	    } else {
+		activeTimer.cancel(act);
 	    }
-
-	    idlestart = t3;
-
-	    logger.info("ACTIVE from " + (t2 - start) + " to " + (t3 - start)
-		    + " total " + (t3 - t2) + " jobs " + jobs);
 	}
 
 	if (stealsFrom() == StealPool.NONE) {
@@ -1110,7 +1108,10 @@ public class SingleThreadedConstellation extends Thread {
 	    return getDone();
 	}
 
-	int evnt = stealTimer.start();
+	int evnt = 0;
+	if (PROFILE_STEALS) {
+	    evnt = stealTimer.start();
+	}
 
 	while (!more && !havePendingRequests) {
 	    // Our executor has run out of work. See if we can find some.
@@ -1153,12 +1154,9 @@ public class SingleThreadedConstellation extends Thread {
 	    }
 	}
 
-	stealTimer.stop(evnt);
-
-	long t4 = System.currentTimeMillis();
-
-	activeTime += t3 - t2;
-	idleTime += t4 - t3;
+	if (PROFILE_STEALS) {
+	    stealTimer.stop(evnt);
+	}
 
 	return getDone();
     }
@@ -1247,11 +1245,7 @@ public class SingleThreadedConstellation extends Thread {
 
 	final long messagesInternal = wrapper.getMessagesInternal();
 	final long messagesExternal = wrapper.getMessagesExternal();
-	final long messagesTime = wrapper.getMessagesTime();
-
-	final long computationTime = wrapper.getComputationTime()
-		- messagesTime;
-	final long activitiesInvoked = wrapper.getActivitiesInvoked();
+	final double messagesTime = wrapper.getMessagesTimer().totalTimeVal() / 1000.0;
 
 	final long activitiesSubmitted = wrapper.getActivitiesSubmitted();
 	final long activitiesAdded = wrapper.getActivitiesAdded();
@@ -1264,18 +1258,25 @@ public class SingleThreadedConstellation extends Thread {
 	final long stealSuccessIn = wrapper.getStealSuccess();
 	final long stolen = wrapper.getStolen();
 
-	final double comp = (100.0 * computationTime) / totalTime;
-	final double fact = ((double) activitiesInvoked)
-		/ (activitiesSubmitted + activitiesAdded);
-
 	double eventTime = eventTimer.totalTimeVal() / 1000.0;
+	double activeTime = activeTimer.totalTimeVal() / 1000.0;
+	double idleTime = stealTimer.totalTimeVal() / 1000.0;
 
 	final double eventPerc = (100.0 * eventTime) / totalTime;
 	final double activePerc = (100.0 * activeTime) / totalTime;
 	final double idlePerc = (100.0 * idleTime) / totalTime;
 	final double messPerc = (100.0 * messagesTime) / totalTime;
 
+	final double computationTime = wrapper.getComputationTimer()
+		.totalTimeVal() / 1000.0 - messagesTime;
+	final int activitiesInvoked = wrapper.getComputationTimer().nrTimes();
+
+	final double comp = (100.0 * computationTime) / totalTime;
+	final double fact = ((double) activitiesInvoked)
+		/ (activitiesSubmitted + activitiesAdded);
+
 	if (PROFILE) {
+
 	    // Get the cpu/user time (in nanos)
 	    /*
 	     * cpuTime = management.getCurrentThreadCpuTime(); userTime =
@@ -1305,22 +1306,27 @@ public class SingleThreadedConstellation extends Thread {
 	    out.println(identifier + " statistics");
 	    out.println(" Time");
 	    out.println("   total      : " + totalTime + " ms.");
-	    out.println("   active     : " + activeTime + " ms. (" + activePerc
-		    + " %)");
-	    out.println("        run() : " + computationTime + " ms. (" + comp
-		    + " %)");
+	    if (PROFILE_ACTIVE) {
+		out.println("   active     : " + activeTime + " ms. ("
+			+ activePerc + " %)");
+	    }
+	    if (PROFILE_EVENTS) {
+		out.println("   command    : " + eventTime + " ms. ("
+			+ eventPerc + " %)");
+	    }
 
-	    out.println("   command    : " + eventTime + " ms. (" + eventPerc
-		    + " %)");
-
-	    out.println("   idle count: " + idleCount);
-	    out.println("   idle time : " + idleTime + " ms. (" + idlePerc
-		    + " %)");
-
-	    out.println("   mess time : " + messagesTime + " ms. (" + messPerc
-		    + " %)");
+	    if (PROFILE_STEALS) {
+		out.println("   idle count: " + stealTimer.nrTimes());
+		out.println("   idle time : " + idleTime + " ms. (" + idlePerc
+			+ " %)");
+	    }
 
 	    if (PROFILE) {
+		out.println("        run() : " + computationTime + " ms. ("
+			+ comp + " %)");
+
+		out.println("   mess time : " + messagesTime + " ms. ("
+			+ messPerc + " %)");
 
 		out.println("   cpu time   : " + cpuTime + " ms. (" + cpuPerc
 			+ " %)");
@@ -1343,8 +1349,10 @@ public class SingleThreadedConstellation extends Thread {
 	    out.println(" Activities");
 	    out.println("   submitted  : " + activitiesSubmitted);
 	    out.println("   added      : " + activitiesAdded);
-	    out.println("   invoked    : " + activitiesInvoked + " (" + fact
-		    + " /act)");
+	    if (PROFILE) {
+		out.println("   invoked    : " + activitiesInvoked + " ("
+			+ fact + " /act)");
+	    }
 	    out.println("  Wrong Context");
 	    out.println("   submitted  : " + wrongContextSubmitted);
 	    out.println("   added      : " + wrongContextAdded);
@@ -1359,6 +1367,10 @@ public class SingleThreadedConstellation extends Thread {
 	}
 
 	out.flush();
+    }
+
+    public Stats getStats() {
+	return stats;
     }
 
 }
