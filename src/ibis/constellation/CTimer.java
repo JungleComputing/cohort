@@ -23,7 +23,6 @@ public class CTimer implements java.io.Serializable {
     private String standardThread;
     private String standardAction;
     private int standardQueue;
-    private int currentEvent;
 
     // not sure
     public static int getNextQueue() {
@@ -53,20 +52,16 @@ public class CTimer implements java.io.Serializable {
 	this.standardThread = null;
 	this.standardAction = null;
 	this.standardQueue = getNextQueue();
-	this.currentEvent = -1;
     }
 
     public CTimer(String constellation, String standardDevice,
-	    String standardThread, String standardAction, int nrEvents) {
+	    String standardThread, String standardAction) {
 	this.events = new ArrayList<TimerEvent>();
 	this.hostId = constellation;
 	this.standardDevice = standardDevice;
 	this.standardThread = standardThread;
 	this.standardAction = standardAction;
 	this.standardQueue = getNextQueue();
-	this.currentEvent = -1;
-
-	addNewEvents(nrEvents);
     }
 
     public void equalize(TimeSyncInfo timeSyncInfo) {
@@ -86,15 +81,18 @@ public class CTimer implements java.io.Serializable {
 	}
     }
 
+    public synchronized void cancel() {
+	events.remove(events.size() - 1);
+    }
+
     public int start() {
 	int eventNo;
+	TimerEvent event = new TimerEvent(getNode(), standardDevice,
+		standardThread, standardQueue, standardAction, 0, 0, 0, 0);
 	synchronized (this) {
-	    eventNo = ++currentEvent;
-	    if (currentEvent == events.size()) {
-		addNewEvents(events.size() * 3);
-	    }
+	    eventNo = events.size();
+	    events.add(event);
 	}
-	TimerEvent event = events.get(eventNo);
 	event.queued = event.submitted = event.start = System.nanoTime();
 	return eventNo;
     }

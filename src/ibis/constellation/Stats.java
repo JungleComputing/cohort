@@ -25,7 +25,7 @@ public class Stats implements java.io.Serializable {
     }
 
     public void setSyncInfo(TimeSyncInfo syncInfo) {
-        this.syncInfo = syncInfo;
+	this.syncInfo = syncInfo;
     }
 
     public synchronized void add(Stats s) {
@@ -139,9 +139,9 @@ public class Stats implements java.io.Serializable {
     }
 
     public CTimer getTimer(String standardDevice, String standardThread,
-	    String standardAction, int nrEvents) {
+	    String standardAction) {
 	CTimer timer = new CTimer(hostId, standardDevice, standardThread,
-		standardAction, nrEvents);
+		standardAction);
 	addTimer(timer);
 	return timer;
     }

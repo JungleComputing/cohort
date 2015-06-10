@@ -110,7 +110,6 @@ public class SingleThreadedConstellation extends Thread {
 
     // private boolean idle = false;
 
-    private long eventTime;
     private long activeTime;
     private long idleTime;
     private long idleCount;
@@ -270,13 +269,15 @@ public class SingleThreadedConstellation extends Thread {
 	    parent.register(this);
 	    stats = parent.getStats();
 	    stealTimer = stats.getTimer("java", identifier().toString(),
-		    "steal", 1000);
+		    "steal");
 	    eventTimer = stats.getTimer("java", identifier().toString(),
-		    "handleEvents", 1000);
+		    "handleEvents");
 	} else {
 	    stats = null;
-	    stealTimer = null;
-	    eventTimer = null;
+	    stealTimer = new CTimer("unknown", "java", identifier().toString(),
+		    "steal");
+	    eventTimer = new CTimer("unknown", "java", identifier().toString(),
+		    "handleEvents");
 	}
     }
 
@@ -421,10 +422,15 @@ public class SingleThreadedConstellation extends Thread {
 	}
 
 	if (!pool.overlap(wrapper.belongsTo())) {
+	    logger.info("attemptSteal: wrong pool!");
 	    return 0;
 	}
 
 	// First steal from the activities that I cannot run myself.
+	if (logger.isDebugEnabled()) {
+	    logger.debug("Attempt to steal from wrongContext, size = "
+		    + wrongContext.size());
+	}
 	int offset = wrongContext.steal(context, s, tmp, 0, size);
 	if (logger.isDebugEnabled() && offset > 0) {
 	    logger.debug("Stole " + offset + " jobs from wrongContext of "
@@ -452,6 +458,11 @@ public class SingleThreadedConstellation extends Thread {
 
 	// Anyone may steal a fresh job
 	if (offset < size) {
+	    if (logger.isDebugEnabled()) {
+		logger.debug("Attempt to steal from fresh, size = "
+			+ fresh.size());
+	    }
+
 	    offset += fresh.steal(context, s, tmp, offset, size - offset);
 	}
 
@@ -1038,9 +1049,6 @@ public class SingleThreadedConstellation extends Thread {
 
     boolean processActivities() {
 
-	long t1 = System.currentTimeMillis();
-	long t2 = t1;
-
 	if (havePendingRequests) {
 	    int evnt = -1;
 	    if (eventTimer != null) {
@@ -1051,8 +1059,9 @@ public class SingleThreadedConstellation extends Thread {
 	    if (evnt != -1) {
 		eventTimer.stop(evnt);
 	    }
-	    t2 = System.currentTimeMillis();
 	}
+
+	long t2 = System.currentTimeMillis();
 
 	// NOTE: one problem here is that we cannot tell if we did any work
 	// or not. We would like to know, since this allows us to reset
@@ -1101,10 +1110,8 @@ public class SingleThreadedConstellation extends Thread {
 	    return getDone();
 	}
 
-	int evnt = -1;
-	if (stealTimer != null) {
-	    evnt = stealTimer.start();
-	}
+	int evnt = stealTimer.start();
+
 	while (!more && !havePendingRequests) {
 	    // Our executor has run out of work. See if we can find some.
 
@@ -1145,13 +1152,11 @@ public class SingleThreadedConstellation extends Thread {
 		}
 	    }
 	}
-	if (evnt != -1) {
-	    stealTimer.stop(evnt);
-	}
+
+	stealTimer.stop(evnt);
 
 	long t4 = System.currentTimeMillis();
 
-	eventTime += t2 - t1;
 	activeTime += t3 - t2;
 	idleTime += t4 - t3;
 
@@ -1262,6 +1267,8 @@ public class SingleThreadedConstellation extends Thread {
 	final double comp = (100.0 * computationTime) / totalTime;
 	final double fact = ((double) activitiesInvoked)
 		/ (activitiesSubmitted + activitiesAdded);
+
+	double eventTime = eventTimer.totalTimeVal() / 1000.0;
 
 	final double eventPerc = (100.0 * eventTime) / totalTime;
 	final double activePerc = (100.0 * activeTime) / totalTime;

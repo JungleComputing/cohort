@@ -526,10 +526,18 @@ public class MultiThreadedConstellation {
 
 	    if (sr.pool.overlap(p)) {
 		// We're allowed to steal!
+
+		if (Debug.DEBUG_STEAL && logger.isDebugEnabled()) {
+		    logger.debug("Found steal target: " + tmp.identifier()
+			    + ", pool = " + p);
+		}
 		ActivityRecord[] result = tmp.attemptSteal(sr.context,
 			sr.remoteStrategy, sr.pool, sr.source, sr.size, false);
 
 		if (result != null) {
+		    if (Debug.DEBUG_STEAL && logger.isDebugEnabled()) {
+			logger.debug("... and got a job!");
+		    }
 		    // We've managed to find some work!
 		    if (!parent.handleStealReply(new StealReply(identifier,
 			    sr.source, sr.pool, sr.context, result))) {
@@ -537,6 +545,10 @@ public class MultiThreadedConstellation {
 		    }
 
 		    return;
+		} else {
+		    if (Debug.DEBUG_STEAL && logger.isDebugEnabled()) {
+			logger.debug("... but no jobs available!");
+		    }
 		}
 	    }
 	}
