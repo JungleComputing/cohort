@@ -1,5 +1,6 @@
 package ibis.constellation.impl;
 
+import ibis.constellation.CTimer;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Stats;
 import ibis.constellation.StealPool;
@@ -90,6 +91,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private final Random random = new Random();
 
     private final boolean closedPool;
+
+    private final CTimer communicationTimer;
 
     // private long received;
     // private long send;
@@ -219,6 +222,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private boolean gotRelease;
     private boolean gotAnswer;
     private boolean gotPong;
+    private Stats stats;
 
     public Pool(final DistributedConstellation owner, final Properties p)
 	    throws Exception {
@@ -298,6 +302,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	if (closedPool) {
 	    ibis.registry().waitUntilPoolClosed();
 	}
+
+	stats = new Stats(getId());
+
+	communicationTimer = stats.getTimer("java", "data receiver",
+		"receive data");
+    }
+
+    Stats getStats() {
+	return stats;
     }
 
     protected void setLogger(ConstellationLogger logger) {
@@ -570,14 +583,37 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    logger.warn("POOL failed to connect to " + id);
 	    return false;
 	}
-
+	int eventNo = -1;
+	long sz = 0;
 	try {
 	    WriteMessage wm = s.newMessage();
+	    boolean mustStartTimer = (opcode == OPCODE_STEAL_REPLY || opcode == OPCODE_EVENT_MESSAGE);
+	    if (opcode == OPCODE_STEAL_REPLY) {
+		StealReply r = (StealReply) data;
+		if (r.getSize() == 0) {
+		    mustStartTimer = false;
+		}
+	    }
+	    if (mustStartTimer) {
+		eventNo = communicationTimer
+			.start(opcode == OPCODE_STEAL_REPLY ? "write stolen job"
+				: "write event");
+	    }
 	    wm.writeByte(opcode);
 	    wm.writeObject(data);
-	    wm.finish();
-	} catch (Exception e) {
+	    sz = wm.finish();
+	    if (eventNo != -1) {
+		if (opcode == OPCODE_STEAL_REPLY) {
+
+		}
+		communicationTimer.stop(eventNo);
+		communicationTimer.addBytes(sz, eventNo);
+	    }
+	} catch (Throwable e) {
 	    logger.warn("POOL lost communication to " + id, e);
+	    if (eventNo != -1) {
+		communicationTimer.cancel(eventNo);
+	    }
 	    return false;
 	}
 
@@ -749,9 +785,15 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     public void upcall(ReadMessage rm) throws IOException,
 	    ClassNotFoundException {
 
+	int timerEvent = -1;
 	byte opcode = rm.readByte();
-	Object data = rm.readObject();
-	IbisIdentifier source = rm.origin().ibisIdentifier();
+
+	if (opcode == OPCODE_STEAL_REPLY || opcode == OPCODE_EVENT_MESSAGE) {
+	    timerEvent = communicationTimer
+		    .start(opcode == OPCODE_STEAL_REPLY ? "receive stolen job"
+			    : "event message");
+	}
+
 	if (opcode == OPCODE_NOTHING) {
 	    return;
 	}
@@ -762,30 +804,49 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    }
 	    return;
 	}
-	if (opcode == OPCODE_SEND_TIME) {
-	    long l = ((Long) data).longValue();
-	    Long myTime = times.get(source);
-	    if (myTime == null) {
-		logger.warn("Ignored roque time answer");
+
+	long sz = 0;
+	IbisIdentifier source = rm.origin().ibisIdentifier();
+	Object data = null;
+	try {
+	    data = rm.readObject();
+
+	    if (opcode == OPCODE_SEND_TIME) {
+		long l = ((Long) data).longValue();
+		Long myTime = times.get(source);
+		if (myTime == null) {
+		    logger.warn("Ignored roque time answer");
+		    return;
+		}
+		long interval = (System.nanoTime() - myTime.longValue());
+		long half = interval / 2;
+		long offset = myTime.longValue() + half - l;
+		if (logger.isDebugEnabled()) {
+		    logger.debug("source = " + source.name() + ", offset = "
+			    + offset + ", interval = " + interval);
+		}
+		syncInfo.put(source.name(), new Long(offset));
+		if (closedPool) {
+		    synchronized (this) {
+			gotAnswer = true;
+			notifyAll();
+		    }
+		}
 		return;
 	    }
-	    long interval = (System.nanoTime() - myTime.longValue());
-	    long half = interval / 2;
-	    long offset = myTime.longValue() + half - l;
-	    if (logger.isDebugEnabled()) {
-		logger.debug("source = " + source.name() + ", offset = "
-			+ offset + ", interval = " + interval);
-	    }
-	    syncInfo.put(source.name(), new Long(offset));
-	    if (closedPool) {
-		synchronized (this) {
-		    gotAnswer = true;
-		    notifyAll();
+
+	    sz = rm.finish();
+	} finally {
+	    if (timerEvent != -1) {
+		if (opcode == OPCODE_STEAL_REPLY && data != null
+			&& ((StealReply) data).getSize() == 0) {
+		    communicationTimer.cancel(timerEvent);
+		} else {
+		    communicationTimer.stop(timerEvent);
+		    communicationTimer.addBytes(sz, timerEvent);
 		}
 	    }
-	    return;
 	}
-	rm.finish();
 
 	switch (opcode) {
 	case OPCODE_STATISTICS:

@@ -114,11 +114,11 @@ public class TimerEvent implements java.io.Serializable {
 
     String toDataTransferString() {
 	return String.format("%-8s  |  %-14s  |  start: %-6s  |  "
-		+ "end: %-6s  |  duration: %-6s  | nrBytes: %4d MB  |  "
+		+ "end: %-6s  |  duration: %-6s  | nrBytes: %4.3f MB  |  "
 		+ "rate: %13s\n", node, action, Timer.format(start / 1000.0),
 		Timer.format(end / 1000.0),
-		Timer.format((end - start) / 1000.0), nrBytes / 1024 / 1024,
-		getRateString());
+		Timer.format((end - start) / 1000.0),
+		nrBytes / 1024.0 / 1024.0, getRateString());
     }
 
     @Override

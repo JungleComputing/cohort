@@ -257,7 +257,7 @@ public class DistributedConstellation {
 		    + " / " + myContext);
 	}
 
-	stats = new Stats(pool.getId());
+	stats = pool.getStats();
     }
 
     private boolean performActivate() {
@@ -642,4 +642,5 @@ public class DistributedConstellation {
     public Stats getStats() {
 	return stats;
     }
+
 }
