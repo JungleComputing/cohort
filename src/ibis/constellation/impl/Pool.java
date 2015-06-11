@@ -47,6 +47,12 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
     private static final byte OPCODE_STATISTICS = 73;
 
+    private static final byte OPCODE_NOTHING = 83;
+    private static final byte OPCODE_RELEASE = 84;
+
+    private static final byte OPCODE_PING = 93;
+    private static final byte OPCODE_PONG = 94;
+
     private DistributedConstellation owner;
 
     private final PortType portType = new PortType(PortType.COMMUNICATION_FIFO,
@@ -82,6 +88,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private boolean isMaster;
 
     private final Random random = new Random();
+
+    private final boolean closedPool;
 
     // private long received;
     // private long send;
@@ -208,6 +216,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
     private HashMap<String, PoolInfo> pools = new HashMap<String, PoolInfo>();
     private PoolUpdater updater = new PoolUpdater();
+    private boolean gotRelease;
+    private boolean gotAnswer;
+    private boolean gotPong;
 
     public Pool(final DistributedConstellation owner, final Properties p)
 	    throws Exception {
@@ -215,14 +226,17 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	TypedProperties properties = new TypedProperties(p);
 	this.owner = owner;
 	this.logger = ConstellationLogger.getLogger(Pool.class, null);
-	boolean closed = properties.getBooleanProperty(
-		"ibis.constellation.closed", false);
-	ibis = IbisFactory.createIbis(closed ? closedIbisCapabilities
-		: openIbisCapabilities, p, true, this, portType);
+	closedPool = properties.getBooleanProperty("ibis.constellation.closed",
+		false);
+	ibis = IbisFactory.createIbis(closedPool ? closedIbisCapabilities
+		: openIbisCapabilities, p, true, closedPool ? null : this,
+		portType);
 
 	local = ibis.identifier();
 
-	ibis.registry().enableEvents();
+	if (!closedPool) {
+	    ibis.registry().enableEvents();
+	}
 
 	String tmp = properties
 		.getProperty("ibis.constellation.master", "auto");
@@ -281,7 +295,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
 	// Start the updater thread...
 	updater.start();
-	if (closed) {
+	if (closedPool) {
 	    ibis.registry().waitUntilPoolClosed();
 	}
     }
@@ -303,7 +317,55 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
 	// processPendingMessages();
 	rp.enableMessageUpcalls();
-
+	if (closedPool) {
+	    if (isMaster()) {
+		IbisIdentifier[] ids = ibis.registry().joinedIbises();
+		for (IbisIdentifier id : ids) {
+		    if (!id.equals(ibis.identifier())) {
+			// First do a pingpong to make sure that the other side
+			// has
+			// upcalls enabled already.
+			doForward(id, OPCODE_PING, null);
+			synchronized (this) {
+			    while (!gotPong) {
+				try {
+				    wait();
+				} catch (Throwable e) {
+				    // ignore
+				}
+			    }
+			    gotPong = false;
+			}
+			getTimeOfOther(id);
+			synchronized (this) {
+			    while (!gotAnswer) {
+				try {
+				    wait();
+				} catch (Throwable e) {
+				    // ignore
+				}
+			    }
+			    gotAnswer = false;
+			}
+		    }
+		}
+		for (IbisIdentifier id : ids) {
+		    if (!id.equals(ibis.identifier())) {
+			doForward(id, OPCODE_RELEASE, null);
+		    }
+		}
+	    } else {
+		synchronized (this) {
+		    while (!gotRelease) {
+			try {
+			    wait();
+			} catch (Throwable e) {
+			    // ignore
+			}
+		    }
+		}
+	    }
+	}
     }
 
     private void processPendingMessages() {
@@ -673,6 +735,11 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     public void getTimeOfOther(IbisIdentifier id) {
+	// Send something just to set up the connection.
+	doForward(id, OPCODE_NOTHING, null);
+	if (logger.isDebugEnabled()) {
+	    logger.debug("Obtaining time from " + id.name());
+	}
 	long myTime = System.nanoTime();
 	times.put(id, new Long(myTime));
 	doForward(id, OPCODE_REQUEST_TIME, null);
@@ -685,6 +752,39 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	byte opcode = rm.readByte();
 	Object data = rm.readObject();
 	IbisIdentifier source = rm.origin().ibisIdentifier();
+	if (opcode == OPCODE_NOTHING) {
+	    return;
+	}
+	if (opcode == OPCODE_RELEASE) {
+	    synchronized (this) {
+		gotRelease = true;
+		notifyAll();
+	    }
+	    return;
+	}
+	if (opcode == OPCODE_SEND_TIME) {
+	    long l = ((Long) data).longValue();
+	    Long myTime = times.get(source);
+	    if (myTime == null) {
+		logger.warn("Ignored roque time answer");
+		return;
+	    }
+	    long interval = (System.nanoTime() - myTime.longValue());
+	    long half = interval / 2;
+	    long offset = myTime.longValue() + half - l;
+	    if (logger.isDebugEnabled()) {
+		logger.debug("source = " + source.name() + ", offset = "
+			+ offset + ", interval = " + interval);
+	    }
+	    syncInfo.put(source.name(), new Long(offset));
+	    if (closedPool) {
+		synchronized (this) {
+		    gotAnswer = true;
+		    notifyAll();
+		}
+	    }
+	    return;
+	}
 	rm.finish();
 
 	switch (opcode) {
@@ -694,18 +794,14 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	case OPCODE_REQUEST_TIME:
 	    doForward(source, OPCODE_SEND_TIME, new Long(System.nanoTime()));
 	    break;
-	case OPCODE_SEND_TIME: {
-	    long l = ((Long) data).longValue();
-	    Long myTime = times.get(source);
-	    if (myTime == null) {
-		logger.warn("Ignored roque time answer");
-		break;
+	case OPCODE_PING:
+	    doForward(source, OPCODE_PONG, null);
+	    break;
+	case OPCODE_PONG:
+	    synchronized (this) {
+		gotPong = true;
+		notifyAll();
 	    }
-	    long interval = System.nanoTime() - myTime.longValue();
-	    long half = interval / 2;
-	    long offset = myTime.longValue() + half - l;
-	    syncInfo.put(source.name(), new Long(offset));
-	}
 	    break;
 	case OPCODE_STEAL_REQUEST: {
 	    StealRequest m = (StealRequest) data;
@@ -761,7 +857,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
 	case OPCODE_RANK_REGISTER_REQUEST:
 	    registerRank((RankInfo) data);
-	    getTimeOfOther(source);
+	    if (!closedPool) {
+		getTimeOfOther(source);
+	    }
 	    break;
 
 	case OPCODE_RANK_LOOKUP_REPLY: {

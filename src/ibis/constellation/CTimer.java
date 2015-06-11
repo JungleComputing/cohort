@@ -74,13 +74,6 @@ public class CTimer implements java.io.Serializable {
 	}
     }
 
-    private void addNewEvents(int nrEvents) {
-	for (int i = 0; i < nrEvents; i++) {
-	    events.add(new TimerEvent(getNode(), standardDevice,
-		    standardThread, standardQueue, standardAction, 0, 0, 0, 0));
-	}
-    }
-
     public synchronized void cancel(int evt) {
 	if (evt == events.size() - 1) {
 	    events.remove(evt);
