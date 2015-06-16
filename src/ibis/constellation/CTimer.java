@@ -297,7 +297,8 @@ public class CTimer implements java.io.Serializable {
 	long startTime = overallEvent.getStart();
 	long time = overallEvent.time();
 	long startFilter = Math.max(startTime - (long) (0.1 * time), 0);
-	long endFilter = time + (long) (2 * 0.1 * time);
+	long endFilter = time + (long) (2 * 0.1 * time); // because of the
+							 // normalize below.
 
 	normalize(startFilter);
 

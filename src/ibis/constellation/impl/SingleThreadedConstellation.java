@@ -430,12 +430,8 @@ public class SingleThreadedConstellation extends Thread {
 	}
 
 	// First steal from the activities that I cannot run myself.
-	if (logger.isDebugEnabled()) {
-	    logger.debug("Attempt to steal from wrongContext, size = "
-		    + wrongContext.size());
-	}
 	int offset = wrongContext.steal(context, s, tmp, 0, size);
-	if (logger.isDebugEnabled() && offset > 0) {
+	if (logger.isDebugEnabled() && !local) {
 	    logger.debug("Stole " + offset + " jobs from wrongContext of "
 		    + identifier.id + ", size = " + wrongContext.size());
 	}
@@ -461,12 +457,13 @@ public class SingleThreadedConstellation extends Thread {
 
 	// Anyone may steal a fresh job
 	if (offset < size) {
-	    if (logger.isDebugEnabled()) {
-		logger.debug("Attempt to steal from fresh, size = "
+	    int n = fresh.steal(context, s, tmp, offset, size - offset);
+	    offset += n;
+	    if (logger.isDebugEnabled() && !local) {
+		logger.debug("Stole " + n + " jobs from fresh, size = "
 			+ fresh.size());
 	    }
 
-	    offset += fresh.steal(context, s, tmp, offset, size - offset);
 	}
 
 	if (offset == 0) {
@@ -482,7 +479,7 @@ public class SingleThreadedConstellation extends Thread {
 	// System.out.println("ST: " + identifier + " returning " + offset +
 	// " stolen jobs to " + src);
 
-	// Next, remote activities from lookup, and mark and register them as
+	// Next, remove activities from lookup, and mark and register them as
 	// relocated or stolen/exported
 	registerLeavingActivities(tmp, offset, src, local);
 
@@ -509,7 +506,7 @@ public class SingleThreadedConstellation extends Thread {
 
     void deliverStealRequest(StealRequest sr) {
 	// steal request (possibly remote) to enqueue and handle later
-	if (logger.isInfoEnabled()) {
+	if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
 	    logger.info("S REMOTE STEAL REQUEST from " + sr.source
 		    + " context " + sr.context);
 	}
@@ -907,11 +904,11 @@ public class SingleThreadedConstellation extends Thread {
 
     private void processStealRequests() {
 
-	if (processing.stealRequests.size() == 0) {
-	    return;
-	}
+	StealRequest[] requests = processing.stealRequests.values().toArray(
+		new StealRequest[0]);
+	processing.stealRequests.clear();
 
-	for (StealRequest s : processing.stealRequests.values()) {
+	for (StealRequest s : requests) {
 
 	    // Make sure the steal request is still valid!
 	    if (!s.getStale()) {
@@ -963,8 +960,6 @@ public class SingleThreadedConstellation extends Thread {
 		}
 	    }
 	}
-
-	processing.stealRequests.clear();
     }
 
     private void processEvents() {

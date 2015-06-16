@@ -420,8 +420,8 @@ public class DistributedConstellation {
 	// This method is called from an finished upcall. Therefore it
 	// may block for a long period of time or communicate.
 
-	if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
-	    logger.info("D REMOTE STEAL REQUEST from constellation "
+	if (logger.isDebugEnabled()) {
+	    logger.debug("D REMOTE STEAL REQUEST from constellation "
 		    + sr.source + " context " + sr.context);
 	}
 
@@ -497,8 +497,8 @@ public class DistributedConstellation {
 
 	} else if (stealing == STEAL_POOL && pool.randomForwardToPool(sp, sr)) {
 
-	    if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
-		logger.info("D RANDOM FORWARD steal request from child "
+	    if (logger.isDebugEnabled()) {
+		logger.debug("D RANDOM FORWARD steal request from child "
 			+ sr.source + " to POOL " + sp.getTag());
 	    }
 

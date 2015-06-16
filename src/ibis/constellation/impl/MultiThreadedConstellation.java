@@ -510,7 +510,7 @@ public class MultiThreadedConstellation {
     void deliverStealRequest(StealRequest sr) {
 	// steal request delivered by our parent.
 
-	if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
+	if (logger.isDebugEnabled()) {
 	    logger.info("M REMOTE STEAL REQUEST from child " + sr.source
 		    + " context " + sr.context + " pool " + sr.pool);
 	}
@@ -527,7 +527,7 @@ public class MultiThreadedConstellation {
 	    if (sr.pool.overlap(p)) {
 		// We're allowed to steal!
 
-		if (Debug.DEBUG_STEAL && logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled()) {
 		    logger.debug("Found steal target: " + tmp.identifier()
 			    + ", pool = " + p);
 		}
@@ -535,7 +535,7 @@ public class MultiThreadedConstellation {
 			sr.remoteStrategy, sr.pool, sr.source, sr.size, false);
 
 		if (result != null) {
-		    if (Debug.DEBUG_STEAL && logger.isDebugEnabled()) {
+		    if (logger.isDebugEnabled()) {
 			logger.debug("... and got a job!");
 		    }
 		    // We've managed to find some work!
@@ -546,7 +546,7 @@ public class MultiThreadedConstellation {
 
 		    return;
 		} else {
-		    if (Debug.DEBUG_STEAL && logger.isDebugEnabled()) {
+		    if (logger.isDebugEnabled()) {
 			logger.debug("... but no jobs available!");
 		    }
 		}
@@ -576,7 +576,7 @@ public class MultiThreadedConstellation {
     void deliverStealReply(StealReply sr) {
 	// steal reply delivered by our parent
 
-	if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
+	if (logger.isDebugEnabled()) {
 	    logger.info("M receive STEAL reply from " + sr.source);
 	}
 
