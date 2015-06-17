@@ -488,20 +488,21 @@ public class DistributedConstellation {
 	    }
 	}
 
-	if (stealing == STEAL_MASTER && pool.forwardToMaster(sr)) {
-
-	    if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
-		logger.info("D MASTER FORWARD steal request from child "
-			+ sr.source);
+	if (stealing == STEAL_MASTER) {
+	    if (pool.forwardToMaster(sr)) {
+		if (Debug.DEBUG_STEAL && logger.isInfoEnabled()) {
+		    logger.info("D MASTER FORWARD steal request from child "
+			    + sr.source);
+		}
 	    }
 
-	} else if (stealing == STEAL_POOL && pool.randomForwardToPool(sp, sr)) {
-
-	    if (logger.isDebugEnabled()) {
-		logger.debug("D RANDOM FORWARD steal request from child "
-			+ sr.source + " to POOL " + sp.getTag());
+	} else if (stealing == STEAL_POOL) {
+	    if (pool.randomForwardToPool(sp, sr)) {
+		if (logger.isDebugEnabled()) {
+		    logger.debug("D RANDOM FORWARD steal request from child "
+			    + sr.source + " to POOL " + sp.getTag());
+		}
 	    }
-
 	} else {
 	    logger.error("D STEAL REQUEST unknown stealing strategy "
 		    + stealing);
