@@ -502,9 +502,10 @@ public class DistributedConstellation {
 			+ sr.source + " to POOL " + sp.getTag());
 	    }
 
+	} else {
+	    logger.error("D STEAL REQUEST unknown stealing strategy "
+		    + stealing);
 	}
-
-	logger.error("D STEAL REQUEST unknown stealing strategy " + stealing);
     }
 
     boolean handleApplicationMessage(EventMessage m, boolean enqueueOnFail) {
