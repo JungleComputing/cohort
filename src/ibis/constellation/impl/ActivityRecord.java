@@ -5,15 +5,15 @@ import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
 import ibis.constellation.extra.CircularBuffer;
-import ibis.constellation.extra.ConstellationLogger;
 
 import java.io.Serializable;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ActivityRecord implements Serializable {
 
-    public static final Logger logger = ConstellationLogger
+    public static final Logger logger = LoggerFactory
 	    .getLogger(ActivityRecord.class);
     private static final long serialVersionUID = 6938326535791839797L;
 

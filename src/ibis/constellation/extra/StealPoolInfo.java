@@ -6,13 +6,14 @@ import ibis.ipl.IbisIdentifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StealPoolInfo {
 
     private final HashMap<String, ArrayList<Object>> map = new HashMap<String, ArrayList<Object>>();
 
-    public static final Logger log = ConstellationLogger
+    public static final Logger log = LoggerFactory
 	    .getLogger(StealPoolInfo.class);
 
     public StealPoolInfo() {

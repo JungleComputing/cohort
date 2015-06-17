@@ -4,7 +4,6 @@ import ibis.constellation.CTimer;
 import ibis.constellation.ConstellationIdentifier;
 import ibis.constellation.Stats;
 import ibis.constellation.StealPool;
-import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.TimeSyncInfo;
 import ibis.ipl.Ibis;
@@ -29,7 +28,12 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Pool implements RegistryEventHandler, MessageUpcall {
+
+    private static final Logger logger = LoggerFactory.getLogger(Pool.class);
 
     private static final byte OPCODE_EVENT_MESSAGE = 10;
     private static final byte OPCODE_STEAL_REQUEST = 11;
@@ -77,8 +81,6 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private final ConcurrentHashMap<Integer, IbisIdentifier> locationCache = new ConcurrentHashMap<Integer, IbisIdentifier>();
 
     private final DistributedConstellationIdentifierFactory cidFactory;
-
-    private ConstellationLogger logger;
 
     private final Ibis ibis;
     private final IbisIdentifier local;
@@ -229,7 +231,6 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
 	TypedProperties properties = new TypedProperties(p);
 	this.owner = owner;
-	this.logger = ConstellationLogger.getLogger(Pool.class, null);
 	closedPool = properties.getBooleanProperty("ibis.constellation.closed",
 		false);
 	ibis = IbisFactory.createIbis(closedPool ? closedIbisCapabilities
@@ -311,13 +312,6 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
     Stats getStats() {
 	return stats;
-    }
-
-    protected void setLogger(ConstellationLogger logger) {
-	this.logger = logger;
-	if (logger.isInfoEnabled()) {
-	    logger.info("Cohort master is " + master + " rank is " + rank);
-	}
     }
 
     public void activate() {

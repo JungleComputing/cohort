@@ -13,12 +13,14 @@ import ibis.constellation.impl.ActivityRecord;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SmartSortedWorkQueue extends WorkQueue {
 
-    public static final Logger log = ConstellationLogger
+    public static final Logger log = LoggerFactory
 	    .getLogger(SmartSortedWorkQueue.class);
+
     // We maintain two lists here, which reflect the relative complexity of
     // the context associated with the jobs:
     //

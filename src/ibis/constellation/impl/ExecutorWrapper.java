@@ -15,7 +15,6 @@ import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.extra.CircularBuffer;
-import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.SmartSortedWorkQueue;
 import ibis.constellation.extra.WorkQueue;
@@ -23,7 +22,12 @@ import ibis.constellation.extra.WorkQueue;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ExecutorWrapper implements Constellation {
+
+    static final Logger logger = LoggerFactory.getLogger(ExecutorWrapper.class);
 
     private static final boolean PROFILE = false;
 
@@ -32,9 +36,6 @@ public class ExecutorWrapper implements Constellation {
     private final SingleThreadedConstellation parent;
 
     private final ConstellationIdentifier identifier;
-
-    // private PrintStream out;
-    private final ConstellationLogger logger;
 
     private final Executor executor;
 
@@ -75,12 +76,10 @@ public class ExecutorWrapper implements Constellation {
     private ActivityRecord current;
 
     ExecutorWrapper(SingleThreadedConstellation parent, Executor executor,
-	    Properties p, ConstellationIdentifier identifier,
-	    ConstellationLogger logger) throws Exception {
+	    Properties p, ConstellationIdentifier identifier) throws Exception {
 	this.parent = parent;
 	this.identifier = identifier;
 	this.generator = parent.getActivityIdentifierFactory(identifier);
-	this.logger = logger;
 	this.executor = executor;
 
 	QUEUED_JOB_LIMIT = Integer.parseInt(p.getProperty(

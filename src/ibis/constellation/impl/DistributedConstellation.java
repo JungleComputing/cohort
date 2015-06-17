@@ -12,14 +12,19 @@ import ibis.constellation.WorkerContext;
 import ibis.constellation.context.OrWorkerContext;
 import ibis.constellation.context.UnitWorkerContext;
 import ibis.constellation.extra.ConstellationIdentifierFactory;
-import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DistributedConstellation {
+
+    private static final Logger logger = LoggerFactory
+	    .getLogger(DistributedConstellation.class);
 
     private static final int STEAL_POOL = 1;
     private static final int STEAL_MASTER = 2;
@@ -45,8 +50,6 @@ public class DistributedConstellation {
     private final Pool pool;
 
     private final DistributedConstellationIdentifierFactory cidFactory;
-
-    private final ConstellationLogger logger;
 
     private final DeliveryThread delivery;
 
@@ -186,9 +189,6 @@ public class DistributedConstellation {
 
 	cidFactory = pool.getCIDFactory();
 	identifier = cidFactory.generateConstellationIdentifier();
-
-	logger = ConstellationLogger.getLogger(DistributedConstellation.class,
-		identifier);
 
 	String tmp = p.getProperty("ibis.constellation.remotesteal.throttle");
 
@@ -504,7 +504,7 @@ public class DistributedConstellation {
 
 	}
 
-	logger.fixme("D STEAL REQUEST unknown stealing strategy " + stealing);
+	logger.error("D STEAL REQUEST unknown stealing strategy " + stealing);
     }
 
     boolean handleApplicationMessage(EventMessage m, boolean enqueueOnFail) {

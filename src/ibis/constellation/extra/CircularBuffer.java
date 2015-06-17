@@ -3,13 +3,14 @@ package ibis.constellation.extra;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CircularBuffer implements Serializable {
 
     private static final long serialVersionUID = 5853279675709435595L;
 
-    private static final Logger log = ConstellationLogger
+    private static final Logger log = LoggerFactory
 	    .getLogger(CircularBuffer.class);
 
     private Object[] array;

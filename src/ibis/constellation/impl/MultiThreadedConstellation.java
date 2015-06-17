@@ -11,7 +11,6 @@ import ibis.constellation.WorkerContext;
 import ibis.constellation.context.OrWorkerContext;
 import ibis.constellation.context.UnitWorkerContext;
 import ibis.constellation.extra.ConstellationIdentifierFactory;
-import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.SimpleConstellationIdentifierFactory;
 
@@ -21,7 +20,13 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MultiThreadedConstellation {
+
+    private static final Logger logger = LoggerFactory
+	    .getLogger(MultiThreadedConstellation.class);
 
     private final DistributedConstellation parent;
 
@@ -49,8 +54,6 @@ public class MultiThreadedConstellation {
     private long startID = 0;
     private long blockSize = 1000000;
 
-    private final ConstellationLogger logger;
-
     private final int localStealSize;
 
     private final Stats stats;
@@ -71,9 +74,6 @@ public class MultiThreadedConstellation {
 	    cidFactory = new SimpleConstellationIdentifierFactory();
 	    identifier = cidFactory.generateConstellationIdentifier();
 	}
-
-	this.logger = ConstellationLogger.getLogger(
-		MultiThreadedConstellation.class, identifier);
 
 	incomingWorkers = new ArrayList<SingleThreadedConstellation>();
 	myContext = UnitWorkerContext.DEFAULT;

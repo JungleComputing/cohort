@@ -14,7 +14,6 @@ import ibis.constellation.StealStrategy;
 import ibis.constellation.WorkerContext;
 import ibis.constellation.extra.ActivityLocationLookup;
 import ibis.constellation.extra.CircularBuffer;
-import ibis.constellation.extra.ConstellationLogger;
 import ibis.constellation.extra.Debug;
 import ibis.constellation.extra.SmartSortedWorkQueue;
 import ibis.constellation.extra.WorkQueue;
@@ -26,7 +25,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SingleThreadedConstellation extends Thread {
+
+    static final Logger logger = LoggerFactory
+	    .getLogger(SingleThreadedConstellation.class);
 
     private static final boolean PROFILE = false;
     private static final boolean PROFILE_ACTIVE = false;
@@ -69,7 +74,6 @@ public class SingleThreadedConstellation extends Thread {
     private final ConstellationIdentifier identifier;
 
     private PrintStream out;
-    private ConstellationLogger logger;
 
     // private final Thread thread;
 
@@ -164,9 +168,6 @@ public class SingleThreadedConstellation extends Thread {
 		+ ")-restrictedwrong");
 
 	super.setName("SingleThreadedConstellation " + identifier.id);
-
-	this.logger = ConstellationLogger.getLogger(
-		SingleThreadedConstellation.class, identifier);
 
 	String outfile = p.getProperty("ibis.constellation.outputfile");
 
@@ -277,7 +278,7 @@ public class SingleThreadedConstellation extends Thread {
 		    identifier().toString(), "active");
 	}
 
-	wrapper = new ExecutorWrapper(this, executor, p, identifier, logger);
+	wrapper = new ExecutorWrapper(this, executor, p, identifier);
 
 	myPool = wrapper.belongsTo();
 	stealPool = wrapper.stealsFrom();

@@ -2,11 +2,12 @@ package ibis.constellation.extra;
 
 import ibis.constellation.impl.ActivityRecord;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SortedList {
 
-    public static Logger log = ConstellationLogger.getLogger(SortedList.class);
+    public static final Logger log = LoggerFactory.getLogger(SortedList.class);
 
     static class Node {
 	Node next;
