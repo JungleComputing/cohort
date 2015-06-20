@@ -4,14 +4,18 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityContext;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Event;
+import ibis.constellation.ObjectData;
 import ibis.constellation.extra.CircularBuffer;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.WriteMessage;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ActivityRecord implements Serializable {
+public class ActivityRecord implements Serializable, ObjectData {
 
     public static final Logger logger = LoggerFactory
 	    .getLogger(ActivityRecord.class);
@@ -253,5 +257,25 @@ public class ActivityRecord implements Serializable {
 
     public ActivityContext getContext() {
 	return activity.getContext();
+    }
+
+    @Override
+    public void writeData(WriteMessage m) throws IOException {
+	if (queue != null) {
+	    queue.writeData(m);
+	}
+	if (activity != null && activity instanceof ObjectData) {
+	    ((ObjectData) activity).writeData(m);
+	}
+    }
+
+    @Override
+    public void readData(ReadMessage m) throws IOException {
+	if (queue != null) {
+	    queue.readData(m);
+	}
+	if (activity != null && activity instanceof ObjectData) {
+	    ((ObjectData) activity).readData(m);
+	}
     }
 }

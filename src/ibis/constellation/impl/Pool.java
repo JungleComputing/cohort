@@ -2,6 +2,7 @@ package ibis.constellation.impl;
 
 import ibis.constellation.CTimer;
 import ibis.constellation.ConstellationIdentifier;
+import ibis.constellation.ObjectData;
 import ibis.constellation.Stats;
 import ibis.constellation.StealPool;
 import ibis.constellation.extra.Debug;
@@ -595,6 +596,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    }
 	    wm.writeByte(opcode);
 	    wm.writeObject(data);
+	    if (data != null && data instanceof ObjectData) {
+		((ObjectData) data).writeData(wm);
+	    }
 	    sz = wm.finish();
 	    if (eventNo != -1) {
 		if (opcode == OPCODE_STEAL_REPLY) {
@@ -618,39 +622,6 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	return true;
     }
 
-    /*
-     * private boolean forward(IbisIdentifier id, byte opcode, int data1, Object
-     * data2) {
-     * 
-     * SendPort s = getSendPort(id);
-     * 
-     * if (s == null) { logger.warn("POOL failed to connect to " + id); return
-     * false; }
-     * 
-     * try { WriteMessage wm = s.newMessage(); wm.writeByte(opcode);
-     * wm.writeInt(data1); wm.writeObject(data2); wm.finish(); } catch
-     * (Exception e) { logger.warn("POOL lost communication to " + id, e);
-     * return false; }
-     * 
-     * //synchronized (this) { // send++; //}
-     * 
-     * return true; }
-     * 
-     * private boolean forwardInt(IbisIdentifier id, byte opcode, int data) {
-     * 
-     * SendPort s = getSendPort(id);
-     * 
-     * if (s == null) { logger.warn("POOL failed to connect to " + id); return
-     * false; }
-     * 
-     * try { WriteMessage wm = s.newMessage(); wm.writeByte(opcode);
-     * wm.writeInt(data); wm.finish(); } catch (Exception e) {
-     * logger.warn("POOL lost communication to " + id, e); return false; }
-     * 
-     * //synchronized (this) { // send++; //}
-     * 
-     * return true; }
-     */
     public boolean forward(StealReply sr) {
 
 	// logger.info("POOL:FORWARD StealReply from " + sr.source +
@@ -804,6 +775,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	Object data = null;
 	try {
 	    data = rm.readObject();
+	    if (data != null && data instanceof ObjectData) {
+		((ObjectData) data).readData(rm);
+	    }
 
 	    if (opcode == OPCODE_SEND_TIME) {
 		long l = ((Long) data).longValue();
@@ -1221,28 +1195,4 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     public String getId() {
 	return local.name();
     }
-
-    /*
-     * byte opcode = rm.readByte();
-     * 
-     * switch (opcode) { case EVENT: TimerEvent e = (TimerEvent)
-     * rm.readObject(); parent.deliverEvent(e);
-     * 
-     * synchronized (this) { messagesReceived++; eventsReceived++; } break;
-     * 
-     * case STEAL: StealRequest r = (StealRequest) rm.readObject();
-     * parent.incomingRemoteStealRequest(r); synchronized (this) {
-     * messagesReceived++; stealsReceived++; } break;
-     * 
-     * case STEALREPLY: StealReply reply = (StealReply) rm.readObject();
-     * parent.incomingStealReply(reply);
-     * 
-     * synchronized (this) { messagesReceived++;
-     * 
-     * if (reply.work == null) { no_workReceived++; } else { workReceived++; } }
-     * break;
-     * 
-     * default: throw new IOException("Unknown opcode: " + opcode); }
-     */
-
 }
