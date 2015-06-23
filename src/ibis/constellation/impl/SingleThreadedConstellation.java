@@ -521,6 +521,9 @@ public class SingleThreadedConstellation extends Thread {
 
 	// Push all relocated activities to our executor.
 	if (relocated.size() > 0) {
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Found work on relocated list: " + relocated.size() + " jobs");
+		}
 	    while (relocated.size() > 0) {
 		ActivityRecord ar = (ActivityRecord) relocated.removeFirst();
 		lookup.remove(ar.identifier());
@@ -600,6 +603,11 @@ public class SingleThreadedConstellation extends Thread {
 		    // Timo: Add it to lookup as well!
 		    lookup.put(a.identifier(), a);
 		    if (a.isRelocated()) {
+			if (logger.isDebugEnabled()) {
+			    logger.debug("Putting " + a.identifier().toString()
+				    + " on relocated list of "
+				    + this.identifier().toString());
+			}
 			relocated.insertLast(a);
 		    } else {
 			stolen.enqueue(a);

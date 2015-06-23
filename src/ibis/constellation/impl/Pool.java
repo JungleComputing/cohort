@@ -597,6 +597,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    wm.writeByte(opcode);
 	    wm.writeObject(data);
 	    if (data != null && data instanceof ObjectData) {
+		wm.flush();
 		((ObjectData) data).writeData(wm);
 	    }
 	    sz = wm.finish();
@@ -770,7 +771,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    return;
 	}
 
-	long sz = 0;
+	long sz = -1;
 	IbisIdentifier source = rm.origin().ibisIdentifier();
 	Object data = null;
 	try {
@@ -806,12 +807,16 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    sz = rm.finish();
 	} finally {
 	    if (timerEvent != -1) {
-		if (opcode == OPCODE_STEAL_REPLY && data != null
-			&& ((StealReply) data).getSize() == 0) {
+		if (opcode == OPCODE_STEAL_REPLY
+			&& (data == null || ((StealReply) data).getSize() == 0)) {
 		    communicationTimer.cancel(timerEvent);
 		} else {
 		    communicationTimer.stop(timerEvent);
 		    communicationTimer.addBytes(sz, timerEvent);
+		    if (logger.isDebugEnabled() && sz <= 0) {
+			logger.debug("Oops: opcode = " + opcode + ", size = "
+				+ sz + "?");
+		    }
 		}
 	    }
 	}
