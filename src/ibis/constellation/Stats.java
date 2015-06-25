@@ -78,7 +78,7 @@ public class Stats implements java.io.Serializable {
 	}
     }
 
-    private void clean() {
+    private synchronized void clean() {
 	for (CTimer timer : timers) {
 	    timer.clean();
 	}
@@ -98,7 +98,7 @@ public class Stats implements java.io.Serializable {
 	timer.normalize(min);
     }
 
-    private CTimer getTotalMCTimer() {
+    private synchronized CTimer getTotalMCTimer() {
 	CTimer temp = new CTimer(hostId);
 	for (CTimer t : timers) {
 	    temp.add(t);

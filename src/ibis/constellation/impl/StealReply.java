@@ -8,6 +8,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class StealReply extends Message implements ObjectData {
 
@@ -50,7 +51,7 @@ public class StealReply extends Message implements ObjectData {
 	return pool;
     }
 
-    public WorkerContext getContex() {
+    public WorkerContext getContext() {
 	return context;
     }
 
@@ -92,5 +93,13 @@ public class StealReply extends Message implements ObjectData {
 		}
 	    }
 	}
+    }
+
+    @Override
+    public String toString() {
+	if (work == null) {
+	    return "no jobs";
+	}
+	return Arrays.toString(work);
     }
 }

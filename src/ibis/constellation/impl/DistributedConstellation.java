@@ -75,6 +75,12 @@ public class DistributedConstellation {
 	    this.pool = pool;
 	}
 
+	@Override
+	public String toString() {
+	    return "PendingSteal: pool = " + pool + ", deadlines for "
+		    + deadlines.entrySet().toString();
+	}
+
 	boolean setPending(UnitWorkerContext c, boolean value) {
 
 	    if (!value) {
@@ -371,6 +377,11 @@ public class DistributedConstellation {
 	    stealThrottle.put(pool.getTag(), tmp);
 	}
 
+	if (logger.isDebugEnabled()) {
+	    logger.debug("setPendingSteal: context = " + context + ", tmp = "
+		    + tmp + ", value = " + value);
+	}
+
 	boolean result = true;
 
 	if (context.isOr()) {
@@ -434,9 +445,14 @@ public class DistributedConstellation {
 	// This method is called from an unfinished upcall. It may NOT
 	// block for a long period of time or communicate!
 
-	setPendingSteal(sr.getPool(), sr.getContex(), false);
+	setPendingSteal(sr.getPool(), sr.getContext(), false);
 
 	if (sr.isEmpty()) {
+	    if (logger.isDebugEnabled()) {
+		logger.debug("Got empty steal reply for "
+			+ sr.target.toString() + " from "
+			+ sr.source.toString());
+	    }
 	    // ignore empty steal requests.
 	    return;
 	}

@@ -326,8 +326,22 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	// processPendingMessages();
 	rp.enableMessageUpcalls();
 	if (closedPool) {
+	    IbisIdentifier[] ids = ibis.registry().joinedIbises();
+	    ReceivePort[] ports = new ReceivePort[ids.length];
+	    for (int i = 0; i < ports.length; i++) {
+		if (!ids[i].equals(ibis.identifier())) {
+		    try {
+			ports[i] = ibis.createReceivePort(portType,
+				"constellation_" + ids[i].name(), this);
+			ports[i].enableConnections();
+			ports[i].enableMessageUpcalls();
+		    } catch (Throwable e) {
+			logger.warn("Could not create port", e);
+		    }
+		}
+	    }
 	    if (isMaster()) {
-		IbisIdentifier[] ids = ibis.registry().joinedIbises();
+		int cnt = 0;
 		for (IbisIdentifier id : ids) {
 		    if (!id.equals(ibis.identifier())) {
 			// First do a pingpong to make sure that the other side
@@ -437,7 +451,12 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    }
 	    try {
 		sp = ibis.createSendPort(portType);
-		sp.connect(id, "constellation");
+		if (closedPool) {
+		    sp.connect(id, "constellation_" + ibis.identifier().name(),
+			    10000, true);
+		} else {
+		    sp.connect(id, "constellation");
+		}
 	    } catch (IOException e) {
 		try {
 		    sp.close();
@@ -602,8 +621,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    }
 	    sz = wm.finish();
 	    if (eventNo != -1) {
-		if (opcode == OPCODE_STEAL_REPLY) {
-
+		if (logger.isDebugEnabled() && opcode == OPCODE_STEAL_REPLY) {
+		    StealReply r = (StealReply) data;
+		    logger.debug("Gave " + r.getSize() + " jobs away");
 		}
 		communicationTimer.stop(eventNo);
 		communicationTimer.addBytes(sz, eventNo);
@@ -813,9 +833,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 		} else {
 		    communicationTimer.stop(timerEvent);
 		    communicationTimer.addBytes(sz, timerEvent);
-		    if (logger.isDebugEnabled() && sz <= 0) {
-			logger.debug("Oops: opcode = " + opcode + ", size = "
-				+ sz + "?");
+		    if (logger.isDebugEnabled() && opcode == OPCODE_STEAL_REPLY) {
+			logger.debug("Jobs stolen from " + source.name() + ": "
+				+ ((StealReply) data).toString());
 		    }
 		}
 	    }
@@ -948,11 +968,13 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    info = pools.get(pool.getTag());
 	}
 
-	IbisIdentifier id = null;
-
-	if (info != null) {
-	    id = info.selectRandom(random);
+	if (info == null) {
+	    logger.warn("Failed to randomly select node in pool "
+		    + pool.getTag() + ", pool does not exist?");
+	    return false;
 	}
+
+	IbisIdentifier id = info.selectRandom(random);
 
 	if (id == null) {
 	    logger.warn("Failed to randomly select node in pool "
@@ -960,10 +982,19 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	    return false;
 	}
 
-	if (id.equals(local)) {
-	    return false;
+	// If the chosen id is the local one, don't just return false, because
+	// this hampers the remote steal throttle mechanism. Just try again to
+	// select a node, as long as there is a choice.
+	while (id == null || id.equals(local)) {
+	    if (info.nMembers() <= 1) {
+		return false;
+	    }
+	    id = info.selectRandom(random);
 	}
 
+	if (logger.isDebugEnabled()) {
+	    logger.debug("Sending steal request to " + id.name());
+	}
 	return doForward(id, OPCODE_STEAL_REQUEST, sr);
     }
 

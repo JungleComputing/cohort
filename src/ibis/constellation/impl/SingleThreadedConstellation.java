@@ -167,7 +167,7 @@ public class SingleThreadedConstellation extends Thread {
 	restrictedWrongContext = new SmartSortedWorkQueue("ST(" + identifier
 		+ ")-restrictedwrong");
 
-	super.setName("SingleThreadedConstellation " + identifier.id);
+	super.setName(identifier().toString());
 
 	String outfile = p.getProperty("ibis.constellation.outputfile");
 
@@ -521,9 +521,10 @@ public class SingleThreadedConstellation extends Thread {
 
 	// Push all relocated activities to our executor.
 	if (relocated.size() > 0) {
-		if (logger.isDebugEnabled()) {
-		    logger.debug("Found work on relocated list: " + relocated.size() + " jobs");
-		}
+	    if (logger.isDebugEnabled()) {
+		logger.debug("Found work on relocated list: "
+			+ relocated.size() + " jobs");
+	    }
 	    while (relocated.size() > 0) {
 		ActivityRecord ar = (ActivityRecord) relocated.removeFirst();
 		lookup.remove(ar.identifier());
