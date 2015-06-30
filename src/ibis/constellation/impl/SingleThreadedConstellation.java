@@ -339,12 +339,20 @@ public class SingleThreadedConstellation extends Thread {
 		    // System.out.println("ST: " + identifier + " sumbit " + id
 		    // + " to restricted.");
 
+		    if (logger.isDebugEnabled()) {
+			logger.debug("Submit job to restricted, length was "
+				+ restricted.size());
+		    }
 		    restricted.enqueue(ar);
 		} else {
 
 		    // System.out.println("ST: " + identifier + " sumbit " + id
 		    // + " to fresh.");
 
+		    if (logger.isDebugEnabled()) {
+			logger.debug("Submit job to fresh, length was "
+				+ fresh.size());
+		    }
 		    fresh.enqueue(ar);
 		}
 	    }
@@ -1043,10 +1051,14 @@ public class SingleThreadedConstellation extends Thread {
 
 	if (a.isRestrictedToLocal()) {
 	    restrictedWrongContext.enqueue(a);
+	    if (logger.isDebugEnabled()) {
+		logger.debug("Added job to restrictedWrongContext queue; length = "
+			+ restrictedWrongContext.size());
+	    }
 	} else {
 	    wrongContext.enqueue(a);
 	    if (logger.isDebugEnabled()) {
-		logger.debug("Added job to wronContext queue; length = "
+		logger.debug("Added job to wrongContext queue; length = "
 			+ wrongContext.size());
 	    }
 	}
