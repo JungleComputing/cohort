@@ -560,7 +560,7 @@ public class MultiThreadedConstellation {
 
 	    StealPool p = tmp.belongsTo();
 
-	    if (sr.pool.overlap(p)) {
+	    if (sr.pool.overlap(p) && tmp.wrapper.QUEUED_JOB_LIMIT > 0) {
 		tmp.deliverStealRequest(sr);
 		return;
 	    }

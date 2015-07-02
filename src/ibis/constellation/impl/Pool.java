@@ -538,8 +538,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     public void terminate() throws IOException {
+	Stats stats = owner.getStats();
 	if (isMaster) {
-	    Stats stats = owner.getStats();
 	    ibis.registry().terminate();
 	    stats.setSyncInfo(syncInfo);
 	} else {
@@ -552,7 +552,9 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	if (logger.isInfoEnabled()) {
 	    logger.info("Sending statistics to master");
 	}
-	doForward(master, OPCODE_STATISTICS, stats);
+	synchronized (stats) {
+	    doForward(master, OPCODE_STATISTICS, stats);
+	}
     }
 
     public void cleanup() {

@@ -31,7 +31,7 @@ public class ExecutorWrapper implements Constellation {
 
     private static final boolean PROFILE = false;
 
-    private static int QUEUED_JOB_LIMIT = 1000000;
+    int QUEUED_JOB_LIMIT = 1000000;
 
     private final SingleThreadedConstellation parent;
 
@@ -215,22 +215,31 @@ public class ExecutorWrapper implements Constellation {
 	ActivityRecord ar = new ActivityRecord(a);
 	ActivityContext c = a.getContext();
 
-	/*
-	 * if (restricted.size() + fresh.size() >= QUEUED_JOB_LIMIT) { // If we
-	 * have too much work on our hands we push it to out parent. Added bonus
-	 * // is that others can access it without interrupting me.
-	 */
+	if (restricted.size() + fresh.size() >= QUEUED_JOB_LIMIT) {
+	    // If we have too much work on our hands we push it to out parent.
+	    // Added bonus is that others can access it without interrupting me.
+	    return parent.doSubmit(ar, c, id);
+	}
 
 	if (c.satisfiedBy(myContext, StealStrategy.ANY)) {
 
 	    lookup.put(a.identifier(), ar);
 
 	    if (ar.isRestrictedToLocal()) {
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Submit job to restricted, length was "
+			    + restricted.size());
+		}
 		restricted.enqueue(ar);
 	    } else {
+		if (logger.isDebugEnabled()) {
+		    logger.debug("Submit job to fresh, length was "
+			    + fresh.size());
+		}
 		fresh.enqueue(ar);
 	    }
 	} else {
+	    wrongContextSubmitted++;
 	    // TODO: shouldn't we batch these calls.
 	    parent.deliverWrongContext(ar);
 	}

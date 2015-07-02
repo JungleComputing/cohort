@@ -5,7 +5,6 @@ import ibis.constellation.extra.TimeSyncInfo;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class Stats implements java.io.Serializable {
@@ -21,7 +20,7 @@ public class Stats implements java.io.Serializable {
     // This is the public interface to the rest of the framework.
     public Stats(String hostId) {
 	this.hostId = hostId;
-	timers = Collections.synchronizedList(new ArrayList<CTimer>());
+	timers = new ArrayList<CTimer>();
     }
 
     public void setSyncInfo(TimeSyncInfo syncInfo) {
@@ -55,7 +54,7 @@ public class Stats implements java.io.Serializable {
 	printPlotData();
     }
 
-    void addTimer(CTimer timer) {
+    synchronized void addTimer(CTimer timer) {
 	timers.add(timer);
     }
 

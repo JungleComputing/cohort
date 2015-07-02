@@ -377,8 +377,8 @@ public class DistributedConstellation {
 	    stealThrottle.put(pool.getTag(), tmp);
 	}
 
-	if (logger.isDebugEnabled()) {
-	    logger.debug("setPendingSteal: context = " + context + ", tmp = "
+	if (logger.isTraceEnabled()) {
+	    logger.trace("setPendingSteal: context = " + context + ", tmp = "
 		    + tmp + ", value = " + value);
 	}
 

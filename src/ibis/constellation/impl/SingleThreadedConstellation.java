@@ -46,7 +46,7 @@ public class SingleThreadedConstellation extends Thread {
     private final ActivityLocationLookup exportedActivities = new ActivityLocationLookup();
     private final ActivityLocationLookup relocatedActivities = new ActivityLocationLookup();
 
-    private final ExecutorWrapper wrapper;
+    final ExecutorWrapper wrapper;
 
     // Fresh work that anyone may steal
     private final WorkQueue fresh;
@@ -328,6 +328,14 @@ public class SingleThreadedConstellation extends Thread {
 
 	ActivityRecord ar = new ActivityRecord(a);
 	ActivityContext c = a.getContext();
+
+	return doSubmit(ar, c, id);
+    }
+
+    ActivityIdentifier doSubmit(ActivityRecord ar, ActivityContext c,
+	    ActivityIdentifier id) {
+
+	Activity a = ar.activity;
 
 	if (c.satisfiedBy(wrapper.getContext(), StealStrategy.ANY)) {
 
