@@ -295,30 +295,15 @@ public class DistributedConstellation {
 	    concluder.conclude();
 	}
 
+	pool.handleStats();
+
 	if (pool.isMaster()) {
-	    if (logger.isInfoEnabled()) {
-		logger.info("Sleeping, waiting for stats of other nodes");
-	    }
-
-	    try {
-		Thread.sleep(5000);
-	    } catch (Throwable e) {
-		// ignore
-	    }
-
 	    if (logger.isInfoEnabled()) {
 		logger.info("Printing statistics");
 	    }
 	    stats.printStats();
 
 	    printStatistics();
-	} else {
-	    pool.sendStats();
-	    try {
-		Thread.sleep(1000);
-	    } catch (Throwable e) {
-		// ignore
-	    }
 	}
 	pool.cleanup();
     }

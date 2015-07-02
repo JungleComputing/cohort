@@ -227,6 +227,8 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private boolean gotPong;
     private Stats stats;
 
+    private int gotStats;
+
     public Pool(final DistributedConstellation owner, final Properties p)
 	    throws Exception {
 
@@ -538,22 +540,50 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     }
 
     public void terminate() throws IOException {
-	Stats stats = owner.getStats();
 	if (isMaster) {
 	    ibis.registry().terminate();
-	    stats.setSyncInfo(syncInfo);
 	} else {
 	    ibis.registry().waitUntilTerminated();
 	}
     }
 
-    public void sendStats() {
+    public void handleStats() {
 	Stats stats = owner.getStats();
-	if (logger.isInfoEnabled()) {
-	    logger.info("Sending statistics to master");
-	}
-	synchronized (stats) {
-	    doForward(master, OPCODE_STATISTICS, stats);
+	if (isMaster) {
+	    stats.setSyncInfo(syncInfo);
+	    if (logger.isInfoEnabled()) {
+		logger.info("waiting for stats of other nodes");
+	    }
+
+	    if (closedPool) {
+		synchronized (this) {
+		    int nClients = ibis.registry().getPoolSize() - 1;
+		    long time = System.currentTimeMillis();
+		    while (gotStats < nClients) {
+			try {
+			    wait(1000);
+			} catch (Throwable e) {
+			    // ignore
+			}
+			if (System.currentTimeMillis() - time > 60000) {
+			    break;
+			}
+		    }
+		}
+	    } else {
+		try {
+		    Thread.sleep(5000);
+		} catch (Throwable e) {
+		    // ignore
+		}
+	    }
+	} else {
+	    if (logger.isInfoEnabled()) {
+		logger.info("Sending statistics to master");
+	    }
+	    synchronized (stats) {
+		doForward(master, OPCODE_STATISTICS, stats);
+	    }
 	}
     }
 
@@ -846,6 +876,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	switch (opcode) {
 	case OPCODE_STATISTICS:
 	    owner.getStats().add((Stats) data);
+	    synchronized (this) {
+		gotStats++;
+		notifyAll();
+	    }
 	    break;
 	case OPCODE_REQUEST_TIME:
 	    doForward(source, OPCODE_SEND_TIME, new Long(System.nanoTime()));
