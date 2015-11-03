@@ -160,7 +160,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 
 	    if (update == null) {
 		// No updates
-		currentDelay += MIN_DELAY;
+		// currentDelay += MIN_DELAY;
 
 		if (currentDelay >= MAX_DELAY) {
 		    currentDelay = MAX_DELAY;
@@ -228,6 +228,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
     private Stats stats;
 
     private int gotStats;
+    private final boolean limitSenders;
 
     public Pool(final DistributedConstellation owner, final Properties p)
 	    throws Exception {
@@ -236,6 +237,7 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	this.owner = owner;
 	closedPool = properties.getBooleanProperty("ibis.constellation.closed",
 		false);
+        limitSenders = properties.getBooleanProperty("ibis.constellation.limitSenders", false);
 	ibis = IbisFactory.createIbis(closedPool ? closedIbisCapabilities
 		: openIbisCapabilities, p, true, closedPool ? null : this,
 		portType);
@@ -245,6 +247,10 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	if (!closedPool) {
 	    ibis.registry().enableEvents();
 	}
+
+        if (limitSenders) {
+            ibis.registry().addTokens(getId(), 1);
+        }
 
 	String tmp = properties
 		.getProperty("ibis.constellation.master", "auto");
@@ -343,7 +349,6 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 		}
 	    }
 	    if (isMaster()) {
-		int cnt = 0;
 		for (IbisIdentifier id : ids) {
 		    if (!id.equals(ibis.identifier())) {
 			// First do a pingpong to make sure that the other side
@@ -459,15 +464,27 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 		} else {
 		    sp.connect(id, "constellation");
 		}
-	    } catch (IOException e) {
+	    } catch (Throwable e) {
 		try {
 		    sp.close();
-		} catch (Exception e2) {
+		} catch (Throwable e2) {
 		    // ignored ?
 		}
-
-		e.printStackTrace();
-		return null;
+		if (closedPool) {
+		    try {
+			sp = ibis.createSendPort(portType);
+			sp.connect(id, "constellation");
+		    } catch (Throwable e1) {
+			try {
+			    sp.close();
+			} catch (Throwable e2) {
+			    // ignored ?
+			}
+			logger.error("Could not connect to " + id.name(), e1);
+		    }
+		} else {
+		    logger.error("Could not connect to " + id.name(), e);
+		}
 	    }
 
 	    if (logger.isInfoEnabled()) {
@@ -632,6 +649,33 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 	int eventNo = -1;
 	long sz = 0;
 	try {
+            if (limitSenders) {
+                if (opcode == OPCODE_EVENT_MESSAGE) {
+                    long start = System.currentTimeMillis();
+                    String token = ibis.registry().getToken(id.name());
+                    while (token == null) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Getting token " + id.name());
+                        }
+                        try {
+                            Thread.sleep(10);
+                        } catch(InterruptedException e) {
+                            // ignore
+                        }
+                        token = ibis.registry().getToken(id.name());
+                    }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Got token " + token + " after " + (System.currentTimeMillis() - start) + " ms.");
+                    }
+                    /*
+                } else if (opcode == OPCODE_STEAL_REQUEST) {
+                   String token = ibis.registry().getToken(id.name());
+                   if (token == null) {
+                       return false;
+                   }
+                   */
+                }
+            }
 	    WriteMessage wm = s.newMessage();
 	    boolean mustStartTimer = (opcode == OPCODE_STEAL_REPLY || opcode == OPCODE_EVENT_MESSAGE);
 	    if (opcode == OPCODE_STEAL_REPLY) {
@@ -666,11 +710,18 @@ public class Pool implements RegistryEventHandler, MessageUpcall {
 		communicationTimer.cancel(eventNo);
 	    }
 	    return false;
-	}
-
-	// synchronized (this) {
-	// send++;
-	// }
+	} finally {
+            if (limitSenders && (opcode == OPCODE_EVENT_MESSAGE /* || opcode == OPCODE_STEAL_REQUEST */)) {
+                try {
+                    ibis.registry().addTokens(id.name(), 1);
+                } catch(Throwable e) {
+                    logger.warn("Got exception when returning token", e);
+                }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Gave token " + id.name() + " back");
+                }
+            }
+        }
 
 	return true;
     }

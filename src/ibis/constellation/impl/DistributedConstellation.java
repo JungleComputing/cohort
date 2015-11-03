@@ -446,7 +446,7 @@ public class DistributedConstellation {
     }
 
     void deliverRemoteEvent(EventMessage re) {
-	// TimerEvent from network.
+	// Event from network.
 	//
 	// This method is called from an finished upcall. Therefore it
 	// may block for a long period of time or communicate.
