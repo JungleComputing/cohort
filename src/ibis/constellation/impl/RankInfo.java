@@ -12,7 +12,7 @@ public class RankInfo implements Serializable {
     public IbisIdentifier id;
 
     public RankInfo(int rank, IbisIdentifier id) {
-	this.rank = rank;
-	this.id = id;
+        this.rank = rank;
+        this.id = id;
     }
 }

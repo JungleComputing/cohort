@@ -22,59 +22,59 @@ public class TestLoop extends Activity {
     private long end;
 
     public TestLoop(ActivityIdentifier parent, long count, int concurrent,
-	    int spawns) {
-	super(new UnitActivityContext("TEST", 3), true, true);
-	this.parent = parent;
-	this.count = count;
-	this.concurrent = concurrent;
-	this.spawns = spawns;
+            int spawns) {
+        super(new UnitActivityContext("TEST", 3), true, true);
+        this.parent = parent;
+        this.count = count;
+        this.concurrent = concurrent;
+        this.spawns = spawns;
     }
 
     @Override
     public void initialize() throws Exception {
-	start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
 
-	for (int i = 0; i < concurrent; i++) {
-	    pending++;
-	    executor.submit(new SingleTest(identifier(), spawns));
-	}
+        for (int i = 0; i < concurrent; i++) {
+            pending++;
+            executor.submit(new SingleTest(identifier(), spawns));
+        }
 
-	suspend();
+        suspend();
     }
 
     @Override
     public void process(Event e) throws Exception {
 
-	done++;
+        done++;
 
-	if (done == count) {
-	    end = System.currentTimeMillis();
-	    finish();
-	    return;
-	}
+        if (done == count) {
+            end = System.currentTimeMillis();
+            finish();
+            return;
+        }
 
-	if (pending < count) {
-	    pending++;
-	    executor.submit(new SingleTest(identifier(), spawns));
-	}
+        if (pending < count) {
+            pending++;
+            executor.submit(new SingleTest(identifier(), spawns));
+        }
 
-	suspend();
+        suspend();
     }
 
     @Override
     public void cleanup() throws Exception {
 
-	double timeSatin = (end - start) / 1000.0;
-	double cost = ((end - start) * 1000.0) / (spawns * count);
+        double timeSatin = (end - start) / 1000.0;
+        double cost = ((end - start) * 1000.0) / (spawns * count);
 
-	System.out.println("spawn = " + timeSatin + " s, time/spawn = " + cost
-		+ " us/spawn");
+        System.out.println("spawn = " + timeSatin + " s, time/spawn = " + cost
+                + " us/spawn");
 
-	executor.send(new Event(identifier(), parent, null));
+        executor.send(new Event(identifier(), parent, null));
     }
 
     @Override
     public void cancel() throws Exception {
-	// not used
+        // not used
     }
 }

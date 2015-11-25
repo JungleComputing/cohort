@@ -17,9 +17,9 @@ public class StealPool implements Serializable {
     private final boolean isSet;
     private final boolean containsWorld;
 
-    private final StealPool [] set;
+    private final StealPool[] set;
 
-    private StealPool(String tag,  boolean isWorld, boolean isNone) {
+    private StealPool(String tag, boolean isWorld, boolean isNone) {
         this.tag = tag;
         this.isSet = false;
         this.isWorld = this.containsWorld = isWorld;
@@ -27,23 +27,26 @@ public class StealPool implements Serializable {
         this.set = null;
     }
 
-    public StealPool(StealPool ... set) {
+    public StealPool(StealPool... set) {
 
         boolean foundWorld = false;
 
         if (set == null || set.length == 0) {
-            throw new IllegalArgumentException("StealPool set cannot be empty!");
+            throw new IllegalArgumentException(
+                    "StealPool set cannot be empty!");
         }
 
         HashSet<StealPool> tmp = new HashSet<StealPool>();
 
-        for (int i=0;i<set.length;i++) {
+        for (int i = 0; i < set.length; i++) {
             if (set[i] == null) {
-                throw new IllegalArgumentException("StealPool set cannot be sparse!");
+                throw new IllegalArgumentException(
+                        "StealPool set cannot be sparse!");
             }
 
             if (set[i].isSet) {
-                throw new IllegalArgumentException("StealPool cannot be recursive!");
+                throw new IllegalArgumentException(
+                        "StealPool cannot be recursive!");
             }
 
             tmp.add(set[i]);
@@ -85,77 +88,64 @@ public class StealPool implements Serializable {
         return isNone;
     }
 
-    public StealPool [] set() {
+    public StealPool[] set() {
         return set;
     }
-    
+
     @Override
     public String toString() {
-    	
-    	if (isWorld) { 
-    		return "WORLD";
-    	}
-    	
-    	if (isNone) { 
-    		return "NONE";
-    	}
-    	
-    	if (isSet) { 
-    		return Arrays.toString(set);
-    	}
-    	
-    	return tag;    	
+
+        if (isWorld) {
+            return "WORLD";
+        }
+
+        if (isNone) {
+            return "NONE";
+        }
+
+        if (isSet) {
+            return Arrays.toString(set);
+        }
+
+        return tag;
     }
 
     /*
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((tag == null) ? 0 : tag.hashCode());
-        return result;
-    }
+     * @Override public int hashCode() { final int prime = 31; int result = 1;
+     * result = prime * result + ((tag == null) ? 0 : tag.hashCode()); return
+     * result; }
+     * 
+     * @Override public boolean equals(Object obj) { if (this == obj) return
+     * true; if (obj == null) return false; if (getClass() != obj.getClass())
+     * return false; StealPool other = (StealPool) obj; if (tag == null) { if
+     * (other.tag != null) return false; } else if (!tag.equals(other.tag))
+     * return false; return true; }
+     */
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        StealPool other = (StealPool) obj;
-        if (tag == null) {
-            if (other.tag != null)
-                return false;
-        } else if (!tag.equals(other.tag))
-            return false;
-        return true;
-    }
-    */
-
-    public static StealPool merge(StealPool ... pools) {
+    public static StealPool merge(StealPool... pools) {
 
         // TODO: we currently see WORLD as just another steal pool ?
         if (pools == null || pools.length == 0) {
-            throw new IllegalArgumentException("StealPool list cannot be empty!");
+            throw new IllegalArgumentException(
+                    "StealPool list cannot be empty!");
         }
 
         HashSet<StealPool> tmp = new HashSet<StealPool>();
 
-        for (int i=0;i<pools.length;i++) {
+        for (int i = 0; i < pools.length; i++) {
 
             StealPool s = pools[i];
 
             if (s == null) {
-                throw new IllegalArgumentException("StealPool list cannot be sparse!");
+                throw new IllegalArgumentException(
+                        "StealPool list cannot be sparse!");
             }
 
             if (s.isSet) {
 
-                StealPool [] s2 = s.set();
+                StealPool[] s2 = s.set();
 
-                for (int j=0;j<s2.length;j++) {
+                for (int j = 0; j < s2.length; j++) {
 
                     if (!s2[j].isNone()) {
                         tmp.add(s2[j]);
@@ -239,17 +229,17 @@ public class StealPool implements Serializable {
         if (isSet) {
             if (other.isSet) {
                 // Expensive!
-                for (int i=0;i<set.length;i++) {
+                for (int i = 0; i < set.length; i++) {
                     StealPool tmp = set[i];
 
-                    for (int j=0;j<other.set.length;j++) {
+                    for (int j = 0; j < other.set.length; j++) {
                         if (tmp.tag.equals(other.set[j].tag)) {
                             return true;
                         }
                     }
                 }
             } else {
-                for (int i=0;i<set.length;i++) {
+                for (int i = 0; i < set.length; i++) {
                     if (other.tag.equals(set[i].tag)) {
                         return true;
                     }
@@ -257,7 +247,7 @@ public class StealPool implements Serializable {
             }
         } else {
             if (other.isSet) {
-                for (int i=0;i<other.set.length;i++) {
+                for (int i = 0; i < other.set.length; i++) {
                     if (tag.equals(other.set[i].tag)) {
                         return true;
                     }

@@ -15,22 +15,22 @@ public class EventMessage extends Message implements ObjectData {
     public final Event event;
 
     public EventMessage(final ConstellationIdentifier source,
-	    final ConstellationIdentifier target, final Event e) {
-	super(source, target);
-	this.event = e;
+            final ConstellationIdentifier target, final Event e) {
+        super(source, target);
+        this.event = e;
     }
 
     @Override
     public void writeData(WriteMessage m) throws IOException {
-	if (event != null) {
-	    event.writeData(m);
-	}
+        if (event != null) {
+            event.writeData(m);
+        }
     }
 
     @Override
     public void readData(ReadMessage m) throws IOException {
-	if (event != null) {
-	    event.readData(m);
-	}
+        if (event != null) {
+            event.readData(m);
+        }
     }
 }

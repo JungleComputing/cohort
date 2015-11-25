@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 public class MultiEventCollector extends Activity {
 
     public static final Logger logger = LoggerFactory
-	    .getLogger(MultiEventCollector.class);
+            .getLogger(MultiEventCollector.class);
 
     private static final long serialVersionUID = -538414301465754654L;
 
@@ -16,62 +16,62 @@ public class MultiEventCollector extends Activity {
     private int count;
 
     public MultiEventCollector(ActivityContext c, int events) {
-	super(c, true, true);
-	this.events = new Event[events];
+        super(c, true, true);
+        this.events = new Event[events];
     }
 
     public MultiEventCollector(int events) {
-	this(UnitActivityContext.DEFAULT, events);
+        this(UnitActivityContext.DEFAULT, events);
     }
 
     @Override
     public void initialize() throws Exception {
-	suspend();
+        suspend();
     }
 
     @Override
     public synchronized void process(Event e) throws Exception {
 
-	if (logger.isInfoEnabled()) {
-	    logger.info("MultiEventCollector: received event " + count + " of "
-		    + events.length);
-	}
+        if (logger.isInfoEnabled()) {
+            logger.info("MultiEventCollector: received event " + count + " of "
+                    + events.length);
+        }
 
-	events[count++] = e;
+        events[count++] = e;
 
-	if (count == events.length) {
-	    notifyAll();
-	    finish();
-	} else {
-	    suspend();
-	}
+        if (count == events.length) {
+            notifyAll();
+            finish();
+        } else {
+            suspend();
+        }
     }
 
     @Override
     public void cleanup() throws Exception {
-	// empty
+        // empty
     }
 
     @Override
     public void cancel() throws Exception {
-	// empty
+        // empty
     }
 
     @Override
     public String toString() {
-	return "MultiEventCollector(" + identifier() + ", " + events.length
-		+ ")";
+        return "MultiEventCollector(" + identifier() + ", " + events.length
+                + ")";
     }
 
     public synchronized Event[] waitForEvents() {
-	while (count != events.length) {
-	    try {
-		wait();
-	    } catch (Exception e) {
-		// ignore
-	    }
-	}
+        while (count != events.length) {
+            try {
+                wait();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
 
-	return events;
+        return events;
     }
 }

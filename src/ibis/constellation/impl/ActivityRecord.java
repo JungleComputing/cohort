@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class ActivityRecord implements Serializable, ObjectData {
 
     public static final Logger logger = LoggerFactory
-	    .getLogger(ActivityRecord.class);
+            .getLogger(ActivityRecord.class);
     private static final long serialVersionUID = 6938326535791839797L;
 
     static final int INITIALIZING = 1;
@@ -37,245 +37,246 @@ public class ActivityRecord implements Serializable, ObjectData {
     private boolean remote = false;
 
     public ActivityRecord(Activity activity) {
-	this.activity = activity;
+        this.activity = activity;
     }
 
     public void enqueue(Event e) {
 
-	if (state >= FINISHING) {
-	    throw new IllegalStateException(
-		    "Cannot deliver an event to a finished activity! "
-			    + activity + " (event from " + e.source + ")");
-	}
+        if (state >= FINISHING) {
+            throw new IllegalStateException(
+                    "Cannot deliver an event to a finished activity! "
+                            + activity + " (event from " + e.source + ")");
+        }
 
-	if (queue == null) {
-	    queue = new CircularBuffer(4);
-	}
+        if (queue == null) {
+            queue = new CircularBuffer(4);
+        }
 
-	queue.insertLast(e);
+        queue.insertLast(e);
     }
 
     Event dequeue() {
 
-	if (queue == null || queue.size() == 0) {
-	    return null;
-	}
+        if (queue == null || queue.size() == 0) {
+            return null;
+        }
 
-	return (Event) queue.removeFirst();
+        return (Event) queue.removeFirst();
     }
 
     int pendingEvents() {
 
-	if (queue == null || queue.size() == 0) {
-	    return 0;
-	}
+        if (queue == null || queue.size() == 0) {
+            return 0;
+        }
 
-	return queue.size();
+        return queue.size();
     }
 
     public ActivityIdentifier identifier() {
-	return activity.identifier();
+        return activity.identifier();
     }
 
     boolean isRunnable() {
-	return (state == RUNNABLE);
+        return (state == RUNNABLE);
     }
 
     public boolean isStolen() {
-	return stolen;
+        return stolen;
     }
 
     public void setStolen(boolean value) {
-	stolen = value;
+        stolen = value;
     }
 
     boolean isRemote() {
-	return remote;
+        return remote;
     }
 
     public void setRemote(boolean value) {
-	remote = value;
+        remote = value;
     }
 
     public void setRelocated(boolean value) {
-	relocated = value;
+        relocated = value;
     }
 
     public boolean isRelocated() {
-	return relocated;
+        return relocated;
     }
 
     public boolean isRestrictedToLocal() {
-	return activity.isRestrictedToLocal();
+        return activity.isRestrictedToLocal();
     }
 
     public boolean isDone() {
-	return (state == DONE || state == ERROR);
+        return (state == DONE || state == ERROR);
     }
 
     public boolean isFresh() {
-	return (state == INITIALIZING);
+        return (state == INITIALIZING);
     }
 
     public boolean needsToRun() {
-	return (state == INITIALIZING || state == RUNNABLE || state == FINISHING);
+        return (state == INITIALIZING || state == RUNNABLE
+                || state == FINISHING);
     }
 
     public boolean setRunnable() {
 
-	if (state == RUNNABLE || state == INITIALIZING) {
-	    // it's already runnable
-	    return false;
-	}
+        if (state == RUNNABLE || state == INITIALIZING) {
+            // it's already runnable
+            return false;
+        }
 
-	if (state == SUSPENDED) {
-	    // it's runnable now
-	    state = RUNNABLE;
-	    return true;
-	}
+        if (state == SUSPENDED) {
+            // it's runnable now
+            state = RUNNABLE;
+            return true;
+        }
 
-	// It cannot be made runnable
-	throw new IllegalStateException(
-		"INTERNAL ERROR: activity cannot be made runnable!");
+        // It cannot be made runnable
+        throw new IllegalStateException(
+                "INTERNAL ERROR: activity cannot be made runnable!");
     }
 
     private final void runStateMachine() {
-	try {
-	    switch (state) {
+        try {
+            switch (state) {
 
-	    case INITIALIZING:
+            case INITIALIZING:
 
-		activity.initialize();
+                activity.initialize();
 
-		if (activity.mustSuspend()) {
-		    if (pendingEvents() > 0) {
-			state = RUNNABLE;
-		    } else {
-			state = SUSPENDED;
-		    }
-		} else if (activity.mustFinish()) {
-		    state = FINISHING;
-		} else {
-		    throw new IllegalStateException(
-			    "Activity did not suspend or finish!");
-		}
+                if (activity.mustSuspend()) {
+                    if (pendingEvents() > 0) {
+                        state = RUNNABLE;
+                    } else {
+                        state = SUSPENDED;
+                    }
+                } else if (activity.mustFinish()) {
+                    state = FINISHING;
+                } else {
+                    throw new IllegalStateException(
+                            "Activity did not suspend or finish!");
+                }
 
-		activity.reset();
-		break;
+                activity.reset();
+                break;
 
-	    case RUNNABLE:
+            case RUNNABLE:
 
-		Event e = dequeue();
+                Event e = dequeue();
 
-		if (e == null) {
-		    throw new IllegalStateException(
-			    "INTERNAL ERROR: Runnable activity has no pending events!");
-		}
+                if (e == null) {
+                    throw new IllegalStateException(
+                            "INTERNAL ERROR: Runnable activity has no pending events!");
+                }
 
-		activity.process(e);
+                activity.process(e);
 
-		if (activity.mustSuspend()) {
-		    // We only suspend the job if there are no pending events.
-		    if (pendingEvents() > 0) {
-			state = RUNNABLE;
-		    } else {
-			state = SUSPENDED;
-		    }
-		} else if (activity.mustFinish()) {
-		    state = FINISHING;
-		} else {
-		    throw new IllegalStateException(
-			    "Activity did not suspend or finish!");
-		}
+                if (activity.mustSuspend()) {
+                    // We only suspend the job if there are no pending events.
+                    if (pendingEvents() > 0) {
+                        state = RUNNABLE;
+                    } else {
+                        state = SUSPENDED;
+                    }
+                } else if (activity.mustFinish()) {
+                    state = FINISHING;
+                } else {
+                    throw new IllegalStateException(
+                            "Activity did not suspend or finish!");
+                }
 
-		activity.reset();
-		break;
+                activity.reset();
+                break;
 
-	    case FINISHING:
-		activity.cleanup();
+            case FINISHING:
+                activity.cleanup();
 
-		state = DONE;
-		break;
+                state = DONE;
+                break;
 
-	    case DONE:
-		throw new IllegalStateException(
-			"INTERNAL ERROR: Running activity that is already done");
+            case DONE:
+                throw new IllegalStateException(
+                        "INTERNAL ERROR: Running activity that is already done");
 
-	    case ERROR:
-		throw new IllegalStateException(
-			"INTERNAL ERROR: Running activity that is in an error state!");
+            case ERROR:
+                throw new IllegalStateException(
+                        "INTERNAL ERROR: Running activity that is in an error state!");
 
-	    default:
-		throw new IllegalStateException(
-			"INTERNAL ERROR: Running activity with unknown state!");
-	    }
+            default:
+                throw new IllegalStateException(
+                        "INTERNAL ERROR: Running activity with unknown state!");
+            }
 
-	} catch (Throwable e) {
-	    logger.error("Activity failed: ", e);
-	    state = ERROR;
-	}
+        } catch (Throwable e) {
+            logger.error("Activity failed: ", e);
+            state = ERROR;
+        }
 
     }
 
     public void run() {
 
-	// do {
-	runStateMachine();
-	// } while (!(state != SUSPENDED || state == DONE || state == ERROR));
+        // do {
+        runStateMachine();
+        // } while (!(state != SUSPENDED || state == DONE || state == ERROR));
     }
 
     private String getStateAsString() {
 
-	switch (state) {
+        switch (state) {
 
-	case INITIALIZING:
-	    return "initializing";
-	case SUSPENDED:
-	    return "suspended";
-	case RUNNABLE:
-	    return "runnable";
-	case FINISHING:
-	    return "finishing";
-	case DONE:
-	    return "done";
-	case ERROR:
-	    return "error";
-	}
+        case INITIALIZING:
+            return "initializing";
+        case SUSPENDED:
+            return "suspended";
+        case RUNNABLE:
+            return "runnable";
+        case FINISHING:
+            return "finishing";
+        case DONE:
+            return "done";
+        case ERROR:
+            return "error";
+        }
 
-	return "unknown";
+        return "unknown";
     }
 
     @Override
     public String toString() {
-	return activity + " STATE: " + getStateAsString() + " "
-		+ (queue == null ? -1 : queue.size());
+        return activity + " STATE: " + getStateAsString() + " "
+                + (queue == null ? -1 : queue.size());
     }
 
     public long getHopCount() {
-	return 0;
+        return 0;
     }
 
     public ActivityContext getContext() {
-	return activity.getContext();
+        return activity.getContext();
     }
 
     @Override
     public void writeData(WriteMessage m) throws IOException {
-	if (queue != null) {
-	    queue.writeData(m);
-	}
-	if (activity != null && activity instanceof ObjectData) {
-	    ((ObjectData) activity).writeData(m);
-	}
+        if (queue != null) {
+            queue.writeData(m);
+        }
+        if (activity != null && activity instanceof ObjectData) {
+            ((ObjectData) activity).writeData(m);
+        }
     }
 
     @Override
     public void readData(ReadMessage m) throws IOException {
-	if (queue != null) {
-	    queue.readData(m);
-	}
-	if (activity != null && activity instanceof ObjectData) {
-	    ((ObjectData) activity).readData(m);
-	}
+        if (queue != null) {
+            queue.readData(m);
+        }
+        if (activity != null && activity instanceof ObjectData) {
+            ((ObjectData) activity).readData(m);
+        }
     }
 }

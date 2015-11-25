@@ -8,9 +8,9 @@ public class Data implements Serializable {
 
     public final int index;
     public final int stage;
-    public final byte [] data;
+    public final byte[] data;
 
-    public Data(int index, int stage, byte [] data) { 
+    public Data(int index, int stage, byte[] data) {
         this.index = index;
         this.stage = stage;
         this.data = data;

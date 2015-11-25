@@ -9,21 +9,22 @@ import ibis.constellation.context.UnitWorkerContext;
 
 public class CreateTest {
 
-    public static void main(String [] args) { 
-  
+    public static void main(String[] args) {
+
         // Simple test that creates, starts and stops a cohort
         try {
-        	  int executors = Integer.parseInt(args[0]);
-              
-              Executor [] e = new Executor[executors];
-              
-              for (int i=0;i<executors;i++) { 
-                  e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT"), StealStrategy.ANY); 
-              }
-              
-              Constellation c = ConstellationFactory.createConstellation(e);
-              c.activate();
-              c.done();
+            int executors = Integer.parseInt(args[0]);
+
+            Executor[] e = new Executor[executors];
+
+            for (int i = 0; i < executors; i++) {
+                e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT"),
+                        StealStrategy.ANY);
+            }
+
+            Constellation c = ConstellationFactory.createConstellation(e);
+            c.activate();
+            c.done();
         } catch (Exception e) {
             e.printStackTrace();
         }

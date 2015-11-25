@@ -8,17 +8,17 @@ import ibis.constellation.context.UnitActivityContext;
 public class Stage5 extends Activity {
 
     private static final long serialVersionUID = -2003940189338627474L;
-    
+
     private final ActivityIdentifier parent;
     private final long sleep;
-   
+
     private Data result3;
     private Data result4;
- 
-    public Stage5(ActivityIdentifier parent, int index, long sleep) { 
-        
+
+    public Stage5(ActivityIdentifier parent, int index, long sleep) {
+
         super(new UnitActivityContext("E", index), true);
-   
+
         this.parent = parent;
         this.sleep = sleep;
     }
@@ -27,7 +27,7 @@ public class Stage5 extends Activity {
     public void initialize() throws Exception {
         suspend();
     }
-    
+
     @Override
     public void cancel() throws Exception {
         // Not used
@@ -35,42 +35,42 @@ public class Stage5 extends Activity {
 
     @Override
     public void cleanup() throws Exception {
-       
+
         Data result = processData();
-        
+
         System.out.println("Finished pipeline: " + result.index);
-        
+
         executor.send(new Event(identifier(), parent, result));
     }
-  
-    private Data processData() { 
-        
+
+    private Data processData() {
+
         // Simulate some processing here that takes 'sleep' time
-        if (sleep > 0) { 
-            try { 
+        if (sleep > 0) {
+            try {
                 Thread.sleep(sleep);
             } catch (Exception e) {
                 // ignored
             }
         }
-        
+
         return new Data(result3.index, 5, result3.data);
     }
-    
+
     @Override
     public void process(Event e) throws Exception {
 
         Data data = (Data) e.data;
-       
-        if (data.stage == 3) { 
+
+        if (data.stage == 3) {
             result3 = data;
-        } else { 
+        } else {
             result4 = data;
         }
-        
-        if (result3 != null && result4 != null) { 
+
+        if (result3 != null && result4 != null) {
             finish();
-        } else { 
+        } else {
             suspend();
         }
     }

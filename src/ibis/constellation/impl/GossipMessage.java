@@ -9,12 +9,12 @@ public class GossipMessage extends Message {
     private Gossip[] gossip;
 
     public GossipMessage(ConstellationIdentifier source,
-	    ConstellationIdentifier target, Gossip[] gossip) {
-	super(source, target);
-	this.gossip = gossip;
+            ConstellationIdentifier target, Gossip[] gossip) {
+        super(source, target);
+        this.gossip = gossip;
     }
 
     public Gossip[] getGossip() {
-	return gossip;
+        return gossip;
     }
 }

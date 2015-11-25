@@ -19,33 +19,32 @@ public class SpawnTest {
 
     public static void main(String[] args) {
 
-	try {
-	    Constellation c = ConstellationFactory
-		    .createConstellation(new SimpleExecutor(
-			    new UnitWorkerContext("TEST"),
-			    StealStrategy.SMALLEST, StealStrategy.BIGGEST,
-			    StealStrategy.BIGGEST));
+        try {
+            Constellation c = ConstellationFactory.createConstellation(
+                    new SimpleExecutor(new UnitWorkerContext("TEST"),
+                            StealStrategy.SMALLEST, StealStrategy.BIGGEST,
+                            StealStrategy.BIGGEST));
 
-	    c.activate();
+            c.activate();
 
-	    if (c.isMaster()) {
-		for (int i = 0; i < REPEAT; i++) {
-		    SingleEventCollector a = new SingleEventCollector(
-			    new UnitActivityContext("TEST"));
-		    c.submit(a);
-		    c.submit(new TestLoop(a.identifier(), COUNT, CONCURRENT,
-			    SPAWNS_PER_SYNC));
-		    a.waitForEvent();
-		}
-	    }
+            if (c.isMaster()) {
+                for (int i = 0; i < REPEAT; i++) {
+                    SingleEventCollector a = new SingleEventCollector(
+                            new UnitActivityContext("TEST"));
+                    c.submit(a);
+                    c.submit(new TestLoop(a.identifier(), COUNT, CONCURRENT,
+                            SPAWNS_PER_SYNC));
+                    a.waitForEvent();
+                }
+            }
 
-	    c.done();
+            c.done();
 
-	} catch (Exception e) {
-	    System.err.println("Oops: " + e);
-	    e.printStackTrace(System.err);
-	    System.exit(1);
-	}
+        } catch (Exception e) {
+            System.err.println("Oops: " + e);
+            e.printStackTrace(System.err);
+            System.exit(1);
+        }
     }
 
 }

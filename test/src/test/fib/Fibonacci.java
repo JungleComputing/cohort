@@ -24,96 +24,97 @@ public class Fibonacci extends Activity {
     private int merged = 0;
 
     public Fibonacci(ActivityIdentifier parent, int input, boolean top) {
-    	super(new UnitActivityContext("DEFAULT", input), input > 1);
+        super(new UnitActivityContext("DEFAULT", input), input > 1);
         this.parent = parent;
         this.input = input;
         this.top = top;
 
-        if (top) { 
-        	System.out.println("fib " + input + " created.");
+        if (top) {
+            System.out.println("fib " + input + " created.");
         }
     }
-    
+
     public Fibonacci(ActivityIdentifier parent, int input) {
-    	this(parent, input, false);
+        this(parent, input, false);
     }
 
     @Override
     public void initialize() throws Exception {
 
-    	if (top) { 
-    		System.out.println("fib " + input + " running.");
-    	}
-    	
+        if (top) {
+            System.out.println("fib " + input + " running.");
+        }
+
         if (input == 0 || input == 1) {
             output = input;
             finish();
-        } else { 
-            executor.submit(new Fibonacci(identifier(), input-1));
-            executor.submit(new Fibonacci(identifier(), input-2));
+        } else {
+            executor.submit(new Fibonacci(identifier(), input - 1));
+            executor.submit(new Fibonacci(identifier(), input - 2));
             suspend();
-        } 
+        }
     }
 
     @Override
     public void process(Event e) throws Exception {
-        
-    	if (top) { 
-    		System.out.println("fib " + input + " got event.");
-    	}
-    	
-    	output += (Integer) e.data;
+
+        if (top) {
+            System.out.println("fib " + input + " got event.");
+        }
+
+        output += (Integer) e.data;
         merged++;
-      
-        if (merged < 2) { 
+
+        if (merged < 2) {
             suspend();
-        } else { 
+        } else {
             finish();
         }
     }
 
     @Override
     public void cleanup() throws Exception {
-     	
-    	if (top) { 
-    		System.out.println("fib " + input + " done.");
-    	}
-    	
+
+        if (top) {
+            System.out.println("fib " + input + " done.");
+        }
+
         if (parent != null) {
-        	executor.send(new Event(identifier(), parent, output));
+            executor.send(new Event(identifier(), parent, output));
         }
     }
-    
-    public String toString() { 
-        return "Fib(" + identifier() + ") " + input + ", " + merged + " -> " + output;
+
+    public String toString() {
+        return "Fib(" + identifier() + ") " + input + ", " + merged + " -> "
+                + output;
     }
 
-    public static void main(String [] args) throws Exception { 
+    public static void main(String[] args) throws Exception {
 
         long start = System.currentTimeMillis();
 
         int index = 0;
-        
+
         int executors = Integer.parseInt(args[index++]);
-       
-        Executor [] e = new Executor[executors];
-        
-        for (int i=0;i<executors;i++) { 
-            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT"), 
-            		StealStrategy.SMALLEST, StealStrategy.BIGGEST);
+
+        Executor[] e = new Executor[executors];
+
+        for (int i = 0; i < executors; i++) {
+            e[i] = new SimpleExecutor(new UnitWorkerContext("DEFAULT"),
+                    StealStrategy.SMALLEST, StealStrategy.BIGGEST);
         }
-        
+
         Constellation c = ConstellationFactory.createConstellation(e);
         c.activate();
-        
+
         int input = Integer.parseInt(args[index++]);
 
-        if (c.isMaster()) { 
-       
+        if (c.isMaster()) {
+
             System.out.println("Starting as master!");
-            
+
             SingleEventCollector a = new SingleEventCollector();
-            
+
             ActivityIdentifier aid = c.submit(a);
             c.submit(new Fibonacci(aid, input, true));
 
@@ -123,14 +124,14 @@ public class Fibonacci extends Activity {
 
             long end = System.currentTimeMillis();
 
-            System.out.println("FIB: Fib(" + input + ") = " + result + " (" 
-                    + (end-start) + ")");
-        } else { 
+            System.out.println("FIB: Fib(" + input + ") = " + result + " ("
+                    + (end - start) + ")");
+        } else {
             System.out.println("Starting as slave!");
             c.done();
         }
     }
-   
+
     @Override
     public void cancel() throws Exception {
         // not used

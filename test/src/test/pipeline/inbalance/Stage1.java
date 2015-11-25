@@ -7,29 +7,30 @@ import ibis.constellation.context.UnitActivityContext;
 public class Stage1 extends SimpleActivity {
 
     private static final long serialVersionUID = -3987089095770723454L;
-   
+
     private final long sleep;
     private final Data data;
-    
-    public Stage1(ActivityIdentifier parent, long sleep, Data data) { 
-        
+
+    public Stage1(ActivityIdentifier parent, long sleep, Data data) {
+
         super(parent, new UnitActivityContext("A", data.index));
-        
+
         this.sleep = sleep;
         this.data = data;
     }
-    
+
     @Override
     public void simpleActivity() throws Exception {
-   
-        if (sleep > 0) { 
-            try { 
+
+        if (sleep > 0) {
+            try {
                 Thread.sleep(sleep);
             } catch (Exception e) {
                 // ignored
             }
         }
-      
-        executor.submit(new Stage2(parent, 200, new Data(data.index, 1, data.data)));       
+
+        executor.submit(
+                new Stage2(parent, 200, new Data(data.index, 1, data.data)));
     }
 }

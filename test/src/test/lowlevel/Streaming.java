@@ -13,25 +13,27 @@ import ibis.constellation.context.UnitActivityContext;
 import ibis.constellation.context.UnitWorkerContext;
 
 public class Streaming extends Activity {
-    
+
     /*
-     * This is a simple streaming example. A sequence of activities is created (length 
-     * specified on commandline). The first activity repeatedly sends and object to the 
-     * second activity, which forwards it to the third, etc. Once all object have been    
-     * received by the last activity, it sends a reply to the application.
+     * This is a simple streaming example. A sequence of activities is created
+     * (length specified on commandline). The first activity repeatedly sends
+     * and object to the second activity, which forwards it to the third, etc.
+     * Once all object have been received by the last activity, it sends a reply
+     * to the application.
      */
-    
+
     private static final long serialVersionUID = 3379531054395374984L;
 
     private final ActivityIdentifier root;
     private ActivityIdentifier next;
-    
+
     private final int length;
     private final int index;
     private final int totaldata;
     private int dataSeen;
-    
-    public Streaming(ActivityIdentifier root, int length, int index, int totaldata) {
+
+    public Streaming(ActivityIdentifier root, int length, int index,
+            int totaldata) {
         super(new UnitActivityContext("S", index), true);
         this.root = root;
         this.length = length;
@@ -44,24 +46,25 @@ public class Streaming extends Activity {
 
         if (index < length) {
             // Submit the next job in the sequence
-            next = executor.submit(new Streaming(root, length, index+1, totaldata));
-        } 
-  
+            next = executor
+                    .submit(new Streaming(root, length, index + 1, totaldata));
+        }
+
         suspend();
     }
 
     @Override
     public void process(Event e) throws Exception {
 
-        if (next != null) { 
+        if (next != null) {
             executor.send(new Event(identifier(), next, e.data));
         }
-        
+
         dataSeen++;
-        
-        if (dataSeen == totaldata) { 
+
+        if (dataSeen == totaldata) {
             finish();
-        } else { 
+        } else {
             suspend();
         }
     }
@@ -69,63 +72,67 @@ public class Streaming extends Activity {
     @Override
     public void cleanup() throws Exception {
 
-        if (next == null) { 
+        if (next == null) {
             // only the last replies!
             executor.send(new Event(identifier(), root, dataSeen));
         }
     }
-    
-    public String toString() { 
+
+    public String toString() {
         return "Streaming(" + identifier() + ") " + length;
     }
 
-    public static void main(String [] args) throws Exception { 
+    public static void main(String[] args) throws Exception {
 
         long start = System.currentTimeMillis();
 
         int index = 0;
-        
+
         int length = Integer.parseInt(args[index++]);
         int data = Integer.parseInt(args[index++]);
         int executors = Integer.parseInt(args[index++]);
-        
-        System.out.println("Running Streaming with series length " + length 
+
+        System.out.println("Running Streaming with series length " + length
                 + " and " + data + " messages " + executors + " Executors");
-        
-        Executor [] e = new Executor[executors];
-        
-        for (int i=0;i<executors;i++) { 
-            e[i] = new SimpleExecutor(new UnitWorkerContext("S"), StealStrategy.SMALLEST, StealStrategy.BIGGEST);
+
+        Executor[] e = new Executor[executors];
+
+        for (int i = 0; i < executors; i++) {
+            e[i] = new SimpleExecutor(new UnitWorkerContext("S"),
+                    StealStrategy.SMALLEST, StealStrategy.BIGGEST);
         }
-        
+
         Constellation c = ConstellationFactory.createConstellation(e);
         c.activate();
-        
-        if (c.isMaster()) { 
 
-        	SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("S"));
+        if (c.isMaster()) {
 
-        	c.submit(a);
+            SingleEventCollector a = new SingleEventCollector(
+                    new UnitActivityContext("S"));
 
-        	ActivityIdentifier aid = c.submit(new Streaming(a.identifier(), length, 0, data));
+            c.submit(a);
 
-        	for (int i=0;i<data;i++) { 
-        		c.send(new Event(a.identifier(), aid, i));
-        	}
+            ActivityIdentifier aid = c
+                    .submit(new Streaming(a.identifier(), length, 0, data));
 
-        	long result = (Long) a.waitForEvent().data;
+            for (int i = 0; i < data; i++) {
+                c.send(new Event(a.identifier(), aid, i));
+            }
 
-        	long end = System.currentTimeMillis();
+            long result = (Long) a.waitForEvent().data;
 
-        	double nsPerJob = (1000.0*1000.0 * (end-start)) / (data*length);
+            long end = System.currentTimeMillis();
 
-        	String correct = (result == data) ? " (CORRECT)" : " (WRONG!)";
+            double nsPerJob = (1000.0 * 1000.0 * (end - start))
+                    / (data * length);
 
-        	System.out.println("Series(" + length + ", " + data + ") = " + result + 
-        			correct + " total time = " + (end-start) + 
-        			" job time = " + nsPerJob + " nsec/job");
+            String correct = (result == data) ? " (CORRECT)" : " (WRONG!)";
+
+            System.out.println("Series(" + length + ", " + data + ") = "
+                    + result + correct + " total time = " + (end - start)
+                    + " job time = " + nsPerJob + " nsec/job");
         }
-        
+
         c.done();
 
     }
@@ -133,8 +140,7 @@ public class Streaming extends Activity {
     @Override
     public void cancel() throws Exception {
         // TODO Auto-generated method stub
-        
-    }
 
+    }
 
 }

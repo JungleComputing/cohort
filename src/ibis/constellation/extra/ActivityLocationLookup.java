@@ -7,18 +7,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ActivityLocationLookup {
 
-	private ConcurrentHashMap<ActivityIdentifier, ConstellationIdentifier> locations = 
-		new ConcurrentHashMap<ActivityIdentifier, ConstellationIdentifier>();
+    private ConcurrentHashMap<ActivityIdentifier, ConstellationIdentifier> locations = new ConcurrentHashMap<ActivityIdentifier, ConstellationIdentifier>();
 
-	public void add(ActivityIdentifier aid, ConstellationIdentifier cid) {     	
-		locations.put(aid, cid);
-	}
+    public void add(ActivityIdentifier aid, ConstellationIdentifier cid) {
+        locations.put(aid, cid);
+    }
 
-	public ConstellationIdentifier remove(ActivityIdentifier aid) { 
-		return locations.remove(aid);
-	}
+    public ConstellationIdentifier remove(ActivityIdentifier aid) {
+        return locations.remove(aid);
+    }
 
-	public ConstellationIdentifier lookup(ActivityIdentifier aid) { 
-		return locations.get(aid);
-	}
+    public ConstellationIdentifier lookup(ActivityIdentifier aid) {
+        return locations.get(aid);
+    }
 }

@@ -8,24 +8,24 @@ import ibis.constellation.context.UnitActivityContext;
 public class SingleTest extends Activity {
 
     private static final long serialVersionUID = 5970093414747228592L;
-    
+
     private final ActivityIdentifier parent;
-    
+
     private final int spawns;
     private int replies;
-    
+
     public SingleTest(ActivityIdentifier parent, int spawns) {
         super(new UnitActivityContext("TEST", 2), true);
         this.parent = parent;
-        this.spawns= spawns;
+        this.spawns = spawns;
     }
 
     @Override
     public void initialize() throws Exception {
-        for (int i=0;i<spawns;i++) { 
+        for (int i = 0; i < spawns; i++) {
             executor.submit(new Dummy(identifier()));
         }
-        
+
         suspend();
     }
 
@@ -33,11 +33,11 @@ public class SingleTest extends Activity {
     public void process(Event e) throws Exception {
 
         replies++;
-        
-        if (replies == spawns) { 
+
+        if (replies == spawns) {
             executor.send(new Event(identifier(), parent, null));
             finish();
-        } else { 
+        } else {
             suspend();
         }
     }
@@ -49,7 +49,7 @@ public class SingleTest extends Activity {
 
     @Override
     public void cancel() throws Exception {
-    	// unused
+        // unused
     }
 
 }

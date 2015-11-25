@@ -15,22 +15,23 @@ import ibis.constellation.context.UnitWorkerContext;
 public class DivideAndConquerClean extends Activity {
 
     /*
-     * This is a simple divide and conquer example. The user can specify the branch factor 
-     * and tree depth on the command line. All the application does is calculate the sum of 
-     * the number of nodes in each subtree. 
+     * This is a simple divide and conquer example. The user can specify the
+     * branch factor and tree depth on the command line. All the application
+     * does is calculate the sum of the number of nodes in each subtree.
      */
-    
+
     private static final long serialVersionUID = 3379531054395374984L;
 
     private final ActivityIdentifier parent;
 
     private final int branch;
     private final int depth;
-    
-    private int merged = 0;    
+
+    private int merged = 0;
     private long count = 1;
-    
-    public DivideAndConquerClean(ActivityIdentifier parent, int branch, int depth) {
+
+    public DivideAndConquerClean(ActivityIdentifier parent, int branch,
+            int depth) {
         super(new UnitActivityContext("DC", depth), depth > 0);
         this.parent = parent;
         this.branch = branch;
@@ -43,93 +44,97 @@ public class DivideAndConquerClean extends Activity {
         if (depth == 0) {
             finish();
         } else {
-            for (int i=0;i<branch;i++) { 
-                executor.submit(new DivideAndConquerClean(identifier(), branch, depth-1));
+            for (int i = 0; i < branch; i++) {
+                executor.submit(new DivideAndConquerClean(identifier(), branch,
+                        depth - 1));
             }
             suspend();
-        } 
+        }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
-        
+
         count += (Long) e.data;
 
         merged++;
-      
-        if (merged < branch) { 
+
+        if (merged < branch) {
             suspend();
-        } else { 
+        } else {
             finish();
         }
     }
 
     @Override
     public void cleanup() throws Exception {
-        executor.send(new Event(identifier(), parent, count));        
-    }
-    
-    public String toString() { 
-        return "DC(" + identifier() + ") " + branch + ", " + depth + ", " 
-            + merged + " -> " + count;
+        executor.send(new Event(identifier(), parent, count));
     }
 
-    public static void main(String [] args) throws Exception { 
+    @Override
+    public String toString() {
+        return "DC(" + identifier() + ") " + branch + ", " + depth + ", "
+                + merged + " -> " + count;
+    }
+
+    public static void main(String[] args) throws Exception {
 
         long start = System.currentTimeMillis();
 
         int index = 0;
-        
+
         int executors = Integer.parseInt(args[index++]);
-       
-        Executor [] e = new Executor[executors];
-        
-        for (int i=0;i<executors;i++) { 
-            e[i] = new SimpleExecutor(new UnitWorkerContext("DC"), StealStrategy.SMALLEST, StealStrategy.BIGGEST);
+
+        Executor[] e = new Executor[executors];
+
+        for (int i = 0; i < executors; i++) {
+            e[i] = new SimpleExecutor(new UnitWorkerContext("DC"),
+                    StealStrategy.SMALLEST, StealStrategy.BIGGEST);
         }
-        
+
         Constellation c = ConstellationFactory.createConstellation(e);
         c.activate();
-        
+
         int branch = Integer.parseInt(args[index++]);
-        int depth =  Integer.parseInt(args[index++]);
-        
+        int depth = Integer.parseInt(args[index++]);
+
         long count = 0;
-        
-        for (int i=0;i<=depth;i++) { 
-           count += Math.pow(branch, i);
+
+        for (int i = 0; i <= depth; i++) {
+            count += Math.pow(branch, i);
         }
-        
-        if (c.isMaster()) { 
 
-        	System.out.println("Running D&C with branch factor " + branch + " and depth " 
-        			+ depth + " (expected jobs: " + count + ")");
+        if (c.isMaster()) {
 
-        	SingleEventCollector a = new SingleEventCollector(new UnitActivityContext("DC"));
+            System.out.println(
+                    "Running D&C with branch factor " + branch + " and depth "
+                            + depth + " (expected jobs: " + count + ")");
 
-        	c.submit(a);
-        	c.submit(new DivideAndConquerClean(a.identifier(), branch, depth));
+            SingleEventCollector a = new SingleEventCollector(
+                    new UnitActivityContext("DC"));
 
-        	long result = (Long) a.waitForEvent().data;
+            c.submit(a);
+            c.submit(new DivideAndConquerClean(a.identifier(), branch, depth));
 
-        	long end = System.currentTimeMillis();
+            long result = (Long) a.waitForEvent().data;
 
-        	double nsPerJob = (1000.0*1000.0 * (end-start)) / count;
+            long end = System.currentTimeMillis();
 
-        	String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
+            double nsPerJob = (1000.0 * 1000.0 * (end - start)) / count;
 
-        	System.out.println("D&C(" + branch + ", " + depth + ") = " + result + 
-        			correct + " total time = " + (end-start) + " job time = " + nsPerJob + " nsec/job");
+            String correct = (result == count) ? " (CORRECT)" : " (WRONG!)";
+
+            System.out.println("D&C(" + branch + ", " + depth + ") = " + result
+                    + correct + " total time = " + (end - start)
+                    + " job time = " + nsPerJob + " nsec/job");
         }
-        
+
         c.done();
     }
 
     @Override
     public void cancel() throws Exception {
-        // Not used        
+        // Not used
     }
-
 
 }

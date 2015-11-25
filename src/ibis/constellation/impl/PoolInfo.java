@@ -18,57 +18,57 @@ public class PoolInfo implements Serializable {
     private ArrayList<IbisIdentifier> members;
 
     PoolInfo(String tag, IbisIdentifier master, boolean isMaster) {
-	this.tag = tag;
-	this.master = master;
-	this.isMaster = isMaster;
-	this.isDummy = false;
-	members = new ArrayList<IbisIdentifier>();
-	members.add(master);
-	timestamp = 1;
+        this.tag = tag;
+        this.master = master;
+        this.isMaster = isMaster;
+        this.isDummy = false;
+        members = new ArrayList<IbisIdentifier>();
+        members.add(master);
+        timestamp = 1;
     }
 
     PoolInfo(String tag) {
-	this.tag = tag;
-	this.master = null;
-	this.isMaster = false;
-	this.isDummy = true;
-	members = new ArrayList<IbisIdentifier>();
-	timestamp = 1;
+        this.tag = tag;
+        this.master = null;
+        this.isMaster = false;
+        this.isDummy = true;
+        members = new ArrayList<IbisIdentifier>();
+        timestamp = 1;
     }
 
     PoolInfo(PoolInfo other, IbisIdentifier master) {
-	this.tag = other.tag;
-	this.master = master;
-	this.isMaster = true;
-	this.isDummy = true;
-	members = other.members;
-	timestamp = other.timestamp;
-	members.add(master);
+        this.tag = other.tag;
+        this.master = master;
+        this.isMaster = true;
+        this.isDummy = true;
+        members = other.members;
+        timestamp = other.timestamp;
+        members.add(master);
     }
 
     synchronized boolean hasMembers() {
-	return members.size() != 0;
+        return members.size() != 0;
     }
 
     synchronized void addMember(IbisIdentifier id) {
-	members.add(id);
-	timestamp++;
+        members.add(id);
+        timestamp++;
     }
 
     synchronized void removeMember(IbisIdentifier id) {
-	members.remove(id);
-	timestamp++;
+        members.remove(id);
+        timestamp++;
     }
 
     synchronized int nMembers() {
-	return members.size();
+        return members.size();
     }
 
     synchronized long currentTimeStamp() {
-	return timestamp;
+        return timestamp;
     }
 
     synchronized IbisIdentifier selectRandom(Random random) {
-	return members.get(random.nextInt(members.size()));
+        return members.get(random.nextInt(members.size()));
     }
 }

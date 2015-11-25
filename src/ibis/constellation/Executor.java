@@ -21,8 +21,9 @@ public abstract class Executor implements Serializable {
 
     private ExecutorWrapper owner = null;
 
-    protected Executor(StealPool myPool, StealPool stealsFrom, WorkerContext context,
-            StealStrategy localStealStrategy, StealStrategy constellationStealStrategy,
+    protected Executor(StealPool myPool, StealPool stealsFrom,
+            WorkerContext context, StealStrategy localStealStrategy,
+            StealStrategy constellationStealStrategy,
             StealStrategy remoteStealStrategy) {
 
         if (myPool == null) {

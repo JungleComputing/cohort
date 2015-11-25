@@ -34,105 +34,104 @@ public class DivideAndConquerSpawnTest extends Activity {
     private long start;
 
     public DivideAndConquerSpawnTest(ActivityIdentifier parent, boolean spawn) {
-	super(new UnitActivityContext("DC"), spawn);
-	this.parent = parent;
-	this.spawn = spawn;
+        super(new UnitActivityContext("DC"), spawn);
+        this.parent = parent;
+        this.spawn = spawn;
     }
 
     private void spawnAll() {
-	for (int i = 0; i < SPAWNS_PER_SYNC; i++) {
-	    executor.submit(new DivideAndConquerSpawnTest(identifier(), false));
-	}
+        for (int i = 0; i < SPAWNS_PER_SYNC; i++) {
+            executor.submit(new DivideAndConquerSpawnTest(identifier(), false));
+        }
     }
 
     @Override
     public void initialize() throws Exception {
 
-	if (spawn) {
+        if (spawn) {
 
-	    start = System.currentTimeMillis();
+            start = System.currentTimeMillis();
 
-	    spawnAll();
-	    suspend();
-	} else {
-	    executor.send(new Event(identifier(), parent, 1));
-	    finish();
-	}
+            spawnAll();
+            suspend();
+        } else {
+            executor.send(new Event(identifier(), parent, 1));
+            finish();
+        }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void process(Event e) throws Exception {
 
-	merged++;
+        merged++;
 
-	if (merged < SPAWNS_PER_SYNC) {
-	    suspend();
-	    return;
-	}
+        if (merged < SPAWNS_PER_SYNC) {
+            suspend();
+            return;
+        }
 
-	// We have finished one set of spawns
-	merged = 0;
-	test++;
+        // We have finished one set of spawns
+        merged = 0;
+        test++;
 
-	if (test <= COUNT) {
-	    spawnAll();
-	    suspend();
-	    return;
-	}
+        if (test <= COUNT) {
+            spawnAll();
+            suspend();
+            return;
+        }
 
-	// We have finished one iteration
-	long end = System.currentTimeMillis();
+        // We have finished one iteration
+        long end = System.currentTimeMillis();
 
-	double timeSatin = (end - start) / 1000.0;
-	double cost = ((end - start) * 1000.0) / (SPAWNS_PER_SYNC * COUNT);
+        double timeSatin = (end - start) / 1000.0;
+        double cost = ((end - start) * 1000.0) / (SPAWNS_PER_SYNC * COUNT);
 
-	System.out.println("spawn = " + timeSatin + " s, time/spawn = " + cost
-		+ " us/spawn");
+        System.out.println("spawn = " + timeSatin + " s, time/spawn = " + cost
+                + " us/spawn");
 
-	test = 0;
-	repeat++;
+        test = 0;
+        repeat++;
 
-	if (repeat < REPEAT) {
-	    start = System.currentTimeMillis();
-	    spawnAll();
-	    suspend();
-	    return;
-	}
+        if (repeat < REPEAT) {
+            start = System.currentTimeMillis();
+            spawnAll();
+            suspend();
+            return;
+        }
 
-	// We have finished completely
-	finish();
+        // We have finished completely
+        finish();
     }
 
     @Override
     public void cleanup() throws Exception {
-	// empty!
+        // empty!
     }
 
     public static void main(String[] args) throws Exception {
 
-	Constellation c = ConstellationFactory
-		.createConstellation(new SimpleExecutor(new UnitWorkerContext(
-			"DC"), StealStrategy.ANY));
-	c.activate();
+        Constellation c = ConstellationFactory.createConstellation(
+                new SimpleExecutor(new UnitWorkerContext("DC"),
+                        StealStrategy.ANY));
+        c.activate();
 
-	if (c.isMaster()) {
+        if (c.isMaster()) {
 
-	    SingleEventCollector a = new SingleEventCollector(
-		    new UnitActivityContext("DC"));
+            SingleEventCollector a = new SingleEventCollector(
+                    new UnitActivityContext("DC"));
 
-	    c.submit(a);
-	    c.submit(new DivideAndConquerSpawnTest(a.identifier(), true));
+            c.submit(a);
+            c.submit(new DivideAndConquerSpawnTest(a.identifier(), true));
 
-	    a.waitForEvent();
+            a.waitForEvent();
 
-	}
-	c.done();
+        }
+        c.done();
 
     }
 
     @Override
     public void cancel() throws Exception {
-	// not used
+        // not used
     }
 }

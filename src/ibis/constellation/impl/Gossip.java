@@ -12,10 +12,10 @@ public class Gossip implements Serializable {
     public final ConstellationIdentifier id;
     public final WorkerContext context;
     public final long timestamp;
-  
-    public Gossip(final ConstellationIdentifier id, final WorkerContext context, 
+
+    public Gossip(final ConstellationIdentifier id, final WorkerContext context,
             final long timestamp) {
-       
+
         super();
         this.id = id;
         this.context = context;

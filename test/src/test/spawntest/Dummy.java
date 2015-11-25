@@ -16,15 +16,15 @@ public class Dummy extends SimpleActivity {
 
     @Override
     public void simpleActivity() throws Exception {
-        
+
         double tmp = 0.33333333;
-        
+
         long time = System.currentTimeMillis();
-        
+
         do {
             tmp = Math.cos(tmp);
-        } while (System.currentTimeMillis()  - time < 10);
-        
+        } while (System.currentTimeMillis() - time < 10);
+
         executor.send(new Event(identifier(), parent, null));
         finish();
     }
